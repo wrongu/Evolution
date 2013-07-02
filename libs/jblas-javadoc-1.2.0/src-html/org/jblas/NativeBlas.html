@@ -1,0 +1,495 @@
+<HTML>
+<BODY BGCOLOR="white">
+<PRE>
+<FONT color="green">001</FONT>    // --- BEGIN LICENSE BLOCK ---<a name="line.1"></a>
+<FONT color="green">002</FONT>    /* <a name="line.2"></a>
+<FONT color="green">003</FONT>     * Copyright (c) 2009, Mikio L. Braun<a name="line.3"></a>
+<FONT color="green">004</FONT>     * All rights reserved.<a name="line.4"></a>
+<FONT color="green">005</FONT>     * <a name="line.5"></a>
+<FONT color="green">006</FONT>     * Redistribution and use in source and binary forms, with or without<a name="line.6"></a>
+<FONT color="green">007</FONT>     * modification, are permitted provided that the following conditions are<a name="line.7"></a>
+<FONT color="green">008</FONT>     * met:<a name="line.8"></a>
+<FONT color="green">009</FONT>     * <a name="line.9"></a>
+<FONT color="green">010</FONT>     *     * Redistributions of source code must retain the above copyright<a name="line.10"></a>
+<FONT color="green">011</FONT>     *       notice, this list of conditions and the following disclaimer.<a name="line.11"></a>
+<FONT color="green">012</FONT>     * <a name="line.12"></a>
+<FONT color="green">013</FONT>     *     * Redistributions in binary form must reproduce the above<a name="line.13"></a>
+<FONT color="green">014</FONT>     *       copyright notice, this list of conditions and the following<a name="line.14"></a>
+<FONT color="green">015</FONT>     *       disclaimer in the documentation and/or other materials provided<a name="line.15"></a>
+<FONT color="green">016</FONT>     *       with the distribution.<a name="line.16"></a>
+<FONT color="green">017</FONT>     * <a name="line.17"></a>
+<FONT color="green">018</FONT>     *     * Neither the name of the Technische Universität Berlin nor the<a name="line.18"></a>
+<FONT color="green">019</FONT>     *       names of its contributors may be used to endorse or promote<a name="line.19"></a>
+<FONT color="green">020</FONT>     *       products derived from this software without specific prior<a name="line.20"></a>
+<FONT color="green">021</FONT>     *       written permission.<a name="line.21"></a>
+<FONT color="green">022</FONT>     * <a name="line.22"></a>
+<FONT color="green">023</FONT>     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS<a name="line.23"></a>
+<FONT color="green">024</FONT>     * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT<a name="line.24"></a>
+<FONT color="green">025</FONT>     * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR<a name="line.25"></a>
+<FONT color="green">026</FONT>     * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT<a name="line.26"></a>
+<FONT color="green">027</FONT>     * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,<a name="line.27"></a>
+<FONT color="green">028</FONT>     * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT<a name="line.28"></a>
+<FONT color="green">029</FONT>     * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,<a name="line.29"></a>
+<FONT color="green">030</FONT>     * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY<a name="line.30"></a>
+<FONT color="green">031</FONT>     * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT<a name="line.31"></a>
+<FONT color="green">032</FONT>     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE<a name="line.32"></a>
+<FONT color="green">033</FONT>     * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.<a name="line.33"></a>
+<FONT color="green">034</FONT>     */<a name="line.34"></a>
+<FONT color="green">035</FONT>    // --- END LICENSE BLOCK ---<a name="line.35"></a>
+<FONT color="green">036</FONT>    package org.jblas;<a name="line.36"></a>
+<FONT color="green">037</FONT>    <a name="line.37"></a>
+<FONT color="green">038</FONT>    import org.jblas.util.Logger;<a name="line.38"></a>
+<FONT color="green">039</FONT>    <a name="line.39"></a>
+<FONT color="green">040</FONT>    /**<a name="line.40"></a>
+<FONT color="green">041</FONT>     * Native BLAS and LAPACK functions.<a name="line.41"></a>
+<FONT color="green">042</FONT>     *<a name="line.42"></a>
+<FONT color="green">043</FONT>     * &lt;p&gt;The NativeBlas class contains the native BLAS and LAPACK functions. Each<a name="line.43"></a>
+<FONT color="green">044</FONT>     * Fortran function is mapped to a static method of this class. For each array argument,<a name="line.44"></a>
+<FONT color="green">045</FONT>     * an additional parameter is introduced which gives the offset from the beginning of<a name="line.45"></a>
+<FONT color="green">046</FONT>     * the passed array. In C, you would be able to pass a different pointer, but<a name="line.46"></a>
+<FONT color="green">047</FONT>     * in Java, you can only pass the whole array.&lt;/p&gt;<a name="line.47"></a>
+<FONT color="green">048</FONT>     *<a name="line.48"></a>
+<FONT color="green">049</FONT>     * &lt;p&gt;Note that due to the way the JNI is usually implemented, the arrays are first<a name="line.49"></a>
+<FONT color="green">050</FONT>     * copied outside of the JVM before the function is called. This means that<a name="line.50"></a>
+<FONT color="green">051</FONT>     * functions whose runtime is linear in the amount of memory do usually not<a name="line.51"></a>
+<FONT color="green">052</FONT>     * run faster just because you are using a native implementation. This holds true<a name="line.52"></a>
+<FONT color="green">053</FONT>     * for most Level 1 BLAS routines (like vector addition), and unfortunately also<a name="line.53"></a>
+<FONT color="green">054</FONT>     * for most Level 2 BLAS routines (like matrix-vector multiplication). For these,<a name="line.54"></a>
+<FONT color="green">055</FONT>     * there exists a class JavaBlas which contains Java implementations.&lt;/p&gt;<a name="line.55"></a>
+<FONT color="green">056</FONT>     *<a name="line.56"></a>
+<FONT color="green">057</FONT>     * &lt;p&gt;In LAPACK, there exist routines which require workspace to be allocated together<a name="line.57"></a>
+<FONT color="green">058</FONT>     * with a standard procedure for computing the size of these workspaces. jblas<a name="line.58"></a>
+<FONT color="green">059</FONT>     * automatically also generates wrappers for these routines with automatic<a name="line.59"></a>
+<FONT color="green">060</FONT>     * workspace allocation. These routines have the same name, but the workspace<a name="line.60"></a>
+<FONT color="green">061</FONT>     * arguments are removed.&lt;/p&gt;<a name="line.61"></a>
+<FONT color="green">062</FONT>     *<a name="line.62"></a>
+<FONT color="green">063</FONT>     * &lt;p&gt;Finally, an example: The fortran routine&lt;pre&gt;<a name="line.63"></a>
+<FONT color="green">064</FONT>     * SUBROUTINE DAXPY(N,DA,DX,INCX,DY,INCY)<a name="line.64"></a>
+<FONT color="green">065</FONT>     *     DOUBLE PRECISION DA<a name="line.65"></a>
+<FONT color="green">066</FONT>     *     INTEGER INCX,INCY,N<a name="line.66"></a>
+<FONT color="green">067</FONT>     *     DOUBLE PRECISION DX(*),DY(*)<a name="line.67"></a>
+<FONT color="green">068</FONT>     * &lt;/pre&gt;<a name="line.68"></a>
+<FONT color="green">069</FONT>     * becomes &lt;pre&gt;<a name="line.69"></a>
+<FONT color="green">070</FONT>     * public static native void daxpy(int n, double da, double[] dx, int dxIdx,<a name="line.70"></a>
+<FONT color="green">071</FONT>     *    int incx, double[] dy, int dyIdx, int incy);<a name="line.71"></a>
+<FONT color="green">072</FONT>     * &lt;/pre&gt;<a name="line.72"></a>
+<FONT color="green">073</FONT>     */<a name="line.73"></a>
+<FONT color="green">074</FONT>    public class NativeBlas {<a name="line.74"></a>
+<FONT color="green">075</FONT>    <a name="line.75"></a>
+<FONT color="green">076</FONT>      static {<a name="line.76"></a>
+<FONT color="green">077</FONT>              try {<a name="line.77"></a>
+<FONT color="green">078</FONT>                      System.loadLibrary("jblas");<a name="line.78"></a>
+<FONT color="green">079</FONT>            } catch (UnsatisfiedLinkError e) {<a name="line.79"></a>
+<FONT color="green">080</FONT>                Logger.getLogger().config(<a name="line.80"></a>
+<FONT color="green">081</FONT>                        "BLAS native library not found in path. Copying native library "<a name="line.81"></a>
+<FONT color="green">082</FONT>                        + "from the archive. Consider installing the library somewhere "<a name="line.82"></a>
+<FONT color="green">083</FONT>                        + "in the path (for Windows: PATH, for Linux: LD_LIBRARY_PATH).");<a name="line.83"></a>
+<FONT color="green">084</FONT>                new org.jblas.util.LibraryLoader().loadLibrary("jblas", true);<a name="line.84"></a>
+<FONT color="green">085</FONT>            }<a name="line.85"></a>
+<FONT color="green">086</FONT>        }<a name="line.86"></a>
+<FONT color="green">087</FONT>        private static int[] intDummy = new int[1];<a name="line.87"></a>
+<FONT color="green">088</FONT>        private static double[] doubleDummy = new double[1];<a name="line.88"></a>
+<FONT color="green">089</FONT>        private static float[] floatDummy = new float[1];<a name="line.89"></a>
+<FONT color="green">090</FONT>    <a name="line.90"></a>
+<FONT color="green">091</FONT>         <a name="line.91"></a>
+<FONT color="green">092</FONT>      public static native void ccopy(int n, float[] cx, int cxIdx, int incx, float[] cy, int cyIdx, int incy);<a name="line.92"></a>
+<FONT color="green">093</FONT>      public static native void dcopy(int n, double[] dx, int dxIdx, int incx, double[] dy, int dyIdx, int incy);<a name="line.93"></a>
+<FONT color="green">094</FONT>      public static native void scopy(int n, float[] sx, int sxIdx, int incx, float[] sy, int syIdx, int incy);<a name="line.94"></a>
+<FONT color="green">095</FONT>      public static native void zcopy(int n, double[] zx, int zxIdx, int incx, double[] zy, int zyIdx, int incy);<a name="line.95"></a>
+<FONT color="green">096</FONT>      public static native void cswap(int n, float[] cx, int cxIdx, int incx, float[] cy, int cyIdx, int incy);<a name="line.96"></a>
+<FONT color="green">097</FONT>      public static native void dswap(int n, double[] dx, int dxIdx, int incx, double[] dy, int dyIdx, int incy);<a name="line.97"></a>
+<FONT color="green">098</FONT>      public static native void sswap(int n, float[] sx, int sxIdx, int incx, float[] sy, int syIdx, int incy);<a name="line.98"></a>
+<FONT color="green">099</FONT>      public static native void zswap(int n, double[] zx, int zxIdx, int incx, double[] zy, int zyIdx, int incy);<a name="line.99"></a>
+<FONT color="green">100</FONT>      public static native void caxpy(int n, ComplexFloat ca, float[] cx, int cxIdx, int incx, float[] cy, int cyIdx, int incy);<a name="line.100"></a>
+<FONT color="green">101</FONT>      public static native void daxpy(int n, double da, double[] dx, int dxIdx, int incx, double[] dy, int dyIdx, int incy);<a name="line.101"></a>
+<FONT color="green">102</FONT>      public static native void saxpy(int n, float sa, float[] sx, int sxIdx, int incx, float[] sy, int syIdx, int incy);<a name="line.102"></a>
+<FONT color="green">103</FONT>      public static native void zaxpy(int n, ComplexDouble za, double[] zx, int zxIdx, int incx, double[] zy, int zyIdx, int incy);<a name="line.103"></a>
+<FONT color="green">104</FONT>      public static native void cscal(int n, ComplexFloat ca, float[] cx, int cxIdx, int incx);<a name="line.104"></a>
+<FONT color="green">105</FONT>      public static native void dscal(int n, double da, double[] dx, int dxIdx, int incx);<a name="line.105"></a>
+<FONT color="green">106</FONT>      public static native void sscal(int n, float sa, float[] sx, int sxIdx, int incx);<a name="line.106"></a>
+<FONT color="green">107</FONT>      public static native void zscal(int n, ComplexDouble za, double[] zx, int zxIdx, int incx);<a name="line.107"></a>
+<FONT color="green">108</FONT>      public static native void csscal(int n, float sa, float[] cx, int cxIdx, int incx);<a name="line.108"></a>
+<FONT color="green">109</FONT>      public static native void zdscal(int n, double da, double[] zx, int zxIdx, int incx);<a name="line.109"></a>
+<FONT color="green">110</FONT>      public static native ComplexFloat cdotc(int n, float[] cx, int cxIdx, int incx, float[] cy, int cyIdx, int incy);<a name="line.110"></a>
+<FONT color="green">111</FONT>      public static native ComplexFloat cdotu(int n, float[] cx, int cxIdx, int incx, float[] cy, int cyIdx, int incy);<a name="line.111"></a>
+<FONT color="green">112</FONT>      public static native double ddot(int n, double[] dx, int dxIdx, int incx, double[] dy, int dyIdx, int incy);<a name="line.112"></a>
+<FONT color="green">113</FONT>      public static native float sdot(int n, float[] sx, int sxIdx, int incx, float[] sy, int syIdx, int incy);<a name="line.113"></a>
+<FONT color="green">114</FONT>      public static native ComplexDouble zdotc(int n, double[] zx, int zxIdx, int incx, double[] zy, int zyIdx, int incy);<a name="line.114"></a>
+<FONT color="green">115</FONT>      public static native ComplexDouble zdotu(int n, double[] zx, int zxIdx, int incx, double[] zy, int zyIdx, int incy);<a name="line.115"></a>
+<FONT color="green">116</FONT>      public static native double dnrm2(int n, double[] x, int xIdx, int incx);<a name="line.116"></a>
+<FONT color="green">117</FONT>      public static native double dznrm2(int n, double[] x, int xIdx, int incx);<a name="line.117"></a>
+<FONT color="green">118</FONT>      public static native float scnrm2(int n, float[] x, int xIdx, int incx);<a name="line.118"></a>
+<FONT color="green">119</FONT>      public static native float snrm2(int n, float[] x, int xIdx, int incx);<a name="line.119"></a>
+<FONT color="green">120</FONT>      public static native double dasum(int n, double[] dx, int dxIdx, int incx);<a name="line.120"></a>
+<FONT color="green">121</FONT>      public static native double dzasum(int n, double[] zx, int zxIdx, int incx);<a name="line.121"></a>
+<FONT color="green">122</FONT>      public static native float sasum(int n, float[] sx, int sxIdx, int incx);<a name="line.122"></a>
+<FONT color="green">123</FONT>      public static native float scasum(int n, float[] cx, int cxIdx, int incx);<a name="line.123"></a>
+<FONT color="green">124</FONT>      public static native int icamax(int n, float[] cx, int cxIdx, int incx);<a name="line.124"></a>
+<FONT color="green">125</FONT>      public static native int idamax(int n, double[] dx, int dxIdx, int incx);<a name="line.125"></a>
+<FONT color="green">126</FONT>      public static native int isamax(int n, float[] sx, int sxIdx, int incx);<a name="line.126"></a>
+<FONT color="green">127</FONT>      public static native int izamax(int n, double[] zx, int zxIdx, int incx);<a name="line.127"></a>
+<FONT color="green">128</FONT>      public static native void cgemv(char trans, int m, int n, ComplexFloat alpha, float[] a, int aIdx, int lda, float[] x, int xIdx, int incx, ComplexFloat beta, float[] y, int yIdx, int incy);<a name="line.128"></a>
+<FONT color="green">129</FONT>      public static native void dgemv(char trans, int m, int n, double alpha, double[] a, int aIdx, int lda, double[] x, int xIdx, int incx, double beta, double[] y, int yIdx, int incy);<a name="line.129"></a>
+<FONT color="green">130</FONT>      public static native void sgemv(char trans, int m, int n, float alpha, float[] a, int aIdx, int lda, float[] x, int xIdx, int incx, float beta, float[] y, int yIdx, int incy);<a name="line.130"></a>
+<FONT color="green">131</FONT>      public static native void zgemv(char trans, int m, int n, ComplexDouble alpha, double[] a, int aIdx, int lda, double[] x, int xIdx, int incx, ComplexDouble beta, double[] y, int yIdx, int incy);<a name="line.131"></a>
+<FONT color="green">132</FONT>      public static native void cgerc(int m, int n, ComplexFloat alpha, float[] x, int xIdx, int incx, float[] y, int yIdx, int incy, float[] a, int aIdx, int lda);<a name="line.132"></a>
+<FONT color="green">133</FONT>      public static native void cgeru(int m, int n, ComplexFloat alpha, float[] x, int xIdx, int incx, float[] y, int yIdx, int incy, float[] a, int aIdx, int lda);<a name="line.133"></a>
+<FONT color="green">134</FONT>      public static native void dger(int m, int n, double alpha, double[] x, int xIdx, int incx, double[] y, int yIdx, int incy, double[] a, int aIdx, int lda);<a name="line.134"></a>
+<FONT color="green">135</FONT>      public static native void sger(int m, int n, float alpha, float[] x, int xIdx, int incx, float[] y, int yIdx, int incy, float[] a, int aIdx, int lda);<a name="line.135"></a>
+<FONT color="green">136</FONT>      public static native void zgerc(int m, int n, ComplexDouble alpha, double[] x, int xIdx, int incx, double[] y, int yIdx, int incy, double[] a, int aIdx, int lda);<a name="line.136"></a>
+<FONT color="green">137</FONT>      public static native void zgeru(int m, int n, ComplexDouble alpha, double[] x, int xIdx, int incx, double[] y, int yIdx, int incy, double[] a, int aIdx, int lda);<a name="line.137"></a>
+<FONT color="green">138</FONT>      public static native void cgemm(char transa, char transb, int m, int n, int k, ComplexFloat alpha, float[] a, int aIdx, int lda, float[] b, int bIdx, int ldb, ComplexFloat beta, float[] c, int cIdx, int ldc);<a name="line.138"></a>
+<FONT color="green">139</FONT>      public static native void dgemm(char transa, char transb, int m, int n, int k, double alpha, double[] a, int aIdx, int lda, double[] b, int bIdx, int ldb, double beta, double[] c, int cIdx, int ldc);<a name="line.139"></a>
+<FONT color="green">140</FONT>      public static native void sgemm(char transa, char transb, int m, int n, int k, float alpha, float[] a, int aIdx, int lda, float[] b, int bIdx, int ldb, float beta, float[] c, int cIdx, int ldc);<a name="line.140"></a>
+<FONT color="green">141</FONT>      public static native void zgemm(char transa, char transb, int m, int n, int k, ComplexDouble alpha, double[] a, int aIdx, int lda, double[] b, int bIdx, int ldb, ComplexDouble beta, double[] c, int cIdx, int ldc);<a name="line.141"></a>
+<FONT color="green">142</FONT>      public static native int dgesv(int n, int nrhs, double[] a, int aIdx, int lda, int[] ipiv, int ipivIdx, double[] b, int bIdx, int ldb);<a name="line.142"></a>
+<FONT color="green">143</FONT>      public static native int sgesv(int n, int nrhs, float[] a, int aIdx, int lda, int[] ipiv, int ipivIdx, float[] b, int bIdx, int ldb);<a name="line.143"></a>
+<FONT color="green">144</FONT>      public static native int dsysv(char uplo, int n, int nrhs, double[] a, int aIdx, int lda, int[] ipiv, int ipivIdx, double[] b, int bIdx, int ldb, double[] work, int workIdx, int lwork);<a name="line.144"></a>
+<FONT color="green">145</FONT>      public static int dsysv(char uplo, int n, int nrhs, double[] a, int aIdx, int lda, int[] ipiv, int ipivIdx, double[] b, int bIdx, int ldb) {<a name="line.145"></a>
+<FONT color="green">146</FONT>        int info;<a name="line.146"></a>
+<FONT color="green">147</FONT>        double[] work = new double[1];<a name="line.147"></a>
+<FONT color="green">148</FONT>        int lwork;<a name="line.148"></a>
+<FONT color="green">149</FONT>        info = dsysv(uplo, n, nrhs, doubleDummy, 0, lda, intDummy, 0, doubleDummy, 0, ldb, work, 0, -1);<a name="line.149"></a>
+<FONT color="green">150</FONT>        if (info != 0)<a name="line.150"></a>
+<FONT color="green">151</FONT>          return info;<a name="line.151"></a>
+<FONT color="green">152</FONT>        lwork = (int) work[0]; work = new double[lwork];<a name="line.152"></a>
+<FONT color="green">153</FONT>        info = dsysv(uplo, n, nrhs, a, aIdx, lda, ipiv, ipivIdx, b, bIdx, ldb, work, 0, lwork);<a name="line.153"></a>
+<FONT color="green">154</FONT>        return info;<a name="line.154"></a>
+<FONT color="green">155</FONT>      }<a name="line.155"></a>
+<FONT color="green">156</FONT>    <a name="line.156"></a>
+<FONT color="green">157</FONT>      public static native int ssysv(char uplo, int n, int nrhs, float[] a, int aIdx, int lda, int[] ipiv, int ipivIdx, float[] b, int bIdx, int ldb, float[] work, int workIdx, int lwork);<a name="line.157"></a>
+<FONT color="green">158</FONT>      public static int ssysv(char uplo, int n, int nrhs, float[] a, int aIdx, int lda, int[] ipiv, int ipivIdx, float[] b, int bIdx, int ldb) {<a name="line.158"></a>
+<FONT color="green">159</FONT>        int info;<a name="line.159"></a>
+<FONT color="green">160</FONT>        float[] work = new float[1];<a name="line.160"></a>
+<FONT color="green">161</FONT>        int lwork;<a name="line.161"></a>
+<FONT color="green">162</FONT>        info = ssysv(uplo, n, nrhs, floatDummy, 0, lda, intDummy, 0, floatDummy, 0, ldb, work, 0, -1);<a name="line.162"></a>
+<FONT color="green">163</FONT>        if (info != 0)<a name="line.163"></a>
+<FONT color="green">164</FONT>          return info;<a name="line.164"></a>
+<FONT color="green">165</FONT>        lwork = (int) work[0]; work = new float[lwork];<a name="line.165"></a>
+<FONT color="green">166</FONT>        info = ssysv(uplo, n, nrhs, a, aIdx, lda, ipiv, ipivIdx, b, bIdx, ldb, work, 0, lwork);<a name="line.166"></a>
+<FONT color="green">167</FONT>        return info;<a name="line.167"></a>
+<FONT color="green">168</FONT>      }<a name="line.168"></a>
+<FONT color="green">169</FONT>    <a name="line.169"></a>
+<FONT color="green">170</FONT>      public static native int dsyev(char jobz, char uplo, int n, double[] a, int aIdx, int lda, double[] w, int wIdx, double[] work, int workIdx, int lwork);<a name="line.170"></a>
+<FONT color="green">171</FONT>      public static int dsyev(char jobz, char uplo, int n, double[] a, int aIdx, int lda, double[] w, int wIdx) {<a name="line.171"></a>
+<FONT color="green">172</FONT>        int info;<a name="line.172"></a>
+<FONT color="green">173</FONT>        double[] work = new double[1];<a name="line.173"></a>
+<FONT color="green">174</FONT>        int lwork;<a name="line.174"></a>
+<FONT color="green">175</FONT>        info = dsyev(jobz, uplo, n, doubleDummy, 0, lda, doubleDummy, 0, work, 0, -1);<a name="line.175"></a>
+<FONT color="green">176</FONT>        if (info != 0)<a name="line.176"></a>
+<FONT color="green">177</FONT>          return info;<a name="line.177"></a>
+<FONT color="green">178</FONT>        lwork = (int) work[0]; work = new double[lwork];<a name="line.178"></a>
+<FONT color="green">179</FONT>        info = dsyev(jobz, uplo, n, a, aIdx, lda, w, wIdx, work, 0, lwork);<a name="line.179"></a>
+<FONT color="green">180</FONT>        return info;<a name="line.180"></a>
+<FONT color="green">181</FONT>      }<a name="line.181"></a>
+<FONT color="green">182</FONT>    <a name="line.182"></a>
+<FONT color="green">183</FONT>      public static native int ssyev(char jobz, char uplo, int n, float[] a, int aIdx, int lda, float[] w, int wIdx, float[] work, int workIdx, int lwork);<a name="line.183"></a>
+<FONT color="green">184</FONT>      public static int ssyev(char jobz, char uplo, int n, float[] a, int aIdx, int lda, float[] w, int wIdx) {<a name="line.184"></a>
+<FONT color="green">185</FONT>        int info;<a name="line.185"></a>
+<FONT color="green">186</FONT>        float[] work = new float[1];<a name="line.186"></a>
+<FONT color="green">187</FONT>        int lwork;<a name="line.187"></a>
+<FONT color="green">188</FONT>        info = ssyev(jobz, uplo, n, floatDummy, 0, lda, floatDummy, 0, work, 0, -1);<a name="line.188"></a>
+<FONT color="green">189</FONT>        if (info != 0)<a name="line.189"></a>
+<FONT color="green">190</FONT>          return info;<a name="line.190"></a>
+<FONT color="green">191</FONT>        lwork = (int) work[0]; work = new float[lwork];<a name="line.191"></a>
+<FONT color="green">192</FONT>        info = ssyev(jobz, uplo, n, a, aIdx, lda, w, wIdx, work, 0, lwork);<a name="line.192"></a>
+<FONT color="green">193</FONT>        return info;<a name="line.193"></a>
+<FONT color="green">194</FONT>      }<a name="line.194"></a>
+<FONT color="green">195</FONT>    <a name="line.195"></a>
+<FONT color="green">196</FONT>      public static native int dsyevd(char jobz, char uplo, int n, double[] a, int aIdx, int lda, double[] w, int wIdx, double[] work, int workIdx, int lwork, int[] iwork, int iworkIdx, int liwork);<a name="line.196"></a>
+<FONT color="green">197</FONT>      public static int dsyevd(char jobz, char uplo, int n, double[] a, int aIdx, int lda, double[] w, int wIdx) {<a name="line.197"></a>
+<FONT color="green">198</FONT>        int info;<a name="line.198"></a>
+<FONT color="green">199</FONT>        double[] work = new double[1];<a name="line.199"></a>
+<FONT color="green">200</FONT>        int lwork;<a name="line.200"></a>
+<FONT color="green">201</FONT>        int[] iwork = new int[1];<a name="line.201"></a>
+<FONT color="green">202</FONT>        int liwork;<a name="line.202"></a>
+<FONT color="green">203</FONT>        info = dsyevd(jobz, uplo, n, doubleDummy, 0, lda, doubleDummy, 0, work, 0, -1, iwork, 0, -1);<a name="line.203"></a>
+<FONT color="green">204</FONT>        if (info != 0)<a name="line.204"></a>
+<FONT color="green">205</FONT>          return info;<a name="line.205"></a>
+<FONT color="green">206</FONT>        lwork = (int) work[0]; work = new double[lwork];<a name="line.206"></a>
+<FONT color="green">207</FONT>        liwork = (int) iwork[0]; iwork = new int[liwork];<a name="line.207"></a>
+<FONT color="green">208</FONT>        info = dsyevd(jobz, uplo, n, a, aIdx, lda, w, wIdx, work, 0, lwork, iwork, 0, liwork);<a name="line.208"></a>
+<FONT color="green">209</FONT>        return info;<a name="line.209"></a>
+<FONT color="green">210</FONT>      }<a name="line.210"></a>
+<FONT color="green">211</FONT>    <a name="line.211"></a>
+<FONT color="green">212</FONT>      public static native int dsyevr(char jobz, char range, char uplo, int n, double[] a, int aIdx, int lda, double vl, double vu, int il, int iu, double abstol, int[] m, int mIdx, double[] w, int wIdx, double[] z, int zIdx, int ldz, int[] isuppz, int isuppzIdx, double[] work, int workIdx, int lwork, int[] iwork, int iworkIdx, int liwork);<a name="line.212"></a>
+<FONT color="green">213</FONT>      public static int dsyevr(char jobz, char range, char uplo, int n, double[] a, int aIdx, int lda, double vl, double vu, int il, int iu, double abstol, int[] m, int mIdx, double[] w, int wIdx, double[] z, int zIdx, int ldz, int[] isuppz, int isuppzIdx) {<a name="line.213"></a>
+<FONT color="green">214</FONT>        int info;<a name="line.214"></a>
+<FONT color="green">215</FONT>        double[] work = new double[1];<a name="line.215"></a>
+<FONT color="green">216</FONT>        int lwork;<a name="line.216"></a>
+<FONT color="green">217</FONT>        int[] iwork = new int[1];<a name="line.217"></a>
+<FONT color="green">218</FONT>        int liwork;<a name="line.218"></a>
+<FONT color="green">219</FONT>        info = dsyevr(jobz, range, uplo, n, doubleDummy, 0, lda, vl, vu, il, iu, abstol, intDummy, 0, doubleDummy, 0, doubleDummy, 0, ldz, intDummy, 0, work, 0, -1, iwork, 0, -1);<a name="line.219"></a>
+<FONT color="green">220</FONT>        if (info != 0)<a name="line.220"></a>
+<FONT color="green">221</FONT>          return info;<a name="line.221"></a>
+<FONT color="green">222</FONT>        lwork = (int) work[0]; work = new double[lwork];<a name="line.222"></a>
+<FONT color="green">223</FONT>        liwork = (int) iwork[0]; iwork = new int[liwork];<a name="line.223"></a>
+<FONT color="green">224</FONT>        info = dsyevr(jobz, range, uplo, n, a, aIdx, lda, vl, vu, il, iu, abstol, m, mIdx, w, wIdx, z, zIdx, ldz, isuppz, isuppzIdx, work, 0, lwork, iwork, 0, liwork);<a name="line.224"></a>
+<FONT color="green">225</FONT>        return info;<a name="line.225"></a>
+<FONT color="green">226</FONT>      }<a name="line.226"></a>
+<FONT color="green">227</FONT>    <a name="line.227"></a>
+<FONT color="green">228</FONT>      public static native int dsyevx(char jobz, char range, char uplo, int n, double[] a, int aIdx, int lda, double vl, double vu, int il, int iu, double abstol, int[] m, int mIdx, double[] w, int wIdx, double[] z, int zIdx, int ldz, double[] work, int workIdx, int lwork, int[] iwork, int iworkIdx, int[] ifail, int ifailIdx);<a name="line.228"></a>
+<FONT color="green">229</FONT>      public static int dsyevx(char jobz, char range, char uplo, int n, double[] a, int aIdx, int lda, double vl, double vu, int il, int iu, double abstol, int[] m, int mIdx, double[] w, int wIdx, double[] z, int zIdx, int ldz, int[] iwork, int iworkIdx, int[] ifail, int ifailIdx) {<a name="line.229"></a>
+<FONT color="green">230</FONT>        int info;<a name="line.230"></a>
+<FONT color="green">231</FONT>        double[] work = new double[1];<a name="line.231"></a>
+<FONT color="green">232</FONT>        int lwork;<a name="line.232"></a>
+<FONT color="green">233</FONT>        info = dsyevx(jobz, range, uplo, n, doubleDummy, 0, lda, vl, vu, il, iu, abstol, intDummy, 0, doubleDummy, 0, doubleDummy, 0, ldz, work, 0, -1, intDummy, 0, intDummy, 0);<a name="line.233"></a>
+<FONT color="green">234</FONT>        if (info != 0)<a name="line.234"></a>
+<FONT color="green">235</FONT>          return info;<a name="line.235"></a>
+<FONT color="green">236</FONT>        lwork = (int) work[0]; work = new double[lwork];<a name="line.236"></a>
+<FONT color="green">237</FONT>        info = dsyevx(jobz, range, uplo, n, a, aIdx, lda, vl, vu, il, iu, abstol, m, mIdx, w, wIdx, z, zIdx, ldz, work, 0, lwork, iwork, iworkIdx, ifail, ifailIdx);<a name="line.237"></a>
+<FONT color="green">238</FONT>        return info;<a name="line.238"></a>
+<FONT color="green">239</FONT>      }<a name="line.239"></a>
+<FONT color="green">240</FONT>    <a name="line.240"></a>
+<FONT color="green">241</FONT>      public static native int ssyevd(char jobz, char uplo, int n, float[] a, int aIdx, int lda, float[] w, int wIdx, float[] work, int workIdx, int lwork, int[] iwork, int iworkIdx, int liwork);<a name="line.241"></a>
+<FONT color="green">242</FONT>      public static int ssyevd(char jobz, char uplo, int n, float[] a, int aIdx, int lda, float[] w, int wIdx) {<a name="line.242"></a>
+<FONT color="green">243</FONT>        int info;<a name="line.243"></a>
+<FONT color="green">244</FONT>        float[] work = new float[1];<a name="line.244"></a>
+<FONT color="green">245</FONT>        int lwork;<a name="line.245"></a>
+<FONT color="green">246</FONT>        int[] iwork = new int[1];<a name="line.246"></a>
+<FONT color="green">247</FONT>        int liwork;<a name="line.247"></a>
+<FONT color="green">248</FONT>        info = ssyevd(jobz, uplo, n, floatDummy, 0, lda, floatDummy, 0, work, 0, -1, iwork, 0, -1);<a name="line.248"></a>
+<FONT color="green">249</FONT>        if (info != 0)<a name="line.249"></a>
+<FONT color="green">250</FONT>          return info;<a name="line.250"></a>
+<FONT color="green">251</FONT>        lwork = (int) work[0]; work = new float[lwork];<a name="line.251"></a>
+<FONT color="green">252</FONT>        liwork = (int) iwork[0]; iwork = new int[liwork];<a name="line.252"></a>
+<FONT color="green">253</FONT>        info = ssyevd(jobz, uplo, n, a, aIdx, lda, w, wIdx, work, 0, lwork, iwork, 0, liwork);<a name="line.253"></a>
+<FONT color="green">254</FONT>        return info;<a name="line.254"></a>
+<FONT color="green">255</FONT>      }<a name="line.255"></a>
+<FONT color="green">256</FONT>    <a name="line.256"></a>
+<FONT color="green">257</FONT>      public static native int ssyevr(char jobz, char range, char uplo, int n, float[] a, int aIdx, int lda, float vl, float vu, int il, int iu, float abstol, int[] m, int mIdx, float[] w, int wIdx, float[] z, int zIdx, int ldz, int[] isuppz, int isuppzIdx, float[] work, int workIdx, int lwork, int[] iwork, int iworkIdx, int liwork);<a name="line.257"></a>
+<FONT color="green">258</FONT>      public static int ssyevr(char jobz, char range, char uplo, int n, float[] a, int aIdx, int lda, float vl, float vu, int il, int iu, float abstol, int[] m, int mIdx, float[] w, int wIdx, float[] z, int zIdx, int ldz, int[] isuppz, int isuppzIdx) {<a name="line.258"></a>
+<FONT color="green">259</FONT>        int info;<a name="line.259"></a>
+<FONT color="green">260</FONT>        float[] work = new float[1];<a name="line.260"></a>
+<FONT color="green">261</FONT>        int lwork;<a name="line.261"></a>
+<FONT color="green">262</FONT>        int[] iwork = new int[1];<a name="line.262"></a>
+<FONT color="green">263</FONT>        int liwork;<a name="line.263"></a>
+<FONT color="green">264</FONT>        info = ssyevr(jobz, range, uplo, n, floatDummy, 0, lda, vl, vu, il, iu, abstol, intDummy, 0, floatDummy, 0, floatDummy, 0, ldz, intDummy, 0, work, 0, -1, iwork, 0, -1);<a name="line.264"></a>
+<FONT color="green">265</FONT>        if (info != 0)<a name="line.265"></a>
+<FONT color="green">266</FONT>          return info;<a name="line.266"></a>
+<FONT color="green">267</FONT>        lwork = (int) work[0]; work = new float[lwork];<a name="line.267"></a>
+<FONT color="green">268</FONT>        liwork = (int) iwork[0]; iwork = new int[liwork];<a name="line.268"></a>
+<FONT color="green">269</FONT>        info = ssyevr(jobz, range, uplo, n, a, aIdx, lda, vl, vu, il, iu, abstol, m, mIdx, w, wIdx, z, zIdx, ldz, isuppz, isuppzIdx, work, 0, lwork, iwork, 0, liwork);<a name="line.269"></a>
+<FONT color="green">270</FONT>        return info;<a name="line.270"></a>
+<FONT color="green">271</FONT>      }<a name="line.271"></a>
+<FONT color="green">272</FONT>    <a name="line.272"></a>
+<FONT color="green">273</FONT>      public static native int ssyevx(char jobz, char range, char uplo, int n, float[] a, int aIdx, int lda, float vl, float vu, int il, int iu, float abstol, int[] m, int mIdx, float[] w, int wIdx, float[] z, int zIdx, int ldz, float[] work, int workIdx, int lwork, int[] iwork, int iworkIdx, int[] ifail, int ifailIdx);<a name="line.273"></a>
+<FONT color="green">274</FONT>      public static int ssyevx(char jobz, char range, char uplo, int n, float[] a, int aIdx, int lda, float vl, float vu, int il, int iu, float abstol, int[] m, int mIdx, float[] w, int wIdx, float[] z, int zIdx, int ldz, int[] iwork, int iworkIdx, int[] ifail, int ifailIdx) {<a name="line.274"></a>
+<FONT color="green">275</FONT>        int info;<a name="line.275"></a>
+<FONT color="green">276</FONT>        float[] work = new float[1];<a name="line.276"></a>
+<FONT color="green">277</FONT>        int lwork;<a name="line.277"></a>
+<FONT color="green">278</FONT>        info = ssyevx(jobz, range, uplo, n, floatDummy, 0, lda, vl, vu, il, iu, abstol, intDummy, 0, floatDummy, 0, floatDummy, 0, ldz, work, 0, -1, intDummy, 0, intDummy, 0);<a name="line.278"></a>
+<FONT color="green">279</FONT>        if (info != 0)<a name="line.279"></a>
+<FONT color="green">280</FONT>          return info;<a name="line.280"></a>
+<FONT color="green">281</FONT>        lwork = (int) work[0]; work = new float[lwork];<a name="line.281"></a>
+<FONT color="green">282</FONT>        info = ssyevx(jobz, range, uplo, n, a, aIdx, lda, vl, vu, il, iu, abstol, m, mIdx, w, wIdx, z, zIdx, ldz, work, 0, lwork, iwork, iworkIdx, ifail, ifailIdx);<a name="line.282"></a>
+<FONT color="green">283</FONT>        return info;<a name="line.283"></a>
+<FONT color="green">284</FONT>      }<a name="line.284"></a>
+<FONT color="green">285</FONT>    <a name="line.285"></a>
+<FONT color="green">286</FONT>      public static native int dposv(char uplo, int n, int nrhs, double[] a, int aIdx, int lda, double[] b, int bIdx, int ldb);<a name="line.286"></a>
+<FONT color="green">287</FONT>      public static native int sposv(char uplo, int n, int nrhs, float[] a, int aIdx, int lda, float[] b, int bIdx, int ldb);<a name="line.287"></a>
+<FONT color="green">288</FONT>      public static native int cgeev(char jobvl, char jobvr, int n, float[] a, int aIdx, int lda, float[] w, int wIdx, float[] vl, int vlIdx, int ldvl, float[] vr, int vrIdx, int ldvr, float[] work, int workIdx, int lwork, float[] rwork, int rworkIdx);<a name="line.288"></a>
+<FONT color="green">289</FONT>      public static int cgeev(char jobvl, char jobvr, int n, float[] a, int aIdx, int lda, float[] w, int wIdx, float[] vl, int vlIdx, int ldvl, float[] vr, int vrIdx, int ldvr, float[] rwork, int rworkIdx) {<a name="line.289"></a>
+<FONT color="green">290</FONT>        int info;<a name="line.290"></a>
+<FONT color="green">291</FONT>        float[] work = new float[1*2];<a name="line.291"></a>
+<FONT color="green">292</FONT>        int lwork;<a name="line.292"></a>
+<FONT color="green">293</FONT>        info = cgeev(jobvl, jobvr, n, floatDummy, 0, lda, floatDummy, 0, floatDummy, 0, ldvl, floatDummy, 0, ldvr, work, 0, -1, floatDummy, 0);<a name="line.293"></a>
+<FONT color="green">294</FONT>        if (info != 0)<a name="line.294"></a>
+<FONT color="green">295</FONT>          return info;<a name="line.295"></a>
+<FONT color="green">296</FONT>        lwork = (int) work[0]; work = new float[lwork*2];<a name="line.296"></a>
+<FONT color="green">297</FONT>        info = cgeev(jobvl, jobvr, n, a, aIdx, lda, w, wIdx, vl, vlIdx, ldvl, vr, vrIdx, ldvr, work, 0, lwork, rwork, rworkIdx);<a name="line.297"></a>
+<FONT color="green">298</FONT>        return info;<a name="line.298"></a>
+<FONT color="green">299</FONT>      }<a name="line.299"></a>
+<FONT color="green">300</FONT>    <a name="line.300"></a>
+<FONT color="green">301</FONT>      public static native int dgeev(char jobvl, char jobvr, int n, double[] a, int aIdx, int lda, double[] wr, int wrIdx, double[] wi, int wiIdx, double[] vl, int vlIdx, int ldvl, double[] vr, int vrIdx, int ldvr, double[] work, int workIdx, int lwork);<a name="line.301"></a>
+<FONT color="green">302</FONT>      public static int dgeev(char jobvl, char jobvr, int n, double[] a, int aIdx, int lda, double[] wr, int wrIdx, double[] wi, int wiIdx, double[] vl, int vlIdx, int ldvl, double[] vr, int vrIdx, int ldvr) {<a name="line.302"></a>
+<FONT color="green">303</FONT>        int info;<a name="line.303"></a>
+<FONT color="green">304</FONT>        double[] work = new double[1];<a name="line.304"></a>
+<FONT color="green">305</FONT>        int lwork;<a name="line.305"></a>
+<FONT color="green">306</FONT>        info = dgeev(jobvl, jobvr, n, doubleDummy, 0, lda, doubleDummy, 0, doubleDummy, 0, doubleDummy, 0, ldvl, doubleDummy, 0, ldvr, work, 0, -1);<a name="line.306"></a>
+<FONT color="green">307</FONT>        if (info != 0)<a name="line.307"></a>
+<FONT color="green">308</FONT>          return info;<a name="line.308"></a>
+<FONT color="green">309</FONT>        lwork = (int) work[0]; work = new double[lwork];<a name="line.309"></a>
+<FONT color="green">310</FONT>        info = dgeev(jobvl, jobvr, n, a, aIdx, lda, wr, wrIdx, wi, wiIdx, vl, vlIdx, ldvl, vr, vrIdx, ldvr, work, 0, lwork);<a name="line.310"></a>
+<FONT color="green">311</FONT>        return info;<a name="line.311"></a>
+<FONT color="green">312</FONT>      }<a name="line.312"></a>
+<FONT color="green">313</FONT>    <a name="line.313"></a>
+<FONT color="green">314</FONT>      public static native int sgeev(char jobvl, char jobvr, int n, float[] a, int aIdx, int lda, float[] wr, int wrIdx, float[] wi, int wiIdx, float[] vl, int vlIdx, int ldvl, float[] vr, int vrIdx, int ldvr, float[] work, int workIdx, int lwork);<a name="line.314"></a>
+<FONT color="green">315</FONT>      public static int sgeev(char jobvl, char jobvr, int n, float[] a, int aIdx, int lda, float[] wr, int wrIdx, float[] wi, int wiIdx, float[] vl, int vlIdx, int ldvl, float[] vr, int vrIdx, int ldvr) {<a name="line.315"></a>
+<FONT color="green">316</FONT>        int info;<a name="line.316"></a>
+<FONT color="green">317</FONT>        float[] work = new float[1];<a name="line.317"></a>
+<FONT color="green">318</FONT>        int lwork;<a name="line.318"></a>
+<FONT color="green">319</FONT>        info = sgeev(jobvl, jobvr, n, floatDummy, 0, lda, floatDummy, 0, floatDummy, 0, floatDummy, 0, ldvl, floatDummy, 0, ldvr, work, 0, -1);<a name="line.319"></a>
+<FONT color="green">320</FONT>        if (info != 0)<a name="line.320"></a>
+<FONT color="green">321</FONT>          return info;<a name="line.321"></a>
+<FONT color="green">322</FONT>        lwork = (int) work[0]; work = new float[lwork];<a name="line.322"></a>
+<FONT color="green">323</FONT>        info = sgeev(jobvl, jobvr, n, a, aIdx, lda, wr, wrIdx, wi, wiIdx, vl, vlIdx, ldvl, vr, vrIdx, ldvr, work, 0, lwork);<a name="line.323"></a>
+<FONT color="green">324</FONT>        return info;<a name="line.324"></a>
+<FONT color="green">325</FONT>      }<a name="line.325"></a>
+<FONT color="green">326</FONT>    <a name="line.326"></a>
+<FONT color="green">327</FONT>      public static native int zgeev(char jobvl, char jobvr, int n, double[] a, int aIdx, int lda, double[] w, int wIdx, double[] vl, int vlIdx, int ldvl, double[] vr, int vrIdx, int ldvr, double[] work, int workIdx, int lwork, double[] rwork, int rworkIdx);<a name="line.327"></a>
+<FONT color="green">328</FONT>      public static int zgeev(char jobvl, char jobvr, int n, double[] a, int aIdx, int lda, double[] w, int wIdx, double[] vl, int vlIdx, int ldvl, double[] vr, int vrIdx, int ldvr, double[] rwork, int rworkIdx) {<a name="line.328"></a>
+<FONT color="green">329</FONT>        int info;<a name="line.329"></a>
+<FONT color="green">330</FONT>        double[] work = new double[1*2];<a name="line.330"></a>
+<FONT color="green">331</FONT>        int lwork;<a name="line.331"></a>
+<FONT color="green">332</FONT>        info = zgeev(jobvl, jobvr, n, doubleDummy, 0, lda, doubleDummy, 0, doubleDummy, 0, ldvl, doubleDummy, 0, ldvr, work, 0, -1, doubleDummy, 0);<a name="line.332"></a>
+<FONT color="green">333</FONT>        if (info != 0)<a name="line.333"></a>
+<FONT color="green">334</FONT>          return info;<a name="line.334"></a>
+<FONT color="green">335</FONT>        lwork = (int) work[0]; work = new double[lwork*2];<a name="line.335"></a>
+<FONT color="green">336</FONT>        info = zgeev(jobvl, jobvr, n, a, aIdx, lda, w, wIdx, vl, vlIdx, ldvl, vr, vrIdx, ldvr, work, 0, lwork, rwork, rworkIdx);<a name="line.336"></a>
+<FONT color="green">337</FONT>        return info;<a name="line.337"></a>
+<FONT color="green">338</FONT>      }<a name="line.338"></a>
+<FONT color="green">339</FONT>    <a name="line.339"></a>
+<FONT color="green">340</FONT>      public static native int dgetrf(int m, int n, double[] a, int aIdx, int lda, int[] ipiv, int ipivIdx);<a name="line.340"></a>
+<FONT color="green">341</FONT>      public static native int sgetrf(int m, int n, float[] a, int aIdx, int lda, int[] ipiv, int ipivIdx);<a name="line.341"></a>
+<FONT color="green">342</FONT>      public static native int dpotrf(char uplo, int n, double[] a, int aIdx, int lda);<a name="line.342"></a>
+<FONT color="green">343</FONT>      public static native int spotrf(char uplo, int n, float[] a, int aIdx, int lda);<a name="line.343"></a>
+<FONT color="green">344</FONT>      public static native int cgesvd(char jobu, char jobvt, int m, int n, float[] a, int aIdx, int lda, float[] s, int sIdx, float[] u, int uIdx, int ldu, float[] vt, int vtIdx, int ldvt, float[] work, int workIdx, int lwork, float[] rwork, int rworkIdx);<a name="line.344"></a>
+<FONT color="green">345</FONT>      public static int cgesvd(char jobu, char jobvt, int m, int n, float[] a, int aIdx, int lda, float[] s, int sIdx, float[] u, int uIdx, int ldu, float[] vt, int vtIdx, int ldvt, float[] rwork, int rworkIdx) {<a name="line.345"></a>
+<FONT color="green">346</FONT>        int info;<a name="line.346"></a>
+<FONT color="green">347</FONT>        float[] work = new float[1*2];<a name="line.347"></a>
+<FONT color="green">348</FONT>        int lwork;<a name="line.348"></a>
+<FONT color="green">349</FONT>        info = cgesvd(jobu, jobvt, m, n, floatDummy, 0, lda, floatDummy, 0, floatDummy, 0, ldu, floatDummy, 0, ldvt, work, 0, -1, floatDummy, 0);<a name="line.349"></a>
+<FONT color="green">350</FONT>        if (info != 0)<a name="line.350"></a>
+<FONT color="green">351</FONT>          return info;<a name="line.351"></a>
+<FONT color="green">352</FONT>        lwork = (int) work[0]; work = new float[lwork*2];<a name="line.352"></a>
+<FONT color="green">353</FONT>        info = cgesvd(jobu, jobvt, m, n, a, aIdx, lda, s, sIdx, u, uIdx, ldu, vt, vtIdx, ldvt, work, 0, lwork, rwork, rworkIdx);<a name="line.353"></a>
+<FONT color="green">354</FONT>        return info;<a name="line.354"></a>
+<FONT color="green">355</FONT>      }<a name="line.355"></a>
+<FONT color="green">356</FONT>    <a name="line.356"></a>
+<FONT color="green">357</FONT>      public static native int dgesvd(char jobu, char jobvt, int m, int n, double[] a, int aIdx, int lda, double[] s, int sIdx, double[] u, int uIdx, int ldu, double[] vt, int vtIdx, int ldvt, double[] work, int workIdx, int lwork);<a name="line.357"></a>
+<FONT color="green">358</FONT>      public static int dgesvd(char jobu, char jobvt, int m, int n, double[] a, int aIdx, int lda, double[] s, int sIdx, double[] u, int uIdx, int ldu, double[] vt, int vtIdx, int ldvt) {<a name="line.358"></a>
+<FONT color="green">359</FONT>        int info;<a name="line.359"></a>
+<FONT color="green">360</FONT>        double[] work = new double[1];<a name="line.360"></a>
+<FONT color="green">361</FONT>        int lwork;<a name="line.361"></a>
+<FONT color="green">362</FONT>        info = dgesvd(jobu, jobvt, m, n, doubleDummy, 0, lda, doubleDummy, 0, doubleDummy, 0, ldu, doubleDummy, 0, ldvt, work, 0, -1);<a name="line.362"></a>
+<FONT color="green">363</FONT>        if (info != 0)<a name="line.363"></a>
+<FONT color="green">364</FONT>          return info;<a name="line.364"></a>
+<FONT color="green">365</FONT>        lwork = (int) work[0]; work = new double[lwork];<a name="line.365"></a>
+<FONT color="green">366</FONT>        info = dgesvd(jobu, jobvt, m, n, a, aIdx, lda, s, sIdx, u, uIdx, ldu, vt, vtIdx, ldvt, work, 0, lwork);<a name="line.366"></a>
+<FONT color="green">367</FONT>        return info;<a name="line.367"></a>
+<FONT color="green">368</FONT>      }<a name="line.368"></a>
+<FONT color="green">369</FONT>    <a name="line.369"></a>
+<FONT color="green">370</FONT>      public static native int sgesvd(char jobu, char jobvt, int m, int n, float[] a, int aIdx, int lda, float[] s, int sIdx, float[] u, int uIdx, int ldu, float[] vt, int vtIdx, int ldvt, float[] work, int workIdx, int lwork);<a name="line.370"></a>
+<FONT color="green">371</FONT>      public static int sgesvd(char jobu, char jobvt, int m, int n, float[] a, int aIdx, int lda, float[] s, int sIdx, float[] u, int uIdx, int ldu, float[] vt, int vtIdx, int ldvt) {<a name="line.371"></a>
+<FONT color="green">372</FONT>        int info;<a name="line.372"></a>
+<FONT color="green">373</FONT>        float[] work = new float[1];<a name="line.373"></a>
+<FONT color="green">374</FONT>        int lwork;<a name="line.374"></a>
+<FONT color="green">375</FONT>        info = sgesvd(jobu, jobvt, m, n, floatDummy, 0, lda, floatDummy, 0, floatDummy, 0, ldu, floatDummy, 0, ldvt, work, 0, -1);<a name="line.375"></a>
+<FONT color="green">376</FONT>        if (info != 0)<a name="line.376"></a>
+<FONT color="green">377</FONT>          return info;<a name="line.377"></a>
+<FONT color="green">378</FONT>        lwork = (int) work[0]; work = new float[lwork];<a name="line.378"></a>
+<FONT color="green">379</FONT>        info = sgesvd(jobu, jobvt, m, n, a, aIdx, lda, s, sIdx, u, uIdx, ldu, vt, vtIdx, ldvt, work, 0, lwork);<a name="line.379"></a>
+<FONT color="green">380</FONT>        return info;<a name="line.380"></a>
+<FONT color="green">381</FONT>      }<a name="line.381"></a>
+<FONT color="green">382</FONT>    <a name="line.382"></a>
+<FONT color="green">383</FONT>      public static native int zgesvd(char jobu, char jobvt, int m, int n, double[] a, int aIdx, int lda, double[] s, int sIdx, double[] u, int uIdx, int ldu, double[] vt, int vtIdx, int ldvt, double[] work, int workIdx, int lwork, double[] rwork, int rworkIdx);<a name="line.383"></a>
+<FONT color="green">384</FONT>      public static int zgesvd(char jobu, char jobvt, int m, int n, double[] a, int aIdx, int lda, double[] s, int sIdx, double[] u, int uIdx, int ldu, double[] vt, int vtIdx, int ldvt, double[] rwork, int rworkIdx) {<a name="line.384"></a>
+<FONT color="green">385</FONT>        int info;<a name="line.385"></a>
+<FONT color="green">386</FONT>        double[] work = new double[1*2];<a name="line.386"></a>
+<FONT color="green">387</FONT>        int lwork;<a name="line.387"></a>
+<FONT color="green">388</FONT>        info = zgesvd(jobu, jobvt, m, n, doubleDummy, 0, lda, doubleDummy, 0, doubleDummy, 0, ldu, doubleDummy, 0, ldvt, work, 0, -1, doubleDummy, 0);<a name="line.388"></a>
+<FONT color="green">389</FONT>        if (info != 0)<a name="line.389"></a>
+<FONT color="green">390</FONT>          return info;<a name="line.390"></a>
+<FONT color="green">391</FONT>        lwork = (int) work[0]; work = new double[lwork*2];<a name="line.391"></a>
+<FONT color="green">392</FONT>        info = zgesvd(jobu, jobvt, m, n, a, aIdx, lda, s, sIdx, u, uIdx, ldu, vt, vtIdx, ldvt, work, 0, lwork, rwork, rworkIdx);<a name="line.392"></a>
+<FONT color="green">393</FONT>        return info;<a name="line.393"></a>
+<FONT color="green">394</FONT>      }<a name="line.394"></a>
+<FONT color="green">395</FONT>    <a name="line.395"></a>
+<FONT color="green">396</FONT>      public static native int dsygvd(int itype, char jobz, char uplo, int n, double[] a, int aIdx, int lda, double[] b, int bIdx, int ldb, double[] w, int wIdx, double[] work, int workIdx, int lwork, int[] iwork, int iworkIdx, int liwork);<a name="line.396"></a>
+<FONT color="green">397</FONT>      public static int dsygvd(int itype, char jobz, char uplo, int n, double[] a, int aIdx, int lda, double[] b, int bIdx, int ldb, double[] w, int wIdx) {<a name="line.397"></a>
+<FONT color="green">398</FONT>        int info;<a name="line.398"></a>
+<FONT color="green">399</FONT>        double[] work = new double[1];<a name="line.399"></a>
+<FONT color="green">400</FONT>        int lwork;<a name="line.400"></a>
+<FONT color="green">401</FONT>        int[] iwork = new int[1];<a name="line.401"></a>
+<FONT color="green">402</FONT>        int liwork;<a name="line.402"></a>
+<FONT color="green">403</FONT>        info = dsygvd(itype, jobz, uplo, n, doubleDummy, 0, lda, doubleDummy, 0, ldb, doubleDummy, 0, work, 0, -1, iwork, 0, -1);<a name="line.403"></a>
+<FONT color="green">404</FONT>        if (info != 0)<a name="line.404"></a>
+<FONT color="green">405</FONT>          return info;<a name="line.405"></a>
+<FONT color="green">406</FONT>        lwork = (int) work[0]; work = new double[lwork];<a name="line.406"></a>
+<FONT color="green">407</FONT>        liwork = (int) iwork[0]; iwork = new int[liwork];<a name="line.407"></a>
+<FONT color="green">408</FONT>        info = dsygvd(itype, jobz, uplo, n, a, aIdx, lda, b, bIdx, ldb, w, wIdx, work, 0, lwork, iwork, 0, liwork);<a name="line.408"></a>
+<FONT color="green">409</FONT>        return info;<a name="line.409"></a>
+<FONT color="green">410</FONT>      }<a name="line.410"></a>
+<FONT color="green">411</FONT>    <a name="line.411"></a>
+<FONT color="green">412</FONT>      public static native int ssygvd(int itype, char jobz, char uplo, int n, float[] a, int aIdx, int lda, float[] b, int bIdx, int ldb, float[] w, int wIdx, float[] work, int workIdx, int lwork, int[] iwork, int iworkIdx, int liwork);<a name="line.412"></a>
+<FONT color="green">413</FONT>      public static int ssygvd(int itype, char jobz, char uplo, int n, float[] a, int aIdx, int lda, float[] b, int bIdx, int ldb, float[] w, int wIdx) {<a name="line.413"></a>
+<FONT color="green">414</FONT>        int info;<a name="line.414"></a>
+<FONT color="green">415</FONT>        float[] work = new float[1];<a name="line.415"></a>
+<FONT color="green">416</FONT>        int lwork;<a name="line.416"></a>
+<FONT color="green">417</FONT>        int[] iwork = new int[1];<a name="line.417"></a>
+<FONT color="green">418</FONT>        int liwork;<a name="line.418"></a>
+<FONT color="green">419</FONT>        info = ssygvd(itype, jobz, uplo, n, floatDummy, 0, lda, floatDummy, 0, ldb, floatDummy, 0, work, 0, -1, iwork, 0, -1);<a name="line.419"></a>
+<FONT color="green">420</FONT>        if (info != 0)<a name="line.420"></a>
+<FONT color="green">421</FONT>          return info;<a name="line.421"></a>
+<FONT color="green">422</FONT>        lwork = (int) work[0]; work = new float[lwork];<a name="line.422"></a>
+<FONT color="green">423</FONT>        liwork = (int) iwork[0]; iwork = new int[liwork];<a name="line.423"></a>
+<FONT color="green">424</FONT>        info = ssygvd(itype, jobz, uplo, n, a, aIdx, lda, b, bIdx, ldb, w, wIdx, work, 0, lwork, iwork, 0, liwork);<a name="line.424"></a>
+<FONT color="green">425</FONT>        return info;<a name="line.425"></a>
+<FONT color="green">426</FONT>      }<a name="line.426"></a>
+<FONT color="green">427</FONT>    <a name="line.427"></a>
+<FONT color="green">428</FONT>    <a name="line.428"></a>
+<FONT color="green">429</FONT>    }<a name="line.429"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>
