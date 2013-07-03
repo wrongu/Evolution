@@ -1,4 +1,6 @@
-package graphics;
+
+
+import graphics.RenderPanel;
 
 import javax.swing.JApplet;
 

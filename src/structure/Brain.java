@@ -1,5 +1,5 @@
 package structure;
 
-public class Cell {
+public class Brain {
 
 }
