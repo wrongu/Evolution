@@ -1,6 +1,7 @@
 
 
 import environment.Environment;
+import graphics.DebugGenes;
 import graphics.RenderPanel;
 
 import javax.swing.JApplet;
@@ -18,8 +19,9 @@ public class EvolutionApplet extends JApplet {
 		setSize(APPLET_WIDTH, APPLET_HEIGHT);
 		
 //		add(new RenderPanel(new DrawGraph()));
-		env = new Environment();
-		add(new RenderPanel(env));
+//		env = new Environment(APPLET_WIDTH, APPLET_HEIGHT);
+//		add(new RenderPanel(env));
+		add(new DebugGenes());
 		
 		Thread th = new Thread(env);
 		th.setDaemon(true);

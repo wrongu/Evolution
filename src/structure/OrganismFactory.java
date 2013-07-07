@@ -1,28 +1,54 @@
 package structure;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
-import bio.Gene;
+import bio.IGene;
 
 import environment.Environment;
 
 public class OrganismFactory {
 	
-	public static Organism fromGene(Gene g, Environment e){
-		HashMap<Integer, Structure> id_to_struct_map;
-		Brain brain;
+	public static Organism fromGene(IGene<Organism> g, Environment e){
+		double[] bounds = e.getBounds();
+		int posx = (int) (Math.random()*(bounds[2]-bounds[0]) + bounds[0]);
+		int posy = (int) (Math.random()*(bounds[3]-bounds[1]) + bounds[1]);
+		return g.create(posx, posy, e);
+	}
+	
+	
+	public static Organism testDummy(Environment e){
 		double[] bounds = e.getBounds();
 		Organism o = new Organism(
 				Math.random()*(bounds[2]-bounds[0]) + bounds[0],
 				Math.random()*(bounds[3]-bounds[1]) + bounds[1],
 				e);
-		// TODO - build it from gene
+		
+		PointMass pm0 = new PointMass(); 
+		PointMass pm1 = new PointMass(); 
+		PointMass pm2 = new PointMass(); 
+		PointMass pm3 = new PointMass();
+		List<PointMass> pmlist = new LinkedList<PointMass>();
+		pmlist.add(pm0);
+		pmlist.add(pm1);
+		pmlist.add(pm2);
+		pmlist.add(pm3);
+		
+		Rod a = new Rod(30, pm0, pm1);
+		Rod b = new Rod(30, pm2, pm1);
+		Rod c = new Rod(30, pm0, pm2);
+		Rod d = new Rod(50, pm0, pm3);
+		List<Rod> rodlist = new LinkedList<Rod>();
+		rodlist.add(a);
+		rodlist.add(b);
+		rodlist.add(c);
+		rodlist.add(d);
+		
+		o.addAllPointMasses(pmlist);
+		o.addAllRods(rodlist);
+		o.initStructure();
+		
 		return o;
-	}
-	
-	public static Gene toGene(Organism o){
-		Gene g = new Gene();
-		// TODO - write to gene in such a way that o is the same as fromGene(toGene(o), e)
-		return g;
 	}
 }

@@ -12,7 +12,7 @@ import graphics.Visualizer;
 public class DrawGraph implements IDrawable {
 
 	private DoubleMatrix mat;
-	
+
 	public DrawGraph(){
 		int n = 20;
 		mat = new DoubleMatrix(n, n);
@@ -37,9 +37,9 @@ public class DrawGraph implements IDrawable {
 		System.out.println(mat);
 		Visualizer.PRIMARY_COLOR = Color.WHITE;
 	}
-	
-	public void draw(Graphics2D g) {
-		Visualizer.drawGraphSpring((Graphics2D) g, mat, new Rectangle(10, 10, 300, 400));
-	}
 
+	public void draw(Graphics2D g, int shiftx, int shifty, double scalex, double scaley) {
+		Visualizer.drawGraphSpring((Graphics2D) g, mat, new Rectangle(10+shiftx, 10+shifty,
+				(int) (300 * scalex), (int) (400 * scaley)));
+	}
 }

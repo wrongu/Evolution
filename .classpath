@@ -7,5 +7,6 @@
 			<attribute name="javadoc_location" value="file:/Users/Richard/Documents/workspace/Evolution/libs/jblas-javadoc-1.2.0/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/Users/Richard/Documents/workspace/Evolution/libs/lwjgl.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
