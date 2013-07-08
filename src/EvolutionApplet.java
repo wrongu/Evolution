@@ -19,9 +19,9 @@ public class EvolutionApplet extends JApplet {
 		setSize(APPLET_WIDTH, APPLET_HEIGHT);
 		
 //		add(new RenderPanel(new DrawGraph()));
-//		env = new Environment(APPLET_WIDTH, APPLET_HEIGHT);
-//		add(new RenderPanel(env));
-		add(new DebugGenes());
+		env = new Environment(APPLET_WIDTH, APPLET_HEIGHT);
+		add(new RenderPanel(env));
+//		add(new DebugGenes());
 		
 		Thread th = new Thread(env);
 		th.setDaemon(true);
