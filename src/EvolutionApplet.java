@@ -6,6 +6,8 @@ import graphics.RenderPanel;
 
 import javax.swing.JApplet;
 
+import bio.DrawGraph;
+
 //import ann.DrawGraph;
 
 public class EvolutionApplet extends JApplet {

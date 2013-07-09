@@ -42,7 +42,7 @@ public class PointMass {
 	
 	public void move(Environment e, double dt){
 		// apply viscosity and friction
-		addForce(-vx * e.viscosity, -vy * e.viscosity);
+//		addForce(-vx * e.viscosity, -vy * e.viscosity);
 //		double vmag = Math.sqrt(vx*vx + vy+vy);
 //		addForce(-vx * e.friction / vmag, -vy * e.friction / vmag);
 		// move the point
