@@ -1,5 +1,7 @@
 package structure;
 
+import environment.Environment;
+
 public abstract class Structure {
 	
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 0;
@@ -40,5 +42,5 @@ public abstract class Structure {
 	}
 
 	public abstract double getMuscleMultiplier();
-	public abstract void forceConnectingStructures();
+	public abstract void physicsUpdate(Environment e);
 }

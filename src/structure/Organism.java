@@ -56,9 +56,9 @@ public class Organism implements IDrawable {
 		for(Muscle m : muscles)
 			m.act(this);
 		for(Joint j : joints)
-			j.forceConnectingStructures();
+			j.physicsUpdate(theEnvironment);
 		for(Rod r : rods)
-			r.forceConnectingStructures();
+			r.physicsUpdate(theEnvironment);
 		// move point-mass-joints, update center-x and center-y coordinates
 		double sx = 0.0, sy = 0.0;
 		for(PointMass j : pointmasses){

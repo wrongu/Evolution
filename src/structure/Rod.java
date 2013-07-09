@@ -3,6 +3,10 @@ package structure;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
+import javax.vecmath.Vector2d;
+
+import environment.Environment;
+
 import graphics.IDrawable;
 
 public class Rod extends Structure implements IDrawable {
@@ -11,6 +15,7 @@ public class Rod extends Structure implements IDrawable {
 	public static final double MUSCLE_MULTIPLIER = 5.0;
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 1.0;
 	public static final double FORCE_PER_DISPLACEMENT = 0.1;
+	public static final double UNIT_LENGTH = 10000.0;
 	
 	private PointMass[] joints;
 	
@@ -35,8 +40,21 @@ public class Rod extends Structure implements IDrawable {
 			int y2 = (int) ((shifty + j2.getY()) * scaley);
 			g.drawLine(x1, y1, x2, y2);
 		}
-//		System.out.println("rod drawn: ("+(int) j1.getX()+","+(int) j1.getY()+") to ("
-//				+(int) j2.getX()+","+(int) j2.getY()+")");
+	}
+	
+	/**
+	 * apply viscosity to pointmasses connected to this rod.
+	 * @param e the environment - specifies viscosity strength
+	 */
+	public void doViscosity(Environment e){
+		Vector2d n = new Vector2d(joints[0].getY()-joints[1].getY(), joints[1].getX()-joints[0].getX());
+		n.normalize();
+		Vector2d mot = getMeanMotion();
+		double drag = getActualLength() * Math.abs(n.dot(mot));
+		double fx = -mot.x * drag * e.viscosity / UNIT_LENGTH;
+		double fy = -mot.y * drag * e.viscosity / UNIT_LENGTH;
+		joints[0].addForce(fx, fy);
+		joints[1].addForce(fx, fy);
 	}
 
 	public void addJoint(PointMass joint) {
@@ -59,7 +77,7 @@ public class Rod extends Structure implements IDrawable {
 	}
 
 	@Override
-	public void forceConnectingStructures() {
+	public void physicsUpdate(Environment e) {
 		PointMass j1 = joints[0];
 		PointMass j2 = joints[1];
 		if(!(j1 == null | j2 == null)){
@@ -75,10 +93,15 @@ public class Rod extends Structure implements IDrawable {
 			j1.addForce(ux * strain * FORCE_PER_DISPLACEMENT, uy * strain * FORCE_PER_DISPLACEMENT);
 			j2.addForce(-ux * strain * FORCE_PER_DISPLACEMENT, -uy * strain * FORCE_PER_DISPLACEMENT);
 		}
+		doViscosity(e);
 	}
 
 	@Override
 	public double getMuscleMultiplier() {
 		return Rod.MUSCLE_MULTIPLIER;
+	}
+	
+	public Vector2d getMeanMotion(){
+		return new Vector2d((joints[0].getVX()+joints[1].getVX())/2,(joints[0].getVY()+joints[1].getVY())/2);
 	}
 }

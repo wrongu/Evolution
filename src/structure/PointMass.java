@@ -66,4 +66,11 @@ public class PointMass {
 	public void clearPhysics() {
 		vx = vy = fx = fy = 0.0;
 	}
+
+	public double getVX() {
+		return vx;
+	}
+	public double getVY() {
+		return vy;
+	}
 }

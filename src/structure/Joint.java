@@ -1,5 +1,7 @@
 package structure;
 
+import environment.Environment;
+
 /**
  * One PointMass is the hub for multiple rods, but a joint only connects any two of those rods. 
  * So, a joint maintains a reference to the PointMass which it is associated with, and the two rods
@@ -30,7 +32,7 @@ public class Joint extends Structure {
 	}
 
 	@Override
-	public void forceConnectingStructures() {
+	public void physicsUpdate(Environment e) {
 		// strain is the difference between where this joint is and where we want it to be
 		// so, positive strain means the angle AB is too wide. So, A should be pushed CCW
 		// and B should be pushed CW
