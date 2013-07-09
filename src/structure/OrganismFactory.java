@@ -25,10 +25,10 @@ public class OrganismFactory {
 				Math.random()*(bounds[3]-bounds[1]) + bounds[1],
 				e);
 		
-		PointMass pm0 = new PointMass(); 
-		PointMass pm1 = new PointMass(); 
-		PointMass pm2 = new PointMass(); 
-		PointMass pm3 = new PointMass();
+		PointMass pm0 = new PointMass(1); 
+		PointMass pm1 = new PointMass(1); 
+		PointMass pm2 = new PointMass(1); 
+		PointMass pm3 = new PointMass(0.5);
 		List<PointMass> pmlist = new LinkedList<PointMass>();
 		pmlist.add(pm0);
 		pmlist.add(pm1);

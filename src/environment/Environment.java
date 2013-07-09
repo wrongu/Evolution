@@ -22,7 +22,7 @@ public class Environment implements IDrawable, Runnable {
 	private int width, height;
 	
 	public Environment(int w, int h){
-		viscosity = 0.05;
+		viscosity = 0.005;
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING

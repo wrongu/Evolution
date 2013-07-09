@@ -48,14 +48,24 @@ public class Rod extends Structure implements IDrawable {
 	 * @param e the environment - specifies viscosity strength
 	 */
 	public void doViscosity(Environment e){
-		Vector2d n = new Vector2d(points[0].getY()-points[1].getY(), points[1].getX()-points[0].getX());
-		n.normalize();
-		Vector2d mot = getMeanMotion();
-		double drag = getActualLength() * Math.abs(n.dot(mot));
-		double fx = -mot.x * drag * e.viscosity / UNIT_LENGTH;
-		double fy = -mot.y * drag * e.viscosity / UNIT_LENGTH;
-		points[0].addForce(fx, fy);
-		points[1].addForce(fx, fy);
+		Vector2d rod = PointMass.vecAB(points[0], points[1]);
+		if(rod.length() > 0){
+			Vector2d norm = new Vector2d(-rod.y, rod.x);
+			Vector2d mot1 = points[0].getVel();
+			Vector2d mot2 = points[1].getVel();
+			// first point
+			double proj1 = norm.dot(mot1);
+			points[0].addForce(
+					-e.viscosity * proj1 * norm.x / norm.length(),
+					-e.viscosity * proj1 * norm.y / norm.length()
+					);
+			// second point
+			double proj2 = norm.dot(mot2);
+			points[1].addForce(
+					-e.viscosity * proj2 * norm.x / norm.length(),
+					-e.viscosity * proj2 * norm.y / norm.length()
+					);
+		}
 	}
 
 	public void addJoint(PointMass joint) {
