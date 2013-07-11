@@ -20,6 +20,8 @@ public class RenderGL {
 	private int glDisplayList;
 	private Camera camera;
 	private int width, height;
+	private boolean[] keyboard;
+	private int[] mouse;
 
 	public RenderGL(Canvas canvas, Environment env, int w, int h){
 		// set up panel with respect to the evolution app
@@ -46,6 +48,7 @@ public class RenderGL {
 		// clear modelview matrix
 		glLoadIdentity();
 		// move camera (by setting the bounding box of opengl's rendering in glOrtho())
+		moveCamera();
 		camera.glSetView();
 		// start list compilation and write all draw() operations to that list
 		glNewList(glDisplayList, GL_COMPILE);
@@ -57,6 +60,15 @@ public class RenderGL {
 		glCallList(glDisplayList);
 		// update the lwjgl display with the current opengl frame
 		Display.update();
+	}
+
+	private void moveCamera() {
+		double dx = 0.0, dy = 0.0;
+		if(keyboard[0]) dy -= 1.0;
+		if(keyboard[1]) dy += 1.0;
+		if(keyboard[2]) dx -= 1.0;
+		if(keyboard[3]) dx += 1.0;
+		camera.shift(dx, dy);
 	}
 
 	private void initGL(){
@@ -78,5 +90,10 @@ public class RenderGL {
 		glEnable(GL_LINE_SMOOTH);
 		// background clear color is black
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+
+	public void bindInputs(boolean[] direction_keys, int[] mouse_move) {
+		keyboard = direction_keys;
+		mouse = mouse_move;
 	}
 }
