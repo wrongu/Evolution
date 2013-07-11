@@ -10,7 +10,7 @@ import environment.Environment;
 
 import graphics.IDrawable;
 
-public class Rod extends Structure implements IDrawable {
+public class Rod extends Structure {
 	
 	/** change in value per unit strength */
 	public static final double MUSCLE_MULTIPLIER = 5.0;
@@ -116,5 +116,10 @@ public class Rod extends Structure implements IDrawable {
 		return new Vector2d(
 				(points[0].getVX()+points[1].getVX()) / 2,
 				(points[0].getVY()+points[1].getVY()) / 2);
+	}
+
+	public void draw() {
+		// TODO Auto-generated method stub
+		// opengl render
 	}
 }

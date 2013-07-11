@@ -1,5 +1,7 @@
 package physics;
 
+import java.awt.Graphics2D;
+
 import environment.Environment;
 
 /**
@@ -74,5 +76,14 @@ public class Joint extends Structure {
 
 	private static double[] pointMassDiffVector(PointMass A, PointMass B){
 		return new double[]{B.getX() - A.getX(), B.getY() - A.getY()};
+	}
+
+	public void draw(Graphics2D g, int shift, int shifty, double scalex, double scaley) {
+		// currently, joints are not rendered as anything
+	}
+
+	public void draw() {
+		// opengl drawing
+		// currently, joints are not rendered as anything
 	}
 }

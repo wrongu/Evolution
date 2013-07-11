@@ -1,6 +1,7 @@
 package environment;
 
 import graphics.IDrawable;
+import graphics.IDrawableGL;
 
 import java.awt.Graphics2D;
 import java.util.LinkedList;
@@ -9,7 +10,7 @@ import java.util.List;
 import structure.Organism;
 import structure.OrganismFactory;
 
-public class Environment implements IDrawable, Runnable {
+public class Environment implements IDrawable, IDrawableGL, Runnable {
 	
 	public static final long TICK_MS = 50;
 	public static final double GRAVITY = 0.1;
@@ -47,6 +48,12 @@ public class Environment implements IDrawable, Runnable {
 		for(Organism o : organisms)
 			o.draw(g, sx, sy, scx, scy);
 	}
+	
+	public void draw() {
+		// TODO - draw some sort of background?
+		for(Organism o : organisms)
+			o.draw();
+	}
 
 	public void run() {
 		cont = true;
@@ -72,4 +79,5 @@ public class Environment implements IDrawable, Runnable {
 			o.drift(-(mx - o.getX() / 10000.0), -(my - o.getY() / 10000.0));
 		}
 	}
+
 }

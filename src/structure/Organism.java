@@ -2,6 +2,7 @@ package structure;
 
 import environment.Environment;
 import graphics.IDrawable;
+import graphics.IDrawableGL;
 import graphics.RenderPanel;
 
 import java.awt.Graphics2D;
@@ -12,7 +13,7 @@ import physics.Joint;
 import physics.PointMass;
 import physics.Rod;
 
-public class Organism implements IDrawable {
+public class Organism implements IDrawable, IDrawableGL {
 	
 	private Brain brain;
 	private List<PointMass> pointmasses;
@@ -84,7 +85,12 @@ public class Organism implements IDrawable {
 		g.setColor(RenderPanel.ORGANISM_COLOR);
 		for(Rod r : rods)
 			r.draw(g, sx, sy, scx, scy);
-		// TODO - add glow to represent energy?
+		// TODO - add glow to represent energy? <-- can only be done in opengl, I think
+	}
+
+	public void draw() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	public double requestEnergy(double d) {
