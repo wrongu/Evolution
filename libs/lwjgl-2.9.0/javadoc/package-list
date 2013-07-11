@@ -1,0 +1,12 @@
+org.lwjgl
+org.lwjgl.devil
+org.lwjgl.fmod3
+org.lwjgl.fmod3.callbacks
+org.lwjgl.input
+org.lwjgl.openal
+org.lwjgl.opengl
+org.lwjgl.opengl.glu
+org.lwjgl.util
+org.lwjgl.util.applet
+org.lwjgl.util.jinput
+org.lwjgl.util.vector
