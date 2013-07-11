@@ -10,7 +10,7 @@ import java.util.List;
 import structure.Organism;
 import structure.OrganismFactory;
 
-public class Environment implements IDrawable, IDrawableGL, Runnable {
+public class Environment implements IDrawable, IDrawableGL {
 	
 	public static final long TICK_MS = 50;
 	public static final double GRAVITY = 0.1;
@@ -18,13 +18,12 @@ public class Environment implements IDrawable, IDrawableGL, Runnable {
 	public double viscosity;
 	public double friction;
 	public List<Organism> organisms;
-	private boolean cont;
 	private long last_update;
 	private int width, height;
 	
 	public Environment(int w, int h){
-		viscosity = 0.005;
-		friction = 0.0;
+		viscosity = 0.01;
+		friction = 0.05;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
 		organisms.add(OrganismFactory.testDummy(this));
@@ -38,7 +37,7 @@ public class Environment implements IDrawable, IDrawableGL, Runnable {
 		double partial_tick = ((double) (uptime - last_update)) / (double) TICK_MS;
 		for(Organism o : organisms){
 			o.drift(0, GRAVITY);
-			o.physicsUpdate(partial_tick);
+			o.physicsUpdate(partial_tick > 1.0 ? 1.0 : partial_tick);
 			o.contain(this);
 		}
 		last_update = uptime;
@@ -53,17 +52,6 @@ public class Environment implements IDrawable, IDrawableGL, Runnable {
 		// TODO - draw some sort of background?
 		for(Organism o : organisms)
 			o.glDraw();
-	}
-
-	public void run() {
-		cont = true;
-		while(cont){
-			this.update();
-		}
-	}
-	
-	public void interrupt(){
-		cont = false;
 	}
 	
 	/**

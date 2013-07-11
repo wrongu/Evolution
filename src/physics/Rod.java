@@ -1,6 +1,5 @@
 package physics;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import javax.vecmath.Vector2d;
 import environment.Environment;
@@ -109,6 +108,7 @@ public class Rod extends Structure {
 			// add forces to joints (point masses) relative to strain.
 			j1.addForce(ux * strain * FORCE_PER_DISPLACEMENT, uy * strain * FORCE_PER_DISPLACEMENT);
 			j2.addForce(-ux * strain * FORCE_PER_DISPLACEMENT, -uy * strain * FORCE_PER_DISPLACEMENT);
+//			System.out.println("rod position ("+points[0].getX()+", "+points[0].getY()+", "+points[1].getX()+", "+points[1].getY()+")");
 		}
 		doViscosity(e);
 	}

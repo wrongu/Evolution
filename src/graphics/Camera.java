@@ -1,28 +1,23 @@
 package graphics;
 
-import static org.lwjgl.opengl.GL11.glOrtho;
+import static org.lwjgl.opengl.GL11.*;
 
 public class Camera {
 	
-	public static final double ZOOM_MIN = 0.3;
+	public static final double ZOOM_MIN = 0.01;
 	public static final double ZOOM_MAX = 100.0;
 	
-	public double cx, cy;
-	public double aspect_ratio;
+	public double x, y;
 	public double zoom;
-	private double unit_height;
 	
-	public Camera(double x, double y, double w, double h){
-		cx = x + w/2;
-		cy = y + h/2;
-		unit_height = h;
-		aspect_ratio = w/h;
+	public Camera(){
+		x = y = 0.0;
 		zoom = 1.0;
 	}
 	
 	public void shift(double dx, double dy){
-		cx += dx;
-		cy += dy;
+		x += dx;
+		y += dy;
 	}
 	
 	public void zoom(double dz){
@@ -32,8 +27,7 @@ public class Camera {
 	}
 	
 	public void glSetView(){
-		double w = aspect_ratio * zoom * unit_height;
-		double h = w / aspect_ratio;
-		glOrtho(cx - w/2, cx + w/2, cy - h/2, cy + h/2, ZOOM_MIN, ZOOM_MAX);
+		glTranslated(x, y, 0.0);
+		glScaled(zoom, zoom, 1.0);
 	}
 }

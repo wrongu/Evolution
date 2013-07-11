@@ -50,9 +50,8 @@ public class Organism implements IDrawable, IDrawableGL {
 			j.initPosition(x + Math.cos(i*angle_delta)*meanhalflen, y + Math.sin(i*angle_delta)*meanhalflen);
 			i++;
 		}
-		for(i=0; i<5; i++) physicsUpdate(1.0);
-		for(PointMass pm : pointmasses)
-			pm.clearPhysics();
+//		for(i=0; i<5; i++) physicsUpdate(1.0);
+		for(PointMass pm : pointmasses) pm.clearPhysics();
 	}
 	
 	public void physicsUpdate(double dt){

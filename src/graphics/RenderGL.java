@@ -12,29 +12,21 @@ import static org.lwjgl.opengl.GL11.*;
 
 import environment.Environment;
 
-public class RenderPanelGL extends JPanel {
+public class RenderGL {
 
 	private static final long serialVersionUID = -5610531621479479038L;
 
 	private Environment theEnvironment;
 	private int glDisplayList;
 	private Camera camera;
-	private Canvas canvas;
-	
-	/**
-	 * initialize this panel. must be done after the applet has called setVisible(true)
-	 * @param env
-	 * @param w
-	 * @param h
-	 */
-	public void initialize(Environment env, int w, int h){
+	private int width, height;
+
+	public RenderGL(Canvas canvas, Environment env, int w, int h){
 		// set up panel with respect to the evolution app
 		theEnvironment = env;
-		// set up canvas for lwjgl and opengl
-		canvas = new Canvas();
-		canvas.setPreferredSize(new Dimension(w,h));
-		this.add(canvas);
-		
+		width = w;
+		height = h;
+
 		// initialize lwjgl display
 		try {
 			Display.setParent(canvas);
@@ -44,15 +36,10 @@ public class RenderPanelGL extends JPanel {
 			e.printStackTrace();
 		}
 		// initialize opengl
-		camera = new Camera(0, 0, w, h);
+		camera = new Camera();
 		initGL();
-
-		// set the graphics update busy-loop thread running
-		Thread updater = new UpdateThread();
-		updater.setDaemon(true);
-		updater.start();
 	}
-	
+
 	public synchronized void redraw(){
 		// clear screen
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -68,12 +55,15 @@ public class RenderPanelGL extends JPanel {
 		glEndList();
 		// list is finished; calling it means render everything at once
 		glCallList(glDisplayList);
+		// update the lwjgl display with the current opengl frame
+		Display.update();
 	}
-	
+
 	private void initGL(){
 		// no projection; set it to the identity matrix
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
+		glOrtho(0, width, 0, height, -1, 1);
 		// set mode to modelview since this is where all drawing will be done
 		glMatrixMode(GL_MODELVIEW);
 		// opengl works fastest when it has compilation lists to work from. note that in redraw(), we set up the list to compile,
@@ -88,16 +78,5 @@ public class RenderPanelGL extends JPanel {
 		glEnable(GL_LINE_SMOOTH);
 		// background clear color is black
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		// tiny orthographic init. real ortho projection is updated in Camera.glSetView()
-		glOrtho(0.,0.,1.,1.,.3,1.);
-	}
-	
-	private class UpdateThread extends Thread{
-		@Override
-		public void run(){
-			while(true){
-				redraw();
-			}
-		}
 	}
 }

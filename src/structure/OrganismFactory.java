@@ -1,6 +1,5 @@
 package structure;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,10 +27,10 @@ public class OrganismFactory {
 				Math.random()*(bounds[3]-bounds[1]) + bounds[1],
 				e);
 		
-		PointMass pm0 = new PointMass(1); 
-		PointMass pm1 = new PointMass(1); 
-		PointMass pm2 = new PointMass(1); 
-		PointMass pm3 = new PointMass(0.5);
+		PointMass pm0 = new PointMass(1.0); 
+		PointMass pm1 = new PointMass(1.0); 
+		PointMass pm2 = new PointMass(1.0); 
+		PointMass pm3 = new PointMass(1.0);
 		List<PointMass> pmlist = new LinkedList<PointMass>();
 		pmlist.add(pm0);
 		pmlist.add(pm1);
