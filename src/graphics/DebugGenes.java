@@ -12,11 +12,12 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
+import physics.PointMass;
+
 import environment.Environment;
 
 import structure.Organism;
 import structure.OrganismFactory;
-import structure.PointMass;
 
 public class DebugGenes extends JPanel {
 

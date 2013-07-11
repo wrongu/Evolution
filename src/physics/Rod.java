@@ -1,9 +1,10 @@
-package structure;
+package physics;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 
 import javax.vecmath.Vector2d;
+
 
 import environment.Environment;
 
@@ -15,7 +16,6 @@ public class Rod extends Structure implements IDrawable {
 	public static final double MUSCLE_MULTIPLIER = 5.0;
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 1.0;
 	public static final double FORCE_PER_DISPLACEMENT = 0.1;
-	public static final double UNIT_LENGTH = 1000000.0;
 	
 	private PointMass[] points;
 	

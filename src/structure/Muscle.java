@@ -1,8 +1,10 @@
 package structure;
 
+import physics.Structure;
+
 /**
- * Classes should extend this class if they can act out some motion. The best example is Links and Joints, which
- * can expand/contract and rotate, respectively
+ * A muscle is basically a wrapper class around structures (i.e. joints and rods). Every structure has some "zero value" (rod length
+ * or joint angle) that a Muscle acts on.
  * @author Richard
  *
  */

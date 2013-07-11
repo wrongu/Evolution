@@ -8,6 +8,10 @@ import java.awt.Graphics2D;
 import java.util.LinkedList;
 import java.util.List;
 
+import physics.Joint;
+import physics.PointMass;
+import physics.Rod;
+
 public class Organism implements IDrawable {
 	
 	private Brain brain;

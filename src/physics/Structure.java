@@ -1,14 +1,16 @@
-package structure;
+package physics;
 
 import environment.Environment;
 
 public abstract class Structure {
 	
-	public static final double ENERGY_PER_MUSCLE_STRENGTH = 0;
-	protected double rest_value;
-	protected double value;
-	protected double value2;
-	protected double health;
+	/**
+	 * Subclasses should override this constant if they require energy to move
+	 */
+	public final double ENERGY_PER_MUSCLE_STRENGTH = 0;
+	public double rest_value;
+	public double value, value2;
+	public double health;
 	
 	public Structure(double init_value){
 		rest_value = init_value;
@@ -16,16 +18,16 @@ public abstract class Structure {
 		health = 1.0;
 	}
 	
-	protected void setValue(double v){
+	public void setValue(double v){
 		value = v;
 		value2 = v*v;
 	}
 	
-	protected double getValue(){
+	public double getValue(){
 		return value;
 	}
 	
-	protected double getValue2(){
+	public double getValue2(){
 		return value2;
 	}
 	

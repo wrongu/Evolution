@@ -1,4 +1,4 @@
-package structure;
+package physics;
 
 import environment.Environment;
 

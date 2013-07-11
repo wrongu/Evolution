@@ -7,6 +7,15 @@
 			<attribute name="javadoc_location" value="file:/Users/Richard/Documents/workspace/Evolution/libs/jblas-javadoc-1.2.0/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/Richard/Documents/workspace/Evolution/libs/lwjgl.jar"/>
+	<classpathentry kind="lib" path="/Users/Richard/Documents/workspace/lwjgl-2.9.0/jar/lwjgl.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/Users/Richard/Documents/workspace/lwjgl-2.9.0/native/macosx"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/Users/Richard/Documents/workspace/lwjgl-2.9.0/jar/lwjgl_util.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/Users/Richard/Documents/workspace/lwjgl-2.9.0/native/macosx"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

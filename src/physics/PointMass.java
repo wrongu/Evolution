@@ -1,4 +1,4 @@
-package structure;
+package physics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +15,6 @@ public class PointMass {
 	private Vector2d pos;
 	private Vector2d vel;
 	private Vector2d force;
-//	private double pos.x, pos.y;
-//	private double vel.x, vel.y;
-//	private double force.x, force.y;
 	
 	private List<Rod> connections;
 	
