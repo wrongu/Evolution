@@ -1,4 +1,4 @@
-package bio;
+package bio.genetics;
 
 import environment.Environment;
 

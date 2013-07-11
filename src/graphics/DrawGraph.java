@@ -1,4 +1,4 @@
-package bio;
+package graphics;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -6,8 +6,6 @@ import java.awt.Rectangle;
 
 import org.jblas.DoubleMatrix;
 
-import graphics.IDrawable;
-import graphics.Visualizer;
 
 public class DrawGraph implements IDrawable {
 

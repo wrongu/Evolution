@@ -2,7 +2,7 @@ package structure;
 
 import java.util.List;
 
-import bio.ANN;
+import bio.ann.ANN;
 
 
 public class Brain {

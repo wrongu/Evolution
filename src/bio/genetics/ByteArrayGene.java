@@ -1,4 +1,4 @@
-package bio;
+package bio.genetics;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -7,7 +7,7 @@ import java.util.List;
 import physics.PointMass;
 import physics.Rod;
 
-import bio.IGene;
+import bio.genetics.IGene;
 
 import environment.Environment;
 

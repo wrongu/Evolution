@@ -2,11 +2,11 @@
 
 import environment.Environment;
 import graphics.DebugGenes;
+import graphics.DrawGraph;
 import graphics.RenderPanel;
 
 import javax.swing.JApplet;
 
-import bio.DrawGraph;
 
 //import ann.DrawGraph;
 

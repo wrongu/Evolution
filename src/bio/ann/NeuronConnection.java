@@ -1,4 +1,4 @@
-package bio;
+package bio.ann;
 
 import java.util.HashMap;
 import java.util.Map;
