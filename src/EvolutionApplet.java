@@ -4,8 +4,10 @@ import environment.Environment;
 import graphics.DebugGenes;
 import graphics.DrawGraph;
 import graphics.RenderPanel;
+import graphics.RenderPanelGL;
 
 import javax.swing.JApplet;
+import javax.swing.JPanel;
 
 
 //import ann.DrawGraph;
@@ -21,14 +23,19 @@ public class EvolutionApplet extends JApplet {
 		setSize(APPLET_WIDTH, APPLET_HEIGHT);
 		
 //		add(new RenderPanel(new DrawGraph()));
+//	add(new DebugGenes());
+		
 		env = new Environment(APPLET_WIDTH, APPLET_HEIGHT);
-		add(new RenderPanel(env));
-//		add(new DebugGenes());
+		JPanel renderpanel = new RenderPanelGL(); 
+		add(renderpanel);
+
+		setVisible(true);
+		
+		((RenderPanelGL) renderpanel).initialize(env, APPLET_WIDTH, APPLET_HEIGHT);
 		
 		Thread th = new Thread(env);
 		th.setDaemon(true);
 		th.start();
 		
-		setVisible(true);
 	}
 }

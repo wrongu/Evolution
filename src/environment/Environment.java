@@ -49,10 +49,10 @@ public class Environment implements IDrawable, IDrawableGL, Runnable {
 			o.draw(g, sx, sy, scx, scy);
 	}
 	
-	public void draw() {
+	public void glDraw() {
 		// TODO - draw some sort of background?
 		for(Organism o : organisms)
-			o.draw();
+			o.glDraw();
 	}
 
 	public void run() {

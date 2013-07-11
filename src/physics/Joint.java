@@ -82,7 +82,7 @@ public class Joint extends Structure {
 		// currently, joints are not rendered as anything
 	}
 
-	public void draw() {
+	public void glDraw() {
 		// opengl drawing
 		// currently, joints are not rendered as anything
 	}

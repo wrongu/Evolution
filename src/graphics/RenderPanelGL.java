@@ -19,17 +19,25 @@ public class RenderPanelGL extends JPanel {
 	private Environment theEnvironment;
 	private int glDisplayList;
 	private Camera camera;
+	private Canvas canvas;
 	
-	public RenderPanelGL(Environment env, int w, int h){
+	/**
+	 * initialize this panel. must be done after the applet has called setVisible(true)
+	 * @param env
+	 * @param w
+	 * @param h
+	 */
+	public void initialize(Environment env, int w, int h){
 		// set up panel with respect to the evolution app
 		theEnvironment = env;
 		// set up canvas for lwjgl and opengl
-		Canvas canv = new Canvas();
-		canv.setPreferredSize(new Dimension(w,h));
-		this.add(canv);
+		canvas = new Canvas();
+		canvas.setPreferredSize(new Dimension(w,h));
+		this.add(canvas);
+		
 		// initialize lwjgl display
 		try {
-			Display.setParent(canv);
+			Display.setParent(canvas);
 			Display.create();
 		}
 		catch (LWJGLException e) {
@@ -55,7 +63,7 @@ public class RenderPanelGL extends JPanel {
 		// start list compilation and write all draw() operations to that list
 		glNewList(glDisplayList, GL_COMPILE);
 		{
-			theEnvironment.draw();
+			theEnvironment.glDraw();
 		}
 		glEndList();
 		// list is finished; calling it means render everything at once
@@ -63,6 +71,15 @@ public class RenderPanelGL extends JPanel {
 	}
 	
 	private void initGL(){
+		// no projection; set it to the identity matrix
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		// set mode to modelview since this is where all drawing will be done
+		glMatrixMode(GL_MODELVIEW);
+		// opengl works fastest when it has compilation lists to work from. note that in redraw(), we set up the list to compile,
+		//	then do all drawing (which really just fills the list with commands), then do glCallList, which executes all drawing
+		// 	at once and lets opengl do all its own optimizations.
+		glDisplayList = glGenLists(1);
 		// 2d, so save time by not depth-testing
 		glDisable(GL_DEPTH_TEST);
 		// set up line antialiasing
@@ -73,15 +90,6 @@ public class RenderPanelGL extends JPanel {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		// tiny orthographic init. real ortho projection is updated in Camera.glSetView()
 		glOrtho(0.,0.,1.,1.,.3,1.);
-		// no projection; set it to the identity matrix
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		// set mode to modelview since this is where all drawing will be done
-		glMatrixMode(GL_MODELVIEW);
-		// opengl works fastest when it has compilation lists to work from. note that in redraw(), we set up the list to compile,
-		//	then do all drawing (which really just fills the list with commands), then do glCallList, which executes all drawing
-		// 	at once and lets opengl do all its own optimizations.
-		glDisplayList = glGenLists(1);
 	}
 	
 	private class UpdateThread extends Thread{

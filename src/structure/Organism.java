@@ -88,9 +88,8 @@ public class Organism implements IDrawable, IDrawableGL {
 		// TODO - add glow to represent energy? <-- can only be done in opengl, I think
 	}
 
-	public void draw() {
-		// TODO Auto-generated method stub
-		
+	public void glDraw() {
+		for(Rod r : rods) r.glDraw();
 	}
 
 	public double requestEnergy(double d) {

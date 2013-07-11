@@ -2,13 +2,9 @@ package physics;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-
 import javax.vecmath.Vector2d;
-
-
 import environment.Environment;
-
-import graphics.IDrawable;
+import static org.lwjgl.opengl.GL11.*;
 
 public class Rod extends Structure {
 	
@@ -30,7 +26,6 @@ public class Rod extends Structure {
 	}
 
 	public void draw(Graphics2D g, int shiftx, int shifty, double scalex, double scaley) {
-		g.setColor(Color.WHITE);
 		PointMass j1 = points[0];
 		PointMass j2 = points[1];
 		if(!(j1 == null | j2 == null)){
@@ -41,6 +36,17 @@ public class Rod extends Structure {
 			g.drawLine(x1, y1, x2, y2);
 			System.out.println("Draw rod ("+x1+", "+y1+"), ("+x2+", "+y2+")");
 		}
+	}
+
+	public void glDraw() {
+		// opengl render
+		glColor4f(0f, 0.4f, 1.0f, 1.0f);
+		glBegin(GL_LINES);
+		{
+			glVertex2d(points[0].getX(), points[0].getY());
+			glVertex2d(points[1].getX(), points[1].getY());
+		}
+		glEnd();
 	}
 	
 	/**
@@ -116,10 +122,5 @@ public class Rod extends Structure {
 		return new Vector2d(
 				(points[0].getVX()+points[1].getVX()) / 2,
 				(points[0].getVY()+points[1].getVY()) / 2);
-	}
-
-	public void draw() {
-		// TODO Auto-generated method stub
-		// opengl render
 	}
 }
