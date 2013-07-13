@@ -11,6 +11,7 @@ public class PointMass {
 
 	/** for physics, joints are modeled as point masses */
 	public static final double DEFAULT_MASS = 1.0;
+	public static final double VEL_MAX = 0.5;
 	private double mass;
 	private Vector2d pos;
 	private Vector2d vel;
@@ -45,9 +46,14 @@ public class PointMass {
 	}
 
 	public void move(Environment e, double dt){
-		// apply friction
 		double vmag = vel.length();
-		if(vmag != 0.0) addForce(-vel.x * e.friction / vmag, -vel.y * e.friction / vmag);
+		if(vmag > VEL_MAX){
+			vel.x *= VEL_MAX / vmag;
+			vel.y *= VEL_MAX / vmag;
+		}
+		// apply point viscosity
+		vel.x *= (1 - e.point_visc);
+		vel.y *= (1 - e.point_visc);
 		// move the point
 		pos.x += dt * vel.x;
 		pos.y += dt * vel.y;

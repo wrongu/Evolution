@@ -61,14 +61,14 @@ public class Rod extends Structure {
 			// first point
 			double proj1 = norm.dot(mot1);
 			points[0].addForce(
-					-e.viscosity * proj1 * norm.x / norm.length(),
-					-e.viscosity * proj1 * norm.y / norm.length()
+					-e.rod_visc * proj1 * norm.x / norm.length(),
+					-e.rod_visc * proj1 * norm.y / norm.length()
 					);
 			// second point
 			double proj2 = norm.dot(mot2);
 			points[1].addForce(
-					-e.viscosity * proj2 * norm.x / norm.length(),
-					-e.viscosity * proj2 * norm.y / norm.length()
+					-e.rod_visc * proj2 * norm.x / norm.length(),
+					-e.rod_visc * proj2 * norm.y / norm.length()
 					);
 		}
 	}

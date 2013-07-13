@@ -1,5 +1,3 @@
-
-
 import java.awt.Canvas;
 import java.awt.Dimension;
 
@@ -14,6 +12,7 @@ import javax.swing.JApplet;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 
 
 //import ann.DrawGraph;
@@ -22,6 +21,8 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	
 	private static final long serialVersionUID = 145131501779963654L;
 	public static final int APPLET_WIDTH = 800, APPLET_HEIGHT = 600;
+	public static final int MAX_FPS = 60;
+	public static final long TICK_MS = 100;
 	
 	private Environment env;
 	private Canvas canvas;
@@ -31,6 +32,9 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	public static final int UP = 0, DOWN = 1, LEFT = 2, RIGHT = 3;
 	/** two integers {dx, dy} of the mouse */
 	private int[] mouse_move = new int[2];
+	// variables for tracking fps
+	private long second_timer;
+	private int fps, frame_counter;
 	
 	public void init(){
 		setSize(APPLET_WIDTH, APPLET_HEIGHT);
@@ -41,6 +45,10 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		getContentPane().add(canvas);
 		
 		setVisible(true);
+		
+		second_timer = 0L;
+		fps = MAX_FPS;
+		frame_counter = 0;
 		
 		Thread th = new Thread(this);
 		th.setDaemon(true);
@@ -65,12 +73,21 @@ public class EvolutionApplet extends JApplet implements Runnable {
 			e.printStackTrace();
 		}
 		
+		long time = System.currentTimeMillis();
+		
 		// run simulation
-		while(true){
+		while(!Display.isCloseRequested()){
+			long now = System.currentTimeMillis();
+			double dt = ((double) (now - time)) / (double) TICK_MS;
 			checkInput();
-			env.update();
+			env.update(dt);
+			renderpanel.moveCamera(dt);
 			renderpanel.redraw();
+			updateFPS(now);
+			Display.sync(MAX_FPS);
 		}
+		
+		renderpanel.destroy();
 	}
 	
 	public void checkInput(){
@@ -94,5 +111,15 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		// mouse movement
 		mouse_move[0] = Mouse.getDX();
 		mouse_move[1] = Mouse.getDY();
+	}
+	
+	private void updateFPS(long now){
+		frame_counter++;
+		if(now - second_timer > 1000){
+			fps = frame_counter;
+			frame_counter = 0;
+			second_timer = now;
+			System.out.println(fps);
+		}
 	}
 }

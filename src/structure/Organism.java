@@ -50,7 +50,7 @@ public class Organism implements IDrawable, IDrawableGL {
 			j.initPosition(x + Math.cos(i*angle_delta)*meanhalflen, y + Math.sin(i*angle_delta)*meanhalflen);
 			i++;
 		}
-//		for(i=0; i<5; i++) physicsUpdate(1.0);
+		for(i=0; i<5; i++) physicsUpdate(1.0);
 		for(PointMass pm : pointmasses) pm.clearPhysics();
 	}
 	
@@ -113,13 +113,13 @@ public class Organism implements IDrawable, IDrawableGL {
 		double[] bounds = environment.getBounds();
 		for(PointMass pm : pointmasses){
 			if(pm.getX() < bounds[0])
-				pm.addForce(10*Environment.GRAVITY, 0);
+				pm.addForce(2*Environment.GRAVITY, 0);
 			if(pm.getX() > bounds[2])
-				pm.addForce(-10*Environment.GRAVITY, 0);
+				pm.addForce(-2*Environment.GRAVITY, 0);
 			if(pm.getY() < bounds[1])
-				pm.addForce(0, 10*Environment.GRAVITY);
+				pm.addForce(0, 2*Environment.GRAVITY);
 			if(pm.getY() > bounds[3])
-				pm.addForce(0, -10*Environment.GRAVITY);
+				pm.addForce(0, -2*Environment.GRAVITY);
 		}
 	}
 	

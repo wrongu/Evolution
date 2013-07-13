@@ -12,35 +12,30 @@ import structure.OrganismFactory;
 
 public class Environment implements IDrawable, IDrawableGL {
 	
-	public static final long TICK_MS = 50;
 	public static final double GRAVITY = 0.1;
 	
-	public double viscosity;
-	public double friction;
+	public double rod_visc;
+	public double point_visc;
 	public List<Organism> organisms;
-	private long last_update;
 	private int width, height;
 	
 	public Environment(int w, int h){
-		viscosity = 0.01;
-		friction = 0.05;
+		rod_visc = 0.01;
+		point_visc = 0.01;
 		organisms = new LinkedList<Organism>();
-		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(this));
-		last_update = System.currentTimeMillis();
 		width = w;
 		height = h;
+		// DEBUGGING
+		organisms.add(OrganismFactory.testDummy(this));
 	}
 	
-	public void update(){
-		long uptime = System.currentTimeMillis();
-		double partial_tick = ((double) (uptime - last_update)) / (double) TICK_MS;
+	public void update(double dt){
+		dt /= 100.0;
 		for(Organism o : organisms){
-			o.drift(0, GRAVITY);
-			o.physicsUpdate(partial_tick > 1.0 ? 1.0 : partial_tick);
+			o.drift(0, -GRAVITY);
+			o.physicsUpdate(dt > 1.0 ? 1.0 : dt);
 			o.contain(this);
 		}
-		last_update = uptime;
 	}
 
 	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {

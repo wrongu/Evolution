@@ -30,4 +30,5 @@ public class Camera {
 		glTranslated(x, y, 0.0);
 		glScaled(zoom, zoom, 1.0);
 	}
+
 }
