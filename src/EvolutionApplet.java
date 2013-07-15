@@ -5,7 +5,7 @@ import environment.Environment;
 import graphics.DebugGenes;
 import graphics.DrawGraph;
 import graphics.RenderPanel;
-import graphics.RenderGL;
+import graphics.opengl.RenderGL;
 
 import javax.swing.JApplet;
 

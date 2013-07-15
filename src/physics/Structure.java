@@ -2,7 +2,7 @@ package physics;
 
 import environment.Environment;
 import graphics.IDrawable;
-import graphics.IDrawableGL;
+import graphics.opengl.IDrawableGL;
 
 public abstract class Structure implements IDrawable, IDrawableGL {
 	

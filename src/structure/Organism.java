@@ -2,8 +2,8 @@ package structure;
 
 import environment.Environment;
 import graphics.IDrawable;
-import graphics.IDrawableGL;
 import graphics.RenderPanel;
+import graphics.opengl.IDrawableGL;
 
 import java.awt.Graphics2D;
 import java.util.LinkedList;
