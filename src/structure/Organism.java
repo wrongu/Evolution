@@ -76,7 +76,7 @@ public class Organism implements IDrawable, IDrawableGL {
 	
 	public void drift(double fx, double fy){
 		for(PointMass pm : pointmasses)
-			pm.addForce(fx, fy);
+			pm.addAcc(fx, fy);
 	}
 
 	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {

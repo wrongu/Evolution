@@ -3,6 +3,8 @@ package graphics;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.MouseInfo;
+import java.awt.PointerInfo;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -19,6 +21,7 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 	public static final Color ORGANISM_COLOR = new Color(0F, 1F, 1F); 
 
 	private IDrawable render;
+	PointerInfo pointerInfo = MouseInfo.getPointerInfo();
 	private boolean mouseIsDown;
 	private int mx, my;
 
@@ -63,6 +66,8 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 
 	public void mousePressed(MouseEvent arg0) {
 		mouseIsDown = true;
+		mx = arg0.getX();
+		my = arg0.getY();
 	}
 
 	public void mouseReleased(MouseEvent arg0) {

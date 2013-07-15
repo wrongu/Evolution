@@ -10,7 +10,8 @@ public class Rod extends Structure {
 	/** change in value per unit strength */
 	public static final double MUSCLE_MULTIPLIER = 5.0;
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 1.0;
-	public static final double FORCE_PER_DISPLACEMENT = 0.1;
+	public static final double FORCE_PER_DISPLACEMENT = 0.1; // perhaps this should depend on the rod?
+	public static final double SPRING_FRICTION_CONSTANT = 0.1;
 	
 	private PointMass[] points;
 	
@@ -33,7 +34,7 @@ public class Rod extends Structure {
 			int x2 = (int) ((shiftx + j2.getX()) * scalex);
 			int y2 = (int) ((shifty + j2.getY()) * scaley);
 			g.drawLine(x1, y1, x2, y2);
-			System.out.println("Draw rod ("+x1+", "+y1+"), ("+x2+", "+y2+")");
+			//System.out.println("Draw rod ("+x1+", "+y1+"), ("+x2+", "+y2+")");
 		}
 	}
 
@@ -61,14 +62,14 @@ public class Rod extends Structure {
 			// first point
 			double proj1 = norm.dot(mot1);
 			points[0].addForce(
-					-e.rod_visc * proj1 * norm.x / norm.length(),
-					-e.rod_visc * proj1 * norm.y / norm.length()
+					-e.viscosity * proj1 * norm.x / norm.length(),
+					-e.viscosity * proj1 * norm.y / norm.length()
 					);
 			// second point
 			double proj2 = norm.dot(mot2);
 			points[1].addForce(
-					-e.rod_visc * proj2 * norm.x / norm.length(),
-					-e.rod_visc * proj2 * norm.y / norm.length()
+					-e.viscosity * proj2 * norm.x / norm.length(),
+					-e.viscosity * proj2 * norm.y / norm.length()
 					);
 		}
 	}
@@ -103,14 +104,26 @@ public class Rod extends Structure {
 			// spring force: f = -k*x, where k is the spring constant (or strength of muscle) and x is displacement from ideal length
 			double strain = dist - this.getValue();
 			// get unit vector
-			double ux = dx / dist;
-			double uy = dy / dist;
+			double ux = dx;
+			double uy = dy;
+			if(dist != 0) {
+				 ux /= dist;
+				 uy /= dist;
+			}
 			// add forces to joints (point masses) relative to strain.
 			j1.addForce(ux * strain * FORCE_PER_DISPLACEMENT, uy * strain * FORCE_PER_DISPLACEMENT);
 			j2.addForce(-ux * strain * FORCE_PER_DISPLACEMENT, -uy * strain * FORCE_PER_DISPLACEMENT);
+
 //			System.out.println("rod position ("+points[0].getX()+", "+points[0].getY()+", "+points[1].getX()+", "+points[1].getY()+")");
+
+			// calculate friction and add it to point masses.
+			double dvx = j2.getVX() - j1.getVX();
+			double dvy = j2.getVY() - j1.getVY();
+			double dvRadialComp = ux*dvx + uy*dvy;
+			j2.addForce(-ux * dvRadialComp * SPRING_FRICTION_CONSTANT, -uy * dvRadialComp * SPRING_FRICTION_CONSTANT);
+			j1.addForce(ux * dvRadialComp * SPRING_FRICTION_CONSTANT, uy * dvRadialComp * SPRING_FRICTION_CONSTANT);
+			doViscosity(e);	
 		}
-		doViscosity(e);
 	}
 
 	@Override

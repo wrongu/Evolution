@@ -14,19 +14,22 @@ public class Environment implements IDrawable, IDrawableGL {
 	
 	public static final double GRAVITY = 0.1;
 	
-	public double rod_visc;
-	public double point_visc;
+	public double viscosity;
+	public double friction;
 	public List<Organism> organisms;
 	private int width, height;
 	
+	private boolean mousedown = false;
+	private int mousex, mousey;
+	
 	public Environment(int w, int h){
-		rod_visc = 0.01;
-		point_visc = 0.01;
+		viscosity = 0.002;
+		friction = 0.0;
 		organisms = new LinkedList<Organism>();
+		// DEBUGGING
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.JOINTLESS_SNAKE,this));
 		width = w;
 		height = h;
-		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(this));
 	}
 	
 	public void update(double dt){
@@ -35,7 +38,15 @@ public class Environment implements IDrawable, IDrawableGL {
 			o.drift(0, -GRAVITY);
 			o.physicsUpdate(dt > 1.0 ? 1.0 : dt);
 			o.contain(this);
+			
+			// if(mousedown) {
+			// 	double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
+			// 	o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
+			// 	System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
+			// }
 		}
+
+		// mousedown = false;
 	}
 
 	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {
@@ -58,9 +69,9 @@ public class Environment implements IDrawable, IDrawableGL {
 	}
 	
 	public void mouseDown(int mx, int my){
-		for(Organism o : organisms){
-			o.drift(-(mx - o.getX() / 10000.0), -(my - o.getY() / 10000.0));
-		}
+		mousedown = true;
+		mousex = mx;
+		mousey = my;
 	}
 
 }
