@@ -33,8 +33,8 @@ public class DebugGenes extends JPanel {
 
 		dummyEnv = new Environment(0,0);
 		
-		leftOrg = OrganismFactory.testDummy(dummyEnv);
-		rightOrg = OrganismFactory.testDummy(dummyEnv);
+		leftOrg = OrganismFactory.testDummy(OrganismFactory.TRIANGLE_WITH_TAIL,dummyEnv);
+		rightOrg = OrganismFactory.testDummy(OrganismFactory.TRIANGLE_WITH_TAIL,dummyEnv);
 		
 		leftPanel = new OrganismDisplayPanel(400, 400).setOrganism(leftOrg);
 		rightPanel = new OrganismDisplayPanel(400, 400).setOrganism(rightOrg);

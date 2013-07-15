@@ -22,12 +22,15 @@ public class Environment implements IDrawable, IDrawableGL, Runnable {
 	private long last_update;
 	private int width, height;
 	
+	private boolean mousedown = false;
+	private int mousex, mousey;
+	
 	public Environment(int w, int h){
-		viscosity = 0.005;
+		viscosity = 0.002;
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.JOINTLESS_SNAKE,this));
 		last_update = System.currentTimeMillis();
 		width = w;
 		height = h;
@@ -37,10 +40,16 @@ public class Environment implements IDrawable, IDrawableGL, Runnable {
 		long uptime = System.currentTimeMillis();
 		double partial_tick = ((double) (uptime - last_update)) / (double) TICK_MS;
 		for(Organism o : organisms){
-			o.drift(0, GRAVITY);
+			//o.drift(0, GRAVITY);
 			o.physicsUpdate(partial_tick);
 			o.contain(this);
+			if(mousedown) {
+				double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
+				o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
+				System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
+			}
 		}
+		mousedown = false;
 		last_update = uptime;
 	}
 
@@ -75,9 +84,9 @@ public class Environment implements IDrawable, IDrawableGL, Runnable {
 	}
 	
 	public void mouseDown(int mx, int my){
-		for(Organism o : organisms){
-			o.drift(-(mx - o.getX() / 10000.0), -(my - o.getY() / 10000.0));
-		}
+		mousedown = true;
+		mousex = mx;
+		mousey = my;
 	}
 
 }

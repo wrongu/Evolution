@@ -4,14 +4,17 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import physics.Joint;
 import physics.PointMass;
 import physics.Rod;
-
 import bio.genetics.IGene;
-
 import environment.Environment;
 
 public class OrganismFactory {
+	
+	public static final int TRIANGLE_WITH_TAIL = 0;
+	public static final int TWO_RODS_WITH_JOINT = 1;
+	public static final int JOINTLESS_SNAKE = 2;
 	
 	public static Organism fromGene(IGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
@@ -21,35 +24,59 @@ public class OrganismFactory {
 	}
 	
 	
-	public static Organism testDummy(Environment e){
+	public static Organism testDummy(int creature, Environment e){
 		double[] bounds = e.getBounds();
+		List<PointMass> pmlist = new LinkedList<PointMass>();
+		List<Rod> rodlist = new LinkedList<Rod>();
+		List<Joint> jointlist = new LinkedList<Joint>();
+		
 		Organism o = new Organism(
 				Math.random()*(bounds[2]-bounds[0]) + bounds[0],
 				Math.random()*(bounds[3]-bounds[1]) + bounds[1],
 				e);
 		
-		PointMass pm0 = new PointMass(1); 
-		PointMass pm1 = new PointMass(1); 
-		PointMass pm2 = new PointMass(1); 
-		PointMass pm3 = new PointMass(0.5);
-		List<PointMass> pmlist = new LinkedList<PointMass>();
-		pmlist.add(pm0);
-		pmlist.add(pm1);
-		pmlist.add(pm2);
-		pmlist.add(pm3);
+		switch(creature) {
 		
-		Rod a = new Rod(30, pm0, pm1);
-		Rod b = new Rod(30, pm2, pm1);
-		Rod c = new Rod(30, pm0, pm2);
-		Rod d = new Rod(50, pm0, pm3);
-		List<Rod> rodlist = new LinkedList<Rod>();
-		rodlist.add(a);
-		rodlist.add(b);
-		rodlist.add(c);
-		rodlist.add(d);
+		case TRIANGLE_WITH_TAIL:
+			PointMass pm0 = new PointMass(1); 
+			PointMass pm1 = new PointMass(1); 
+			PointMass pm2 = new PointMass(1); 
+			PointMass pm3 = new PointMass(0.5);
+			pmlist.add(pm0);
+			pmlist.add(pm1);
+			pmlist.add(pm2);
+			pmlist.add(pm3);
+			
+			Rod a = new Rod(30, pm0, pm1);
+			Rod b = new Rod(30, pm2, pm1);
+			Rod c = new Rod(30, pm0, pm2);
+			Rod d = new Rod(50, pm0, pm3);
+			rodlist.add(a);
+			rodlist.add(b);
+			rodlist.add(c);
+			rodlist.add(d);
+			break;
+			
+		case TWO_RODS_WITH_JOINT:
+			for(int i = 0; i < 3; i++)
+				pmlist.add(new PointMass(1));
+			rodlist.add(new Rod(50,pmlist.get(1), pmlist.get(0)));
+			rodlist.add(new Rod(50,pmlist.get(2), pmlist.get(0)));
+			jointlist.add(new Joint(Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
+			break;
+			
+		case JOINTLESS_SNAKE:
+			for(int i = 0; i < 6; i++)
+				pmlist.add(new PointMass((double)1/(double)i));
+			for(int i = 0; i < 5; i++)
+				rodlist.add(new Rod(30, pmlist.get(i), pmlist.get(i+1)));
+			break;
+			
+		}
 		
 		o.addAllPointMasses(pmlist);
 		o.addAllRods(rodlist);
+		o.addAllJoints(jointlist);
 		o.initStructure();
 		
 		return o;
