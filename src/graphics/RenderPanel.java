@@ -53,7 +53,7 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 	private class UpdateThread extends Thread{
 		public void run(){
 			while(true){
-				if(mouseIsDown) ((Environment) render).mouseDown(mx, my);
+				if(mouseIsDown) ((Environment) render).mouse_move(mx, my);
 				repaint();
 			}
 		}

@@ -68,7 +68,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	 * @return double array [xmin, ymin, xmax, ymax] of environment's bounding area
 	 */
 	public double[] getBounds(){
-		return new double[] {0, 0, width, height};
+		return new double[] {-width/2, -height/2, width/2, height/2};
 	}
 	
 	public void mouse_move(int mx, int my){

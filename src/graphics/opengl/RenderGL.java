@@ -16,6 +16,7 @@ import org.lwjgl.opengl.GLContext;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL40.*;
 import static org.lwjgl.opengl.EXTFramebufferObject.*;
 
 import environment.Environment;
@@ -28,8 +29,9 @@ public class RenderGL {
 	private Environment theEnvironment;
 	private Camera camera;
 	private int width, height;
+	private double initWidth, initHeight, ar;
 	private boolean[] keyboard;
-	private int[] mouse;
+	private int[] mouse_move, mouse_buttons;
 
 	// opengl is a state machine that gives us references to its objects as ints.
 	private int glListBackground, glListGlow;
@@ -57,6 +59,9 @@ public class RenderGL {
 		theEnvironment = env;
 		width = w;
 		height = h;
+		initWidth = (double) w;
+		initHeight = (double) h;
+		ar = initWidth / initHeight;
 
 		// initialize lwjgl display
 		try {
@@ -72,6 +77,10 @@ public class RenderGL {
 	}
 
 	public synchronized void redraw(){
+		// in case screen size changed
+		width = Display.getWidth();
+		height = Display.getHeight();
+		glWindowSize();
 		// start list compilation and write all draw() operations to that list
 		glNewList(glListBackground, GL_COMPILE);
 		{
@@ -138,15 +147,11 @@ public class RenderGL {
 		if(keyboard[2]) dx += .1*dt;
 		if(keyboard[3]) dx -= .1*dt;
 		camera.shift(dx, dy);
+		camera.zoom((double) mouse_buttons[1] * 0.0005);
 	}
 
 	private void initGL(){
-		// no projection; set it to the identity matrix
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0, width, 0, height, -1, 1);
-		// set mode to modelview since this is where all drawing will be done
-		glMatrixMode(GL_MODELVIEW);
+		glWindowSize();
 		// opengl works fastest when it has compilation lists to work from. note that in redraw(), we set up the list to compile,
 		//	then do all drawing (which really just fills the list with commands), then do glCallList, which executes all drawing
 		// 	at once and lets opengl do all its own optimizations.
@@ -163,6 +168,17 @@ public class RenderGL {
 		// load and compile shaders
 		initGLShaders();
 		glEnable(GL_TEXTURE_2D);
+	}
+	
+	private void glWindowSize(){
+		// no projection; set it to the identity matrix
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		double ar = (double) width / (double) height;
+		glOrtho(- ar * initHeight/2,  ar * initHeight/2, -initHeight/2, initHeight/2, -1, 1);
+		// set mode to modelview since this is where all drawing will be done
+		glMatrixMode(GL_MODELVIEW);
+		glViewport(0, 0, width, height);
 	}
 
 	private void initGLShaders(){
@@ -210,20 +226,24 @@ public class RenderGL {
 	}
 
 	private void drawBorder() {
+		double[] bounds = theEnvironment.getBounds();
+		double xmin = bounds[0];
+		double ymin = bounds[1];
+		double xmax = bounds[2];
+		double ymax = bounds[3];
 		glColor3f(1f,1f,1f);
 		glBegin(GL_LINES);
-		glVertex2f(0,0);
-		glVertex2f(width,0);
+		glVertex2d(xmin, ymin);
+		glVertex2d(xmax, ymin);
 
+		glVertex2d(xmax, ymin);
+		glVertex2d(xmax, ymax);
 
-		glVertex2f(width,0);
-		glVertex2f(width,height);
+		glVertex2d(xmax, ymax);
+		glVertex2d(xmin, ymax);
 
-		glVertex2f(width,height);
-		glVertex2f(0,height);
-
-		glVertex2f(0,height);
-		glVertex2f(0,0);
+		glVertex2d(xmin, ymax);
+		glVertex2d(xmin, ymin);
 
 		glEnd();
 	}
@@ -241,8 +261,9 @@ public class RenderGL {
 		Display.destroy();
 	}
 
-	public void bindInputs(boolean[] direction_keys, int[] mouse_move) {
+	public void bindInputs(boolean[] direction_keys, int[] mouse_move, int[] mouse_buttons) {
 		keyboard = direction_keys;
-		mouse = mouse_move;
+		this.mouse_move = mouse_move;
+		this.mouse_buttons = mouse_buttons;
 	}
 }
