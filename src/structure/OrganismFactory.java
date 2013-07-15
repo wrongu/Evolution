@@ -14,6 +14,7 @@ public class OrganismFactory {
 	public static final int TRIANGLE_WITH_TAIL = 0;
 	public static final int TWO_RODS_WITH_JOINT = 1;
 	public static final int JOINTLESS_SNAKE = 2;
+	public static final int TRIANGLE_WITH_MUSCLE = 3;
 	
 	public static Organism fromGene(IGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
@@ -47,10 +48,10 @@ public class OrganismFactory {
 			pmlist.add(pm2);
 			pmlist.add(pm3);
 			
-			Rod a = new Rod(30, pm0, pm1);
-			Rod b = new Rod(30, pm2, pm1);
-			Rod c = new Rod(30, pm0, pm2);
-			Rod d = new Rod(50, pm0, pm3);
+			Rod a = new Rod(30, 30, pm0, pm1);
+			Rod b = new Rod(30, 30, pm2, pm1);
+			Rod c = new Rod(30, 30, pm0, pm2);
+			Rod d = new Rod(50, 50, pm0, pm3);
 			rodlist.add(a);
 			rodlist.add(b);
 			rodlist.add(c);
@@ -60,8 +61,8 @@ public class OrganismFactory {
 		case TWO_RODS_WITH_JOINT:
 			for(int i = 0; i < 3; i++)
 				pmlist.add(new PointMass(1));
-			rodlist.add(new Rod(50,pmlist.get(1), pmlist.get(0)));
-			rodlist.add(new Rod(50,pmlist.get(2), pmlist.get(0)));
+			rodlist.add(new Rod(50, 50, pmlist.get(1), pmlist.get(0)));
+			rodlist.add(new Rod(50, 50, pmlist.get(2), pmlist.get(0)));
 			jointlist.add(new Joint(Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
 			break;
 			
@@ -69,9 +70,15 @@ public class OrganismFactory {
 			for(int i = 0; i < 6; i++)
 				pmlist.add(new PointMass((double)1/(double)i));
 			for(int i = 0; i < 5; i++)
-				rodlist.add(new Rod(30, pmlist.get(i), pmlist.get(i+1)));
+				rodlist.add(new Rod(30, 30, pmlist.get(i), pmlist.get(i+1)));
 			break;
 			
+		case TRIANGLE_WITH_MUSCLE:
+			for(int i = 0; i < 3; i++) {pmlist.add(new PointMass(1));}
+			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(1)));
+			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(2)));
+			rodlist.add(new Rod(30,70, pmlist.get(1), pmlist.get(2)));
+			break;
 		}
 		
 		o.addAllPointMasses(pmlist);

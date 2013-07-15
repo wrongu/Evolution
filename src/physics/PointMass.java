@@ -28,7 +28,7 @@ public class PointMass {
 		connections = new ArrayList<Rod>();
 		for(Rod r : rods){
 			connections.add(r);
-			r.addJoint(this);
+			r.addPoint(this);
 		}
 		pos = new Vector2d();
 		vel = new Vector2d();

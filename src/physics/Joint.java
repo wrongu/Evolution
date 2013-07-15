@@ -100,7 +100,8 @@ public class Joint extends Structure {
 		double uyb = vB[1]/lenB;
 		
 		// sin(a - b) = sin(a)cos(b) - cos(a)sin(b)
-		double sinStrain = (uxa*uyb - uya*uxb)*Math.cos(getValue()) - (uxa*uxb + uya*uyb)*Math.sin(getValue());
+		double sinStrain = 0;
+				//(uxa*uyb - uya*uxb)*Math.cos(getValue()) - (uxa*uxb + uya*uyb)*Math.sin(getValue());
 		double fax = -uya*TORQUE_PER_RAD*sinStrain/lenA;
 		double fay = uxa*TORQUE_PER_RAD*sinStrain/lenA;
 		double fbx = uyb*TORQUE_PER_RAD*sinStrain/lenB;
@@ -175,6 +176,9 @@ public class Joint extends Structure {
 	public void draw(Graphics2D g, int shift, int shifty, double scalex, double scaley) {
 		// currently, joints are not rendered as anything
 	}
+	
+	@Override
+	public double getEPMS() {return ENERGY_PER_MUSCLE_STRENGTH;}
 
 	public void glDraw() {
 		// opengl drawing
