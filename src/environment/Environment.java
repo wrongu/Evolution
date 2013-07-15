@@ -21,7 +21,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	
 	private int[] mouse_in;
 	private boolean[] mouse_down;
-	private boolean mousedown = false;
+	private int[] mouse_buttons;
 	private int mousex, mousey;
 	
 	public Environment(int w, int h){
@@ -35,7 +35,6 @@ public class Environment implements IDrawable, IDrawableGL {
 	}
 	
 	public void update(double dt){
-		mousedown = mouse_down[0];
 		mousex = mouse_in[0];
 		mousey = mouse_in[1];
 	
@@ -45,14 +44,12 @@ public class Environment implements IDrawable, IDrawableGL {
 			o.physicsUpdate(dt > 1.0 ? 1.0 : dt);
 			o.contain(this);
 			
-			 if(mousedown) {
+			 if(mouse_buttons[0] != 0) {
 			 	double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
 			 	o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
 			 	System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
 			 }
 		}
-
-		 mousedown = false;
 	}
 
 	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {
@@ -74,15 +71,15 @@ public class Environment implements IDrawable, IDrawableGL {
 		return new double[] {0, 0, width, height};
 	}
 	
-	public void mouseDown(int mx, int my){
-		mousedown = true;
+	public void mouse_move(int mx, int my){
+		mouse_buttons[0] = 1;
 		mousex = mx;
 		mousey = my;
 	}
 
-	public void bindInput(boolean[] mouse_down, int[] mouse_move) {
+	public void bindInput(int[] mouse_buttons, int[] mouse_move) {
+		this.mouse_buttons = mouse_buttons;
 		this.mouse_in = mouse_move;
-		this.mouse_down = mouse_down;
 	}
 
 }
