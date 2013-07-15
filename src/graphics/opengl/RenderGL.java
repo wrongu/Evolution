@@ -98,6 +98,17 @@ public class RenderGL {
 		{
 			clearGraphics();
 			glCallList(glListGlow);
+			// apply horz blur from texture 0, output to texture 1
+			pHBlur.begin();
+			glEffects.bind(1);
+			renderFullScreenQuadTex();
+			pHBlur.end();
+			// apply vert blur from texture 1, output to texture 0
+			pVBlur.begin();
+			glEffects.bind(0);
+			renderFullScreenQuadTex();
+			pVBlur.end();
+			
 		}
 		// unbind the effects (i.e. bind the main screen) for final rendering
 		glEffects.unbind();
@@ -187,7 +198,7 @@ public class RenderGL {
 				}
 				pVBlur = Program.createProgram(vNoop, fBlur);
 				{
-					pVBlur.setParam("Sample0", 0);
+					pVBlur.setParam("Sample0", 1);
 					pVBlur.setParam("Orientation", 1);
 					pVBlur.setParam("BlurAmount", BLUR_WIDTH);
 					pVBlur.setParam("BlurScale", BLUR_SCALE);
