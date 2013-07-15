@@ -19,6 +19,8 @@ public class Environment implements IDrawable, IDrawableGL {
 	public List<Organism> organisms;
 	private int width, height;
 	
+	private int[] mouse_in;
+	private boolean[] mouse_down;
 	private boolean mousedown = false;
 	private int mousex, mousey;
 	
@@ -33,20 +35,24 @@ public class Environment implements IDrawable, IDrawableGL {
 	}
 	
 	public void update(double dt){
+		mousedown = mouse_down[0];
+		mousex = mouse_in[0];
+		mousey = mouse_in[1];
+	
 		dt /= 100.0;
 		for(Organism o : organisms){
 			o.drift(0, -GRAVITY);
 			o.physicsUpdate(dt > 1.0 ? 1.0 : dt);
 			o.contain(this);
 			
-			// if(mousedown) {
-			// 	double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
-			// 	o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
-			// 	System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
-			// }
+			 if(mousedown) {
+			 	double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
+			 	o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
+			 	System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
+			 }
 		}
 
-		// mousedown = false;
+		 mousedown = false;
 	}
 
 	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {
@@ -72,6 +78,11 @@ public class Environment implements IDrawable, IDrawableGL {
 		mousedown = true;
 		mousex = mx;
 		mousey = my;
+	}
+
+	public void bindInput(boolean[] mouse_down, int[] mouse_move) {
+		this.mouse_in = mouse_move;
+		this.mouse_down = mouse_down;
 	}
 
 }

@@ -83,7 +83,6 @@ public class RenderGL {
 
 		glNewList(glListGlow, GL_COMPILE);
 		{
-			camera.glSetView();
 			theEnvironment.glDraw();
 		}
 		glEndList();
@@ -94,18 +93,18 @@ public class RenderGL {
 		 */
 
 		// bind the effects FBO so that rendering goes to it.
-		glEffects.bind(0);
-		{
-			clearGraphics();
-			glCallList(glListGlow);
-		}
-		// unbind the effects (i.e. bind the main screen) for final rendering
-		glEffects.unbind();
+//		glEffects.bind(0);
+//		{
+//			clearGraphics();
+//			glCallList(glListGlow);
+//		}
+//		// unbind the effects (i.e. bind the main screen) for final rendering
+//		glEffects.unbind();
 		{
 			clearGraphics();
 			glCallList(glListBackground);
 			glCallList(glListGlow);
-			glBindTexture(GL_TEXTURE_2D, glEffects.getTexture(0));
+//			glBindTexture(GL_TEXTURE_2D, glEffects.getTexture(0));
 //			renderFullScreenQuadTex();
 		}
 

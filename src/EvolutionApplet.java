@@ -32,6 +32,8 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	public static final int UP = 0, DOWN = 1, LEFT = 2, RIGHT = 3;
 	/** two integers {dx, dy} of the mouse */
 	private int[] mouse_move = new int[2];
+	/** single boolean whether mouse is down */
+	private boolean[] mouse_down = new boolean[1];
 	// variables for tracking fps
 	private long second_timer;
 	private int fps, frame_counter;
@@ -60,6 +62,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	public void run(){
 		// initialize everything
 		env = new Environment(APPLET_WIDTH, APPLET_HEIGHT);
+		env.bindInput(mouse_down, mouse_move);
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
 		RenderGL renderpanel = new RenderGL(canvas, env, APPLET_WIDTH, APPLET_HEIGHT);
@@ -109,8 +112,12 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		else direction_keys[RIGHT] = false;
 		
 		// mouse movement
-		mouse_move[0] = Mouse.getDX();
-		mouse_move[1] = Mouse.getDY();
+		mouse_move[0] = Mouse.getX();
+		mouse_move[1] = Mouse.getY();
+		if(Mouse.isButtonDown(0))
+			mouse_down[0] = true;
+		else
+			mouse_down[0] = false;
 	}
 	
 	private void updateFPS(long now){
