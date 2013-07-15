@@ -42,7 +42,7 @@ public class Organism implements IDrawable, IDrawableGL {
 	public void initStructure(){
 		double sumlen = 0.0;
 		for(Rod r : rods)
-			sumlen += r.getValue();
+			sumlen += 0.5*(r.getRestValue1() + r.getRestValue2());
 		double meanhalflen = sumlen / rods.size() / 2;
 		double angle_delta = 2 * Math.PI / pointmasses.size();
 		int i = 0;

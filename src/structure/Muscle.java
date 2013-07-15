@@ -34,7 +34,7 @@ public class Muscle {
 	}
 	
 	public void act(Organism host){
-		double energy = host.requestEnergy(strength * struct.ENERGY_PER_MUSCLE_STRENGTH);
-		struct.actMuscle(energy / struct.ENERGY_PER_MUSCLE_STRENGTH, dependents);
+		double energy = host.requestEnergy(strength * struct.getEPMS());
+		struct.actMuscle(energy / struct.getEPMS(), dependents);
 	}
 }

@@ -29,7 +29,7 @@ public class Environment implements IDrawable, IDrawableGL {
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.JOINTLESS_SNAKE,this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.TRIANGLE_WITH_MUSCLE,this));
 		width = w;
 		height = h;
 	}

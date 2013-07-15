@@ -1,6 +1,7 @@
-/EvolutionApplet.class
-/bio
-/environment
+/blur.frag
+/glow.frag
+/shader.vert
 /graphics
 /physics
 /structure
+/environment
