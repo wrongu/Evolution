@@ -3,15 +3,16 @@ package structure;
 import java.util.List;
 
 import bio.ann.ANN;
+import bio.ann.ISense;
 
 
 public class Brain {
 	
-	private List<Sense> inputs;
+	private List<ISense> inputs;
 	private List<Muscle> outputs;
 	private ANN neuralnet;
 	
-	public Brain(List<Sense> senses, List<Muscle> muscles) {
+	public Brain(List<ISense> senses, List<Muscle> muscles) {
 		inputs = senses;
 		outputs = muscles;
 	}

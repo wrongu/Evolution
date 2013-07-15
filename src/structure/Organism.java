@@ -9,6 +9,8 @@ import java.awt.Graphics2D;
 import java.util.LinkedList;
 import java.util.List;
 
+import bio.ann.ISense;
+
 import physics.Joint;
 import physics.PointMass;
 import physics.Rod;
@@ -20,7 +22,7 @@ public class Organism implements IDrawable, IDrawableGL {
 	private List<Rod> rods;
 	private List<Joint> joints;
 	private List<Muscle> muscles;
-	private List<Sense> senses;
+	private List<ISense> senses;
 	private Environment theEnvironment;
 	
 	private double energy;
@@ -32,7 +34,7 @@ public class Organism implements IDrawable, IDrawableGL {
 		joints = new LinkedList<Joint>();
 		pointmasses = new LinkedList<PointMass>();
 		muscles = new LinkedList<Muscle>();
-		senses = new LinkedList<Sense>();
+		senses = new LinkedList<ISense>();
 		brain = new Brain(senses, muscles);
 		x = comx;
 		y = comy;

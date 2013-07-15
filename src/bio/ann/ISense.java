@@ -1,8 +1,9 @@
-package structure;
+package bio.ann;
 
+import structure.Organism;
 import environment.Environment;
 
-public interface Sense {
+public interface ISense {
 
 	public double doSense(Environment e, Organism o);
 	
