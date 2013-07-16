@@ -10,18 +10,29 @@ public class Rod extends Structure {
 	/** change in value per unit strength */
 	public static final double MUSCLE_MULTIPLIER = 5.0;
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 1.0;
-	public static final double FORCE_PER_DISPLACEMENT = 0.1; // perhaps this should depend on the rod?
+	public static final double FORCE_PER_DISPLACEMENT = 0.1;
 	public static final double SPRING_FRICTION_CONSTANT = 0.1;
 	
 	private PointMass[] points;
 	
-	public Rod(double rest_length){
-		super(rest_length);
-		points = new PointMass[2];
+	public Rod(double rest_length) {
+		this(rest_length, rest_length);
 	}
 	
-	public Rod(double rest_length, PointMass pm0, PointMass pm1) {
-		this(rest_length);
+	public Rod(double rest_length1, double rest_length2){
+		this(rest_length1, rest_length2, new PointMass(1), new PointMass(1));
+	}
+	
+	public Rod(double rest_length1, double rest_length2, PointMass pm0, PointMass pm1) {
+		super(rest_length1, rest_length2);
+		if(restValue1 <= 0) {restValue1 = 0;}
+		if(restValue2 <= 0) {restValue2 = 0;}
+		if(restValue2 < restValue1) {
+			double restHolder = restValue2;
+			restValue2 = restValue1;
+			restValue1 = restHolder;
+		}
+		
 		points = new PointMass[]{pm0, pm1};
 	}
 
@@ -74,10 +85,10 @@ public class Rod extends Structure {
 		}
 	}
 
-	public void addJoint(PointMass joint) {
-		if(points[0] == null) points[0] = joint;
-		else if(points[1] == null) points[1] = joint;
-		else throw new IllegalStateException("Rods cannot have more than 2 Joints");
+	public void addPoint(PointMass point) {
+		if(points[0] == null) points[0] = point;
+		else if(points[1] == null) points[1] = point;
+		else throw new IllegalStateException("Rods cannot have more than 2 points");
 	}
 	
 	public PointMass getOtherEnd(PointMass j){
@@ -101,8 +112,12 @@ public class Rod extends Structure {
 			double dx = j2.getX() - j1.getX();
 			double dy = j2.getY() - j1.getY();
 			double dist = Math.sqrt(dx*dx + dy*dy);
-			// spring force: f = -k*x, where k is the spring constant (or strength of muscle) and x is displacement from ideal length
-			double strain = dist - this.getValue();
+			
+			// calculate the strain, which will be multiplied to calculate restoring force
+			double strain = 0;
+			if(dist < restValue1) strain = dist - restValue1;
+			if(dist > restValue2) strain = dist - restValue2;
+			
 			// get unit vector
 			double ux = dx;
 			double uy = dy;
@@ -110,11 +125,10 @@ public class Rod extends Structure {
 				 ux /= dist;
 				 uy /= dist;
 			}
+			
 			// add forces to joints (point masses) relative to strain.
 			j1.addForce(ux * strain * FORCE_PER_DISPLACEMENT, uy * strain * FORCE_PER_DISPLACEMENT);
 			j2.addForce(-ux * strain * FORCE_PER_DISPLACEMENT, -uy * strain * FORCE_PER_DISPLACEMENT);
-
-//			System.out.println("rod position ("+points[0].getX()+", "+points[0].getY()+", "+points[1].getX()+", "+points[1].getY()+")");
 
 			// calculate friction and add it to point masses.
 			double dvx = j2.getVX() - j1.getVX();
@@ -122,7 +136,7 @@ public class Rod extends Structure {
 			double dvRadialComp = ux*dvx + uy*dvy;
 			j2.addForce(-ux * dvRadialComp * SPRING_FRICTION_CONSTANT, -uy * dvRadialComp * SPRING_FRICTION_CONSTANT);
 			j1.addForce(ux * dvRadialComp * SPRING_FRICTION_CONSTANT, uy * dvRadialComp * SPRING_FRICTION_CONSTANT);
-			doViscosity(e);	
+			doViscosity(e);
 		}
 	}
 
@@ -130,6 +144,9 @@ public class Rod extends Structure {
 	public double getMuscleMultiplier() {
 		return Rod.MUSCLE_MULTIPLIER;
 	}
+	
+	@Override
+	public double getEPMS() {return ENERGY_PER_MUSCLE_STRENGTH;}
 	
 	public Vector2d getMeanMotion(){
 		return new Vector2d(

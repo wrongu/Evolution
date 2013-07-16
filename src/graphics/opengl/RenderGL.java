@@ -196,25 +196,25 @@ public class RenderGL {
 				pHBlur = Program.createProgram(vNoop, fBlur);
 				{
 					// TODO - check if I'm doing this right. probably not.
-					pHBlur.setParam("Sample0", 0);
-					pHBlur.setParam("Orientation", 0);
-					pHBlur.setParam("BlurAmount", BLUR_WIDTH);
-					pHBlur.setParam("BlurScale", BLUR_SCALE);
-					pHBlur.setParam("BlurStrength", BLUR_STRENGTH);
+//					pHBlur.setParam("Sample0", 0);
+//					pHBlur.setParam("Orientation", 0);
+//					pHBlur.setParam("BlurAmount", BLUR_WIDTH);
+//					pHBlur.setParam("BlurScale", BLUR_SCALE);
+//					pHBlur.setParam("BlurStrength", BLUR_STRENGTH);
 				}
 				pVBlur = Program.createProgram(vNoop, fBlur);
 				{
-					pVBlur.setParam("Sample0", 0);
-					pVBlur.setParam("Orientation", 1);
-					pVBlur.setParam("BlurAmount", BLUR_WIDTH);
-					pVBlur.setParam("BlurScale", BLUR_SCALE);
-					pVBlur.setParam("BlurStrength", BLUR_STRENGTH);
+//					pVBlur.setParam("Sample0", 0);
+//					pVBlur.setParam("Orientation", 1);
+//					pVBlur.setParam("BlurAmount", BLUR_WIDTH);
+//					pVBlur.setParam("BlurScale", BLUR_SCALE);
+//					pVBlur.setParam("BlurStrength", BLUR_STRENGTH);
 				}
 				pBlend = Program.createProgram(vNoop, fBlend);
 				{
-					pBlend.setParam("Sample0", 0); // TODO - Sample0 should be the already-rendered scene
-					pBlend.setParam("Sample1", 1); // Sample1 is the already-blurred glow texture
-					pBlend.setParam("BlendMode", GLOW_MODE);
+//					pBlend.setParam("Sample0", 0); // TODO - Sample0 should be the already-rendered scene
+//					pBlend.setParam("Sample1", 1); // Sample1 is the already-blurred glow texture
+//					pBlend.setParam("BlendMode", GLOW_MODE);
 				}
 			}
 			// create texture and framebuffer
