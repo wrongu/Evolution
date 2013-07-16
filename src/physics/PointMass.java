@@ -50,18 +50,26 @@ public class PointMass {
 	public void move(Environment e, double dt){
 
 		double vmag = vel.length();
-		if(vmag > VEL_MAX){
-			vel.x *= VEL_MAX / vmag;
-			vel.y *= VEL_MAX / vmag;
-		}
-		// apply viscosity and friction
-//		addForce(-vel.x * e.viscosity, -vel.y * e.viscosity);
-//		double vmag = Math.sqrt(vel.x*vel.x + vel.y+vel.y);
-//		addForce(-vel.x * e.friction / vmag, -vel.y * e.friction / vmag);
 		
 		// recover acceleration from mass and forces
 		acc.x = force.x/mass;
 		acc.y = force.y/mass;
+		
+		// test velocity
+		if(vmag > VEL_MAX){
+			vel.x *= VEL_MAX / vmag;
+			vel.y *= VEL_MAX / vmag;
+			
+			double accProj = (vel.x/vmag)*acc.x + (vel.y/vmag)*acc.y;
+			if(accProj > 0) {
+				acc.x -= accProj*(vel.x/vmag);
+				acc.y -= accProj*(vel.y/vmag);
+			}
+			
+		}
+		// apply viscosity and friction
+		addForce(-vel.x * e.viscosity, -vel.y * e.viscosity);
+//		addForce(-vel.x * e.friction / vmag, -vel.y * e.friction / vmag);
 		
 		// move the point - acceleration needed for extreme forces
 		pos.x += dt * vel.x + 0.5 * dt * dt * acc.x;

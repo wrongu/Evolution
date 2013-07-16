@@ -15,6 +15,7 @@ public class OrganismFactory {
 	public static final int TWO_RODS_WITH_JOINT = 1;
 	public static final int JOINTLESS_SNAKE = 2;
 	public static final int TRIANGLE_WITH_MUSCLE = 3;
+	public static final int SNAKE_WITH_JOINTS = 4;
 	
 	public static Organism fromGene(IGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
@@ -35,6 +36,7 @@ public class OrganismFactory {
 				Math.random()*(bounds[3]-bounds[1]) + bounds[1],
 				e);
 		
+		int n;
 
 		switch(creature) {
 		
@@ -63,13 +65,14 @@ public class OrganismFactory {
 				pmlist.add(new PointMass(1));
 			rodlist.add(new Rod(50, 50, pmlist.get(1), pmlist.get(0)));
 			rodlist.add(new Rod(50, 50, pmlist.get(2), pmlist.get(0)));
-			jointlist.add(new Joint(Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
+			jointlist.add(new Joint(0.3*Math.PI, 0.9*Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
 			break;
 			
 		case JOINTLESS_SNAKE:
-			for(int i = 0; i < 6; i++)
-				pmlist.add(new PointMass((double)1/(double)i));
-			for(int i = 0; i < 5; i++)
+			n = 8;
+			for(int i = 0; i < n+1; i++)
+				pmlist.add(new PointMass((double)1/(double)(i*i)));
+			for(int i = 0; i < n; i++)
 				rodlist.add(new Rod(30, 30, pmlist.get(i), pmlist.get(i+1)));
 			break;
 			
@@ -79,6 +82,17 @@ public class OrganismFactory {
 			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(2)));
 			rodlist.add(new Rod(30,70, pmlist.get(1), pmlist.get(2)));
 			break;
+			
+		case SNAKE_WITH_JOINTS:
+			n = 6;
+			for(int i = 0; i < n+1; i++)
+				pmlist.add(new PointMass((double)1/(double)(i*i)));
+			for(int i = 0; i < n; i++)
+				rodlist.add(new Rod(30, 30, pmlist.get(i), pmlist.get(i+1)));
+			for(int i = 1; i < n; i++)
+				jointlist.add(new Joint(0.7*Math.PI, 1.3*Math.PI, pmlist.get(i), rodlist.get(i-1), rodlist.get(i)));
+			break;
+			
 		}
 		
 		o.addAllPointMasses(pmlist);

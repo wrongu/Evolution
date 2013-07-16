@@ -13,6 +13,7 @@ import structure.OrganismFactory;
 public class Environment implements IDrawable, IDrawableGL {
 	
 	public static final double GRAVITY = 0.1;
+	public static final double MOUSE_CONSTANT = 2;
 	
 	public double viscosity;
 	public double friction;
@@ -29,7 +30,7 @@ public class Environment implements IDrawable, IDrawableGL {
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.TRIANGLE_WITH_MUSCLE,this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.SNAKE_WITH_JOINTS,this));
 		width = w;
 		height = h;
 	}
@@ -40,13 +41,14 @@ public class Environment implements IDrawable, IDrawableGL {
 	
 		dt /= 100.0;
 		for(Organism o : organisms){
-			o.drift(0, -GRAVITY);
+			//o.drift(0, -GRAVITY);
 			o.physicsUpdate(dt > 1.0 ? 1.0 : dt);
 			o.contain(this);
 			
 			 if(mouse_buttons[0] != 0) {
 			 	double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
-			 	o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
+//			 	o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
+			 	o.getPoints().get(0).addForce(MOUSE_CONSTANT*(mousex - o.getX()) / dist, MOUSE_CONSTANT*(mousey - o.getY())/ dist);
 			 	System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
 			 }
 		}
