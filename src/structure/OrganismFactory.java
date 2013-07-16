@@ -83,6 +83,7 @@ public class OrganismFactory {
 			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(1)));
 			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(2)));
 			rodlist.add(new Rod(30,70, pmlist.get(1), pmlist.get(2)));
+			musclelist.add(new Muscle(rodlist.get(2), 2));
 			break;
 			
 		case SNAKE_WITH_JOINTS:

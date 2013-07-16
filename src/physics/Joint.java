@@ -18,7 +18,7 @@ public class Joint extends Structure {
 	// a rod with length 20.0
 	public static final double PSEUDO_TORQUE_PER_RAD = 2;
 	public static final double SPRING_FRICTION_CONSTANT = 0.01;
-	public static final double ENERGY_PER_MUSCLE_STRENGTH = 1.0;
+	public static final double ENERGY_PER_MUSCLE_STRENGTH = 0.01;
 
 	private PointMass point;
 	private Rod[] rods;

@@ -21,7 +21,6 @@ public class Environment implements IDrawable, IDrawableGL {
 	private int width, height;
 	
 	private int[] mouse_in;
-	private boolean[] mouse_down;
 	private int[] mouse_buttons;
 	private int mousex, mousey;
 	private boolean spaceIsPressed;
@@ -31,7 +30,7 @@ public class Environment implements IDrawable, IDrawableGL {
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.TRIANGLE_WITH_MUSCLE,this));
 		width = w;
 		height = h;
 	}
