@@ -24,13 +24,14 @@ public class Environment implements IDrawable, IDrawableGL {
 	private boolean[] mouse_down;
 	private int[] mouse_buttons;
 	private int mousex, mousey;
+	private boolean spaceIsPressed;
 	
 	public Environment(int w, int h){
 		viscosity = 0.002;
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.SNAKE_WITH_JOINTS,this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
 		width = w;
 		height = h;
 	}
@@ -51,6 +52,11 @@ public class Environment implements IDrawable, IDrawableGL {
 			 	o.getPoints().get(0).addForce(MOUSE_CONSTANT*(mousex - o.getX()) / dist, MOUSE_CONSTANT*(mousey - o.getY())/ dist);
 			 	System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
 			 }
+			 
+			 if(spaceIsPressed)
+				 o.getFirstMuscle().setStrength(-1);
+			 else
+				 o.getFirstMuscle().setStrength(0.2);
 		}
 	}
 
@@ -77,6 +83,10 @@ public class Environment implements IDrawable, IDrawableGL {
 		mouse_buttons[0] = 1;
 		mousex = mx;
 		mousey = my;
+	}
+	
+	public void space_press(boolean isPressed) {
+		spaceIsPressed = isPressed;
 	}
 
 	public void bindInput(int[] mouse_buttons, int[] mouse_move) {

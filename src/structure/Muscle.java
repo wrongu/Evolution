@@ -3,8 +3,7 @@ package structure;
 import physics.Structure;
 
 /**
- * A muscle is basically a wrapper class around structures (i.e. joints and rods). Every structure has some "zero value" (rod length
- * or joint angle) that a Muscle acts on.
+ * A muscle is basically a wrapper class around structures (i.e. joints and rods).
  * @author Richard
  *
  */
@@ -13,28 +12,25 @@ public class Muscle {
 	/** strength is like the attempted delta-value. 0 strength is "rest." large absolute value means exerting
 	 * a lot of effort. */
 	private double strength;
+	private double maxStrength;
 	
 	/** each muscle acts to drive a structural element (A Rod or a Joint) */
 	private Structure struct;
-	private Structure[] dependents;
+//	private Structure[] dependents;
 	
-	public Muscle(Structure s, Structure... dependents){
+	public Muscle(Structure s, double maxStr){
 		struct = s;
-		this.dependents = dependents;
-		strength = 0.0;
+		maxStrength = Math.max(0,maxStr);
 	}
 	
-	/**
-	 * Enact whatever movement this class is capable of
-	 * @param target the destination value. For Links, this is length, for joints it is the angle off of 'zero'.
-	 * @param strength the force to apply. 0 means fully relaxed, 1 is full force. 
-	 */
 	public void setStrength(double strength){
 		this.strength = strength;
+		if(strength > maxStrength) { strength = maxStrength; }
+		if(strength < maxStrength) { strength = -maxStrength; }
 	}
 	
-	public void act(Organism host){
-		double energy = host.requestEnergy(strength * struct.getEPMS());
-		struct.actMuscle(energy / struct.getEPMS(), dependents);
+	// Has the muscle exert a force on the structure, and returns the energy used.
+	public double act() {
+		return struct.exertMuscle(strength); // We could multiply by max strength to make strong muscles harder to get?
 	}
 }

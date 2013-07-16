@@ -14,6 +14,7 @@ public abstract class Structure implements IDrawable, IDrawableGL {
 	double restValue2;
 //	public double value, value2;
 	public double health;
+	protected double muscleStrength;
 	
 	public Structure(double init_value1, double init_value2) {
 		restValue1 = init_value1;
@@ -41,12 +42,12 @@ public abstract class Structure implements IDrawable, IDrawableGL {
 		return health > 0.0;
 	}
 	
-	public void actMuscle(double strength, Structure[] dependents){
-		//this.value = restValue1 + strength * getMuscleMultiplier();
+	public double exertMuscle(double strength) {
+		muscleStrength += strength;
+		return Math.abs(strength)*getEPMS();
 	}
-
+	
 	public abstract double getMuscleMultiplier();
 	public abstract void physicsUpdate(Environment e);
-
 	public abstract double getEPMS();
 }

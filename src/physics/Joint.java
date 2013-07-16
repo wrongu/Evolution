@@ -12,12 +12,12 @@ import environment.Environment;
  */
 public class Joint extends Structure {
 
-	/** degrees joints rotate per unit muscle strength */
-	public static final double MUSCLE_MULTIPLIER = 30.0;
+	/** Torque exerted per unit muscle strength */
+	public static final double MUSCLE_MULTIPLIER = 5.0;
 	// setting torque per degree so that it is equal to Rod's spring strength for small displacements of
 	// a rod with length 20.0
 	public static final double PSEUDO_TORQUE_PER_RAD = 2;
-	public static final double SPRING_FRICTION_CONSTANT = 0.0;
+	public static final double SPRING_FRICTION_CONSTANT = 0.01;
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 1.0;
 
 	private PointMass point;
@@ -76,8 +76,6 @@ public class Joint extends Structure {
 		if(angle > radAngle) { strain = angle - radAngle; }
 		if(angle < -radAngle) { strain = angle + radAngle; }
 		
-//		double sinStrain = 0;
-//				//(uxa*uyb - uya*uxb)*Math.cos(getValue()) - (uxa*uxb + uya*uyb)*Math.sin(getValue());
 		double fax = -uya*PSEUDO_TORQUE_PER_RAD*strain;
 		double fay = uxa*PSEUDO_TORQUE_PER_RAD*strain;
 		double fbx = uyb*PSEUDO_TORQUE_PER_RAD*strain;
@@ -99,9 +97,20 @@ public class Joint extends Structure {
 		fbx = -SPRING_FRICTION_CONSTANT*uyb*angularVel;
 		fby = SPRING_FRICTION_CONSTANT*uxb*angularVel;
 		
-		rods[0].getOtherEnd(this.point).addForce(-fax, -fay);
-		rods[1].getOtherEnd(this.point).addForce(-fbx, -fby);
+		rods[0].getOtherEnd(point).addForce(-fax, -fay);
+		rods[1].getOtherEnd(point).addForce(-fbx, -fby);
 		point.addForce(fbx+fax,fby+fay);
+		
+		fax = -MUSCLE_MULTIPLIER*uya*muscleStrength/lenA;
+		fay = MUSCLE_MULTIPLIER*uxa*muscleStrength/lenA;
+		fbx = MUSCLE_MULTIPLIER*uyb*muscleStrength/lenB;
+		fby = -MUSCLE_MULTIPLIER*uxb*muscleStrength/lenB;
+		
+		rods[0].getOtherEnd(point).addForce(-fax, -fay);
+		rods[1].getOtherEnd(point).addForce(-fbx, -fby);
+		point.addForce(fbx+fax,fby+fay);
+		
+		muscleStrength = 0;
 	}
 
 	private static double[] pointMassDiffVector(PointMass A, PointMass B){

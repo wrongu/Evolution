@@ -8,7 +8,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class Rod extends Structure {
 	
 	/** change in value per unit strength */
-	public static final double MUSCLE_MULTIPLIER = 5.0;
+	public static final double MUSCLE_MULTIPLIER = 1.0;
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 1.0;
 	public static final double FORCE_PER_DISPLACEMENT = 0.5;
 	public static final double SPRING_FRICTION_CONSTANT = 0.5;
@@ -137,6 +137,11 @@ public class Rod extends Structure {
 			j2.addForce(-ux * dvRadialComp * SPRING_FRICTION_CONSTANT, -uy * dvRadialComp * SPRING_FRICTION_CONSTANT);
 			j1.addForce(ux * dvRadialComp * SPRING_FRICTION_CONSTANT, uy * dvRadialComp * SPRING_FRICTION_CONSTANT);
 			doViscosity(e);
+			
+			j1.addForce(ux * MUSCLE_MULTIPLIER * muscleStrength, uy * MUSCLE_MULTIPLIER * muscleStrength );
+			j2.addForce(-ux * MUSCLE_MULTIPLIER * muscleStrength, -uy * MUSCLE_MULTIPLIER * muscleStrength );
+			
+			muscleStrength = 0;
 		}
 	}
 
@@ -153,4 +158,5 @@ public class Rod extends Structure {
 				(points[0].getVX()+points[1].getVX()) / 2,
 				(points[0].getVY()+points[1].getVY()) / 2);
 	}
+	
 }

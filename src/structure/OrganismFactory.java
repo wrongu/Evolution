@@ -16,6 +16,7 @@ public class OrganismFactory {
 	public static final int JOINTLESS_SNAKE = 2;
 	public static final int TRIANGLE_WITH_MUSCLE = 3;
 	public static final int SNAKE_WITH_JOINTS = 4;
+	public static final int SIMPLE_JELLYFISH = 5;
 	
 	public static Organism fromGene(IGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
@@ -30,6 +31,7 @@ public class OrganismFactory {
 		List<PointMass> pmlist = new LinkedList<PointMass>();
 		List<Rod> rodlist = new LinkedList<Rod>();
 		List<Joint> jointlist = new LinkedList<Joint>();
+		List<Muscle> musclelist = new LinkedList<Muscle>();
 		
 		Organism o = new Organism(
 				Math.random()*(bounds[2]-bounds[0]) + bounds[0],
@@ -93,11 +95,21 @@ public class OrganismFactory {
 				jointlist.add(new Joint(0.7*Math.PI, 1.3*Math.PI, pmlist.get(i), rodlist.get(i-1), rodlist.get(i)));
 			break;
 			
+		case SIMPLE_JELLYFISH:
+			for(int i = 0; i < 3; i++)
+				pmlist.add(new PointMass(1));
+			rodlist.add(new Rod(50, 50, pmlist.get(1), pmlist.get(0)));
+			rodlist.add(new Rod(50, 50, pmlist.get(2), pmlist.get(0)));
+			jointlist.add(new Joint(0.2*Math.PI, 0.9*Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
+			musclelist.add(new Muscle(jointlist.get(0),2));
+			break;
+			
 		}
 		
 		o.addAllPointMasses(pmlist);
 		o.addAllRods(rodlist);
 		o.addAllJoints(jointlist);
+		o.addAllMuscles(musclelist);
 		o.initStructure();
 		
 		return o;

@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -13,7 +15,7 @@ import environment.Environment;
 
 import javax.swing.JPanel;
 
-public class RenderPanel extends JPanel implements MouseListener, MouseMotionListener {
+public class RenderPanel extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
 
 	private static final long serialVersionUID = -1902890242410191035L;
 
@@ -23,13 +25,16 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 	private IDrawable render;
 	PointerInfo pointerInfo = MouseInfo.getPointerInfo();
 	private boolean mouseIsDown;
+	private boolean spaceIsDown;
 	private int mx, my;
 
 	public RenderPanel(IDrawable d){
 		render = d;
 
 		mouseIsDown = false;
+		spaceIsDown = false;
 		addMouseListener(this);
+		addKeyListener(this);
 
 		Thread updater = new UpdateThread();
 		updater.setDaemon(true);
@@ -51,9 +56,11 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 	}
 
 	private class UpdateThread extends Thread{
+
 		public void run(){
 			while(true){
 				if(mouseIsDown) ((Environment) render).mouse_move(mx, my);
+				if(spaceIsDown) ((Environment) render).space_press(spaceIsDown);
 				repaint();
 			}
 		}
@@ -78,4 +85,19 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 		mx = arg0.getX();
 		my = arg0.getY();
 	}
+	
+	public void keyPressed(KeyEvent arg0) {
+//		if(arg0.getKeyCode() == KeyEvent.VK_SPACE) {
+//			((Environment) render).space_press(true);
+//			System.out.println("Spacebar pressed.");
+//		}
+		System.out.println("Pressed " + arg0.getKeyCode());
+	}
+	
+	public void keyReleased(KeyEvent arg0) {
+		if(arg0.getKeyCode() == KeyEvent.VK_SPACE)
+			((Environment) render).space_press(false);
+	}
+	
+	public void keyTyped(KeyEvent arg0) {}
 }

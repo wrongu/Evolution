@@ -35,13 +35,14 @@ public class Organism implements IDrawable, IDrawableGL {
 		pointmasses = new LinkedList<PointMass>();
 		muscles = new LinkedList<Muscle>();
 		senses = new LinkedList<ISense>();
-		brain = new Brain(senses, muscles);
+		// brain = new Brain(senses, muscles);
 		x = comx;
 		y = comy;
 		theEnvironment = e;
 	}
 	
 	public void initStructure(){
+		brain = new Brain(senses, muscles);
 		double sumlen = 0.0;
 		for(Rod r : rods)
 			sumlen += 0.5*(r.getRestValue1() + r.getRestValue2());
@@ -54,13 +55,14 @@ public class Organism implements IDrawable, IDrawableGL {
 		}
 		for(i=0; i<5; i++) physicsUpdate(1.0);
 		for(PointMass pm : pointmasses) pm.clearPhysics();
+		
 	}
 	
 	public void physicsUpdate(double dt){
 		brain.update();
 		// distribute energy between muscles
 		for(Muscle m : muscles)
-			m.act(this);
+			energy -= m.act();
 		for(Joint j : joints)
 			j.physicsUpdate(theEnvironment);
 		for(Rod r : rods)
@@ -110,6 +112,10 @@ public class Organism implements IDrawable, IDrawableGL {
 	public void addAllJoints(List<Joint> add){
 		for(Joint j : add) joints.add(j);
 	}
+	
+	public void addAllMuscles(List<Muscle> add){
+		for(Muscle m : add) muscles.add(m);
+	}
 
 	public void contain(Environment environment) {
 		double[] bounds = environment.getBounds();
@@ -136,4 +142,7 @@ public class Organism implements IDrawable, IDrawableGL {
 	public List<PointMass> getPoints() {
 		return pointmasses;
 	}
+	
+	// This method for DEBUGGING PURPOSES ONLY!
+	public Muscle getFirstMuscle() { return muscles.get(0); }
 }
