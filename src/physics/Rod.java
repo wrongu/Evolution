@@ -10,8 +10,8 @@ public class Rod extends Structure {
 	/** change in value per unit strength */
 	public static final double MUSCLE_MULTIPLIER = 5.0;
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 1.0;
-	public static final double FORCE_PER_DISPLACEMENT = 0.1;
-	public static final double SPRING_FRICTION_CONSTANT = 0.1;
+	public static final double FORCE_PER_DISPLACEMENT = 0.5;
+	public static final double SPRING_FRICTION_CONSTANT = 0.5;
 	
 	private PointMass[] points;
 	
