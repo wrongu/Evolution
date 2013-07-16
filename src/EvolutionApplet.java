@@ -1,5 +1,6 @@
 import java.awt.Canvas;
 import java.awt.Dimension;
+import java.nio.FloatBuffer;
 
 import environment.Environment;
 import graphics.DebugGenes;
@@ -82,7 +83,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		while(!Display.isCloseRequested()){
 			long now = System.currentTimeMillis();
 			double dt = ((double) (now - time)) / (double) TICK_MS;
-			checkInput();
+			checkInput(renderpanel);
 			env.update(dt);
 			renderpanel.moveCamera(dt);
 			renderpanel.redraw();
@@ -93,7 +94,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		renderpanel.destroy();
 	}
 	
-	public void checkInput(){
+	public void checkInput(RenderGL renderer){
 		// up direction
 		if(Keyboard.isKeyDown(Keyboard.KEY_W)) direction_keys[UP] = true;
 		else if(Keyboard.isKeyDown(Keyboard.KEY_UP)) direction_keys[UP] = true;
@@ -112,8 +113,9 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		else direction_keys[RIGHT] = false;
 		
 		// mouse movement
-		mouse_move[0] = Mouse.getX();
-		mouse_move[1] = Mouse.getY();
+		FloatBuffer mouseCoords = renderer.screenToWorldCoordinates(Mouse.getX(), Mouse.getY());
+		mouse_move[0] = (int) mouseCoords.get();
+		mouse_move[1] = (int) mouseCoords.get();
 		if(Mouse.isButtonDown(0)) mouse_buttons[0] = 1;
 		else mouse_buttons[0] = 0;
 		mouse_buttons[1] = Mouse.getDWheel();

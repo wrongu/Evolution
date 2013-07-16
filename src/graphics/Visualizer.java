@@ -45,8 +45,8 @@ public class Visualizer {
 						double ideal_length = MIN_LENGTH + (1 - weight / nmax) * MAX_LENGTH;
 
 						// positive strain means it's too long and will try to shrink
-						double strain = (coords[i].distTo(coords[j]) - ideal_length);
-
+						double strain = (coords[i].distTo(coords[j]) - ideal_length) / weight;
+						
 						// incrementally adjust points in the direction that reduces strain
 						nextcoords[i].x += dx * strain / EASE_SPRING;
 						nextcoords[i].y += dy * strain / EASE_SPRING;
