@@ -100,7 +100,7 @@ public class OrganismFactory {
 				pmlist.add(new PointMass(1));
 			rodlist.add(new Rod(50, 50, pmlist.get(1), pmlist.get(0)));
 			rodlist.add(new Rod(50, 50, pmlist.get(2), pmlist.get(0)));
-			jointlist.add(new Joint(0.2*Math.PI, 0.9*Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
+			jointlist.add(new Joint(0.15*Math.PI, 0.9*Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
 			musclelist.add(new Muscle(jointlist.get(0),2));
 			break;
 			

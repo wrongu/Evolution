@@ -13,7 +13,7 @@ import structure.OrganismFactory;
 public class Environment implements IDrawable, IDrawableGL {
 	
 	public static final double GRAVITY = 0.1;
-	public static final double MOUSE_CONSTANT = 2;
+	public static final double MOUSE_CONSTANT = 1;
 	
 	public double viscosity;
 	public double friction;
