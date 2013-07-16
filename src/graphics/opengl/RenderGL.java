@@ -273,15 +273,12 @@ public class RenderGL {
 		FloatBuffer modelview = BufferUtils.createFloatBuffer(16);
 		FloatBuffer projection = BufferUtils.createFloatBuffer(16);
 		FloatBuffer winZ = BufferUtils.createFloatBuffer(1);
-		float winX, winY;
 		FloatBuffer position = BufferUtils.createFloatBuffer(3);
 		glGetFloat( GL_MODELVIEW_MATRIX, modelview );
 		glGetFloat( GL_PROJECTION_MATRIX, projection );
 		glGetInteger( GL_VIEWPORT, viewport );
-		winX = (float) sx;
-		winY = (float) sy;
-		glReadPixels(sx, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, winZ);
-		GLU.gluUnProject(winX, winY, winZ.get(), modelview, projection, viewport, position);
+		glReadPixels(sx, sy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, winZ);
+		GLU.gluUnProject((float) sx, (float) sy, winZ.get(), modelview, projection, viewport, position);
 		return position; 
 	}
 }
