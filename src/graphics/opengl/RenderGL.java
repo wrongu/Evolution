@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import javax.swing.JPanel;
@@ -13,11 +14,14 @@ import javax.swing.JPanel;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GLContext;
+import org.lwjgl.util.glu.GLU;
+import org.lwjgl.BufferUtils;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL40.*;
 import static org.lwjgl.opengl.EXTFramebufferObject.*;
+
 
 import environment.Environment;
 import graphics.Camera;
@@ -29,9 +33,9 @@ public class RenderGL {
 	private Environment theEnvironment;
 	private Camera camera;
 	private int width, height;
-	private double initWidth, initHeight, ar;
+	private double initHeight;
 	private boolean[] keyboard;
-	private int[] mouse_move, mouse_buttons;
+	private int[] mouse_buttons;
 
 	// opengl is a state machine that gives us references to its objects as ints.
 	private int glListBackground, glListGlow;
@@ -44,7 +48,8 @@ public class RenderGL {
 	//	private int glFrameBuffer;
 	private RenderTarget glEffects;
 	private final int EFFECT_TEXTURE_SIZE = 512;
-	private int glTexGlowMap, glTexScene;
+	//	TODO - make textures work..
+	// private int glTexGlowMap, glTexScene;
 	private static final int GLOW_MODE = 0; // additive - high overexposure effect
 	//	private static final int GLOW_MODE = 1; // screen blending - medium effect
 	//	private static final int GLOW_MODE = 2; // soft lighting - no overexposure
@@ -59,10 +64,7 @@ public class RenderGL {
 		theEnvironment = env;
 		width = w;
 		height = h;
-		initWidth = (double) w;
 		initHeight = (double) h;
-		ar = initWidth / initHeight;
-
 		// initialize lwjgl display
 		try {
 			Display.setParent(canvas);
@@ -102,19 +104,19 @@ public class RenderGL {
 		 */
 
 		// bind the effects FBO so that rendering goes to it.
-//		glEffects.bind(0);
-//		{
-//			clearGraphics();
-//			glCallList(glListGlow);
-//		}
-//		// unbind the effects (i.e. bind the main screen) for final rendering
-//		glEffects.unbind();
+		//		glEffects.bind(0);
+		//		{
+		//			clearGraphics();
+		//			glCallList(glListGlow);
+		//		}
+		//		// unbind the effects (i.e. bind the main screen) for final rendering
+		//		glEffects.unbind();
 		{
 			clearGraphics();
 			glCallList(glListBackground);
 			glCallList(glListGlow);
-//			glBindTexture(GL_TEXTURE_2D, glEffects.getTexture(0));
-//			renderFullScreenQuadTex();
+			//			glBindTexture(GL_TEXTURE_2D, glEffects.getTexture(0));
+			//			renderFullScreenQuadTex();
 		}
 
 		// update the display (i.e. swap buffers, etc)
@@ -169,7 +171,7 @@ public class RenderGL {
 		initGLShaders();
 		glEnable(GL_TEXTURE_2D);
 	}
-	
+
 	private void glWindowSize(){
 		// no projection; set it to the identity matrix
 		glMatrixMode(GL_PROJECTION);
@@ -263,7 +265,23 @@ public class RenderGL {
 
 	public void bindInputs(boolean[] direction_keys, int[] mouse_move, int[] mouse_buttons) {
 		keyboard = direction_keys;
-		this.mouse_move = mouse_move;
 		this.mouse_buttons = mouse_buttons;
+	}
+
+	public FloatBuffer screenToWorldCoordinates(int sx, int sy){
+		IntBuffer viewport = BufferUtils.createIntBuffer(16);
+		FloatBuffer modelview = BufferUtils.createFloatBuffer(16);
+		FloatBuffer projection = BufferUtils.createFloatBuffer(16);
+		FloatBuffer winZ = BufferUtils.createFloatBuffer(1);
+		float winX, winY;
+		FloatBuffer position = BufferUtils.createFloatBuffer(3);
+		glGetFloat( GL_MODELVIEW_MATRIX, modelview );
+		glGetFloat( GL_PROJECTION_MATRIX, projection );
+		glGetInteger( GL_VIEWPORT, viewport );
+		winX = (float) sx;
+		winY = (float) sy;
+		glReadPixels(sx, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, winZ);
+		GLU.gluUnProject(winX, winY, winZ.get(), modelview, projection, viewport, position);
+		return position; 
 	}
 }
