@@ -10,9 +10,11 @@ import java.io.IOException;
 public class Shader {
 	
 	private int glId;
+	private int attach_count;
 	
 	private Shader(int id){
 		glId = id;
+		attach_count = 0;
 	}
 	
 	public static Shader fromSource(String source, int shaderType){
@@ -38,7 +40,7 @@ public class Shader {
 			glShaderSource(shader, builder);
 			glCompileShader(shader);
 			// check compilation
-			if(glGetShader(shader, GL_COMPILE_STATUS) == GL_FALSE){
+			if(glGetShaderi(shader, GL_COMPILE_STATUS) == GL_FALSE){
 				System.err.println("error compiling shader from " + source);
 				glDeleteShader(shader);
 				return 0;
@@ -55,7 +57,18 @@ public class Shader {
 		return glId;
 	}
 	
-	public void destroy(){
-		glDeleteShader(glId);
+	public void attach(int program_id){
+		glAttachShader(program_id, glId);
+		attach_count++;
+	}
+	
+	/**
+	 * Detach this shader from the given program. If this shader is no longer referenced by any programs,
+	 * 	it is destroyed.
+	 * @param program_id the OpenGL id of the program from which this shader is being detached.
+	 */
+	public void detach(int program_id){
+		glDetachShader(program_id, glId);
+		if(--attach_count <= 0) glDeleteShader(glId);
 	}
 }

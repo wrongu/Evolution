@@ -1,69 +1,64 @@
 package graphics.opengl;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.EXTFramebufferObject.*;
 
-public class RenderTarget {
+public class FrameBuffer {
 
-	private int glFBOId;
-	private int[] textures;
-	private int n_tex;
+	private int glId;
+	private Texture[] textures;
 	private int width, height;
 	
-	public RenderTarget(int w, int h){
+	public FrameBuffer(int w, int h, int num_textures){
 		width = w;
 		height = h;
-		textures = new int[8];
-		glFBOId = glGenFramebuffersEXT();
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, glFBOId);
+		textures = new Texture[num_textures];
+		glId = glGenFramebuffersEXT();
+		
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, glId);
 		{
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
 			glOrtho(0, w, 0, h, -1, 1);
 			glMatrixMode(GL_MODELVIEW);
+			
+			for(int i = 0; i < num_textures; i++){
+				Texture tex = Texture.create(w, h);
+				glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex.getId(), 0);
+				textures[i] = tex;
+			}
 		}
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		checkFBO();
 	}
-	
-	public int addTexture(){
-		if(n_tex < textures.length){
-			textures[n_tex] = glGenTextures();
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, glFBOId);
-			{
-				glActiveTexture(GL_TEXTURE0 + n_tex);
-				glBindTexture(GL_TEXTURE_2D, textures[n_tex]);
-				glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, textures[n_tex], 0);
-			}
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-			n_tex++;
-		}
-		return n_tex;
-	}
-	
-	public int getTexture(int index){
+
+	public Texture getTexture(int index){
 		if(index >= 0 && index < textures.length)
 			return textures[index];
 		else
-			return 0;
+			return null;
 	}
 
 	public void bind(){
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, glFBOId);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, glId);
 		glPushAttrib(GL_VIEWPORT_BIT);
 		glViewport(0, 0, width, height);
-		// TODO - when we run the pedantic check, there is an error. If we skip the check, it works fine... hm.
-		//		checkFBO();
 	}
 
-	public void bind(int texture){
+	public void bind(int tex){
 		bind();
-		glActiveTexture(GL_TEXTURE0 + texture);
+		textures[tex].activate();
 	}
 
 	public void unbind(){
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 		glPopAttrib();
+	}
+	
+	public void destroy(){
+		for(Texture t : textures)
+			if(t != null) t.destroy();
+		glDeleteFramebuffersEXT(glId);
 	}
 
 	private void checkFBO(){
@@ -72,26 +67,26 @@ public class RenderTarget {
 		case GL_FRAMEBUFFER_COMPLETE_EXT:
 			break;
 		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
-			throw new RuntimeException( "FrameBuffer: " + glFBOId
+			throw new RuntimeException( "FrameBuffer: " + glId
 					+ ", has caused a GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT exception" );
 		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
-			throw new RuntimeException( "FrameBuffer: " + glFBOId
+			throw new RuntimeException( "FrameBuffer: " + glId
 					+ ", has caused a GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT exception" );
 		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-			throw new RuntimeException( "FrameBuffer: " + glFBOId
+			throw new RuntimeException( "FrameBuffer: " + glId
 					+ ", has caused a GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT exception" );
 		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-			throw new RuntimeException( "FrameBuffer: " + glFBOId
+			throw new RuntimeException( "FrameBuffer: " + glId
 					+ ", has caused a GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT exception" );
 		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-			throw new RuntimeException( "FrameBuffer: " + glFBOId
+			throw new RuntimeException( "FrameBuffer: " + glId
 					+ ", has caused a GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT exception" );
 		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-			throw new RuntimeException( "FrameBuffer: " + glFBOId
+			throw new RuntimeException( "FrameBuffer: " + glId
 					+ ", has caused a GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT exception" );
 		default:
 			throw new RuntimeException( "Unexpected reply from glCheckFramebufferStatusEXT: " + framebuffer );
 		}
 	}
-	
+
 }

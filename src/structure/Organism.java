@@ -5,9 +5,16 @@ import graphics.IDrawable;
 import graphics.RenderPanel;
 import graphics.opengl.IDrawableGL;
 
+import static org.lwjgl.opengl.ARBBufferObject.*;
+import static org.lwjgl.opengl.ARBVertexBufferObject.*;
+import static org.lwjgl.opengl.GL11.*;
+
 import java.awt.Graphics2D;
+import java.nio.FloatBuffer;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.lwjgl.BufferUtils;
 
 import bio.ann.ISense;
 
@@ -84,15 +91,14 @@ public class Organism implements IDrawable, IDrawableGL {
 	}
 
 	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {
-		// TODO - draw brain with size according to brain.estimateSize()?/
 		g.setColor(RenderPanel.ORGANISM_COLOR);
 		for(Rod r : rods)
 			r.draw(g, sx, sy, scx, scy);
-		// TODO - add glow to represent energy? <-- can only be done in opengl, I think
 	}
 
 	public void glDraw() {
-		for(Rod r : rods) r.glDraw();
+		for(Rod r : rods)
+			r.glDraw();
 	}
 
 	public double requestEnergy(double d) {

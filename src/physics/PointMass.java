@@ -17,6 +17,9 @@ public class PointMass {
 	private Vector2d vel;
 	private Vector2d acc;
 	private Vector2d force;
+	
+	// silly graphics helper
+	public int glVertexArrayPos;
 
 	private List<Rod> connections;
 
