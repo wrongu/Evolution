@@ -28,7 +28,7 @@ public class MatrixANN {
 		outVector = DoubleMatrix.zeros(n_neurons);	
 		thresholdVector = DoubleMatrix.zeros(n_neurons);
 		restVector = DoubleMatrix.zeros(n_neurons);
-
+		
 		id_map = new HashMap<Integer, Integer>(n_neurons);
 	}
 

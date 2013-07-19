@@ -55,7 +55,6 @@ public class Organism implements IDrawable, IDrawableGL {
 		}
 		for(i=0; i<5; i++) physicsUpdate(1.0);
 		for(PointMass pm : pointmasses) pm.clearPhysics();
-		
 	}
 	
 	public void physicsUpdate(double dt){
@@ -144,5 +143,8 @@ public class Organism implements IDrawable, IDrawableGL {
 	}
 	
 	// This method for DEBUGGING PURPOSES ONLY!
-	public Muscle getFirstMuscle() { return muscles.get(0); }
+	public Muscle getFirstMuscle() {
+		try {return muscles.get(0); }
+		catch (IndexOutOfBoundsException e) { return null; }
+	}
 }
