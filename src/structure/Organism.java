@@ -27,6 +27,7 @@ public class Organism implements IDrawable, IDrawableGL {
 	
 	private double energy;
 	private double x, y;
+	private double radius;
 	
 	public Organism(double comx, double comy, Environment e){
 		energy = 20.0;
@@ -56,6 +57,7 @@ public class Organism implements IDrawable, IDrawableGL {
 		for(i=0; i<5; i++) physicsUpdate(1.0);
 		for(PointMass pm : pointmasses) pm.clearPhysics();
 		
+//		updateHitBox();
 	}
 	
 	public void physicsUpdate(double dt){
@@ -67,6 +69,7 @@ public class Organism implements IDrawable, IDrawableGL {
 			j.physicsUpdate(theEnvironment);
 		for(Rod r : rods)
 			r.physicsUpdate(theEnvironment);
+		
 		// move point-mass-joints, update center-x and center-y coordinates
 		double sx = 0.0, sy = 0.0;
 		for(PointMass j : pointmasses){
@@ -76,6 +79,15 @@ public class Organism implements IDrawable, IDrawableGL {
 		}
 		x = sx / pointmasses.size();
 		y = sy / pointmasses.size();
+		
+		radius = 0;
+		double dx, dy;
+		for(PointMass p : pointmasses) {
+			dx = p.getX() - x;
+			dy = p.getY() - y;
+			radius = Math.max(radius, (dx)*(dx) + (dy)*(dy));
+		}
+		radius = Math.sqrt(radius);
 	}
 	
 	public void drift(double fx, double fy){
@@ -145,4 +157,7 @@ public class Organism implements IDrawable, IDrawableGL {
 	
 	// This method for DEBUGGING PURPOSES ONLY!
 	public Muscle getFirstMuscle() { return muscles.get(0); }
+	
+	public double getRadius() { return radius; }
+	
 }
