@@ -15,11 +15,23 @@ public class Texture {
 		active_layer = 0;
 	}
 	
+	/**
+	 * create a texture with linear interpolation and the given width/height
+	 * @param w width
+	 * @param h height
+	 * @return a texture object that provides abstracted access to openGL texture functions
+	 */
 	public static Texture create(int w, int h){
 		int id = glGenTextures();
 		glBindTexture(GL_TEXTURE_2D, id);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_FLOAT, (ByteBuffer) null);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGB, GL_FLOAT, (ByteBuffer) null);
 		return new Texture(id);
+	}
+	
+	public void setMinFilter(int type){
+		glBindTexture(GL_TEXTURE_2D, glId);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 	
 	public void activate(){

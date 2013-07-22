@@ -13,20 +13,20 @@ public class FrameBuffer {
 		width = w;
 		height = h;
 		textures = new Texture[num_textures];
+		if(num_textures > 16){
+			num_textures = 16;
+			System.err.println("Cannot have more than 16 textures per frame buffer");
+		}
 		glId = glGenFramebuffersEXT();
+		for(int i = 0; i < num_textures; i++){
+			Texture tex = Texture.create(w, h);
+			textures[i] = tex;
+		}
 		
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, glId);
 		{
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			glOrtho(0, w, 0, h, -1, 1);
-			glMatrixMode(GL_MODELVIEW);
-			
-			for(int i = 0; i < num_textures; i++){
-				Texture tex = Texture.create(w, h);
-				glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex.getId(), 0);
-				textures[i] = tex;
-			}
+			// TODO - not sure how to do multiple textures here
+			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, textures[0].getId(), 0);
 		}
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 		checkFBO();
@@ -39,20 +39,22 @@ public class FrameBuffer {
 			return null;
 	}
 
-	public void bind(){
+	public void bind(int tex){
+		glPushMatrix();
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, glId);
 		glPushAttrib(GL_VIEWPORT_BIT);
 		glViewport(0, 0, width, height);
+		bindTex(tex);
 	}
 
-	public void bind(int tex){
-		bind();
-		textures[tex].activate();
+	public void bindTex(int tex){
+		glBindTexture(GL_TEXTURE_2D, textures[tex].getId());
 	}
 
 	public void unbind(){
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 		glPopAttrib();
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		glPopMatrix();
 	}
 	
 	public void destroy(){
