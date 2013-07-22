@@ -35,8 +35,8 @@ public class OrganismFactory {
 		
 		Organism o = new Organism(
 				Math.random()*(bounds[2]-bounds[0]) + bounds[0],
-				Math.random()*(bounds[3]-bounds[1]) + bounds[1],
-				e);
+				Math.random()*(bounds[3]-bounds[1]) + bounds[1] /*,
+				e */);
 		
 		int n;
 

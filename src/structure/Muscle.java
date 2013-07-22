@@ -30,7 +30,7 @@ public class Muscle {
 	}
 	
 	// Has the muscle exert a force on the structure, and returns the energy used.
-	public double act() {
-		return struct.exertMuscle(strength); // We could multiply by max strength to make strong muscles harder to get?
-	}
+//	public double act() {
+//		return struct.exertMuscle(strength); // We could multiply by max strength to make strong muscles harder to get?
+//	}
 }
