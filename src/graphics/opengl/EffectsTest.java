@@ -21,6 +21,11 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL40.*;
 
+/* TODO list
+ * element arrays
+ * multiple textures per FBO
+ */
+
 public class EffectsTest extends JApplet {
 
 	private static final long serialVersionUID = 7064505951633558969L;
@@ -54,18 +59,16 @@ public class EffectsTest extends JApplet {
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, sillyTex);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
 		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGB, GL_FLOAT, texBuff);
 
-		FrameBuffer fb = new FrameBuffer(600, 600, 1);
+		FrameBuffer fb = new FrameBuffer(600, 600);
 
 		while(!Display.isCloseRequested()){
 			// reset graphics
 			glBindTexture(GL_TEXTURE_2D, 0); // thanks to FBOExample
 
 			// render graphics to frame buffer
-			fb.bind(0);
+			fb.bind();
 			{
 				clearGraphics();
 				drawThingy();
@@ -77,7 +80,7 @@ public class EffectsTest extends JApplet {
 			clearGraphics();
 
 			GL11.glColor3f(1f, 1f, 1f);
-			fb.bindTex(0);
+			fb.bindTex();
 			drawTexSquareArray(-0.6f, -0.1f, -0.6f, -0.1f);
 			drawTexSquare(-0.6f, -0.1f, 0.1f, 0.6f);
 			
@@ -149,7 +152,7 @@ public class EffectsTest extends JApplet {
 			gl_array.addTexVertex(r, t, 1, 1);
 			gl_array.addTexVertex(l, t, 0, 1);
 		}
-		gl_array.draw(0);
+		gl_array.draw();
 	}
 
 	private void drawThingy(){

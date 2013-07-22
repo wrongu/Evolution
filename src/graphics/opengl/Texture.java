@@ -1,6 +1,7 @@
 package graphics.opengl;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL13.*;
 
 import java.nio.ByteBuffer;
@@ -23,15 +24,26 @@ public class Texture {
 	 */
 	public static Texture create(int w, int h){
 		int id = glGenTextures();
+		Texture tex = new Texture(id);
 		glBindTexture(GL_TEXTURE_2D, id);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGB, GL_FLOAT, (ByteBuffer) null);
-		return new Texture(id);
+		tex.setFilter(GL_LINEAR);
+		tex.setWrap(GL_CLAMP_TO_EDGE);
+		return tex;
 	}
 	
-	public void setMinFilter(int type){
+	public void setFilter(int type){
 		glBindTexture(GL_TEXTURE_2D, glId);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, type);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, type);
+	}
+	
+	public void setWrap(int type){
+		int prev_tex = glGetInteger(GL_TEXTURE_BINDING_2D);
+		glBindTexture(GL_TEXTURE_2D, glId);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, type);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, type);
+		glBindTexture(GL_TEXTURE_2D, prev_tex);
 	}
 	
 	public void activate(){
