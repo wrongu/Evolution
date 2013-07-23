@@ -14,6 +14,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	
 	public static final double GRAVITY = 0.1;
 	public static final double MOUSE_CONSTANT = 1;
+	public static final double MAX_SPEED = 10;
 	
 	public double viscosity;
 	public double friction;
@@ -30,7 +31,7 @@ public class Environment implements IDrawable, IDrawableGL {
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.TRIANGLE_WITH_MUSCLE,this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.SINGLE_ROD,this));
 		width = w;
 		height = h;
 	}
@@ -42,7 +43,8 @@ public class Environment implements IDrawable, IDrawableGL {
 		dt /= 100.0;
 		for(Organism o : organisms){
 			//o.drift(0, -GRAVITY);
-			o.physicsUpdate(dt > 1.0 ? 1.0 : dt);
+			o.physicsUpdate();
+			o.move(dt > 1.0 ? 1.0 : dt);
 			o.contain(this);
 			
 			 if(mouse_buttons[0] != 0) {
@@ -52,10 +54,10 @@ public class Environment implements IDrawable, IDrawableGL {
 			 	System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
 			 }
 			 
-			 if(spaceIsPressed)
-				 o.getFirstMuscle().setStrength(-1);
-			 else
-				 o.getFirstMuscle().setStrength(0.2);
+//			 if(spaceIsPressed)
+//				 o.getFirstMuscle().setStrength(-1);
+//			 else
+//				 o.getFirstMuscle().setStrength(0.2);
 		}
 	}
 

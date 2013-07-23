@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.vecmath.Vector2d;
 
+import org.jblas.DoubleMatrix;
+
 import environment.Environment;
 
 public class PointMass {
@@ -118,5 +120,10 @@ public class PointMass {
 	public void addAcc(double fx, double fy) {
 		force.x += fx/mass;
 		force.y += fy/mass;
+	}
+
+	public double getMass() {
+		// TODO Auto-generated method stub
+		return mass;
 	}
 }

@@ -138,4 +138,8 @@ public class Joint extends Structure {
 		// opengl drawing
 		// currently, joints are not rendered as anything
 	}
+	
+	public PointMass getPoint0() { return point;}
+	public PointMass getPoint1() { return rods[0].getOtherEnd(point); }
+	public PointMass getPoint2() { return rods[1].getOtherEnd(point); }
 }

@@ -17,6 +17,7 @@ public class OrganismFactory {
 	public static final int TRIANGLE_WITH_MUSCLE = 3;
 	public static final int SNAKE_WITH_JOINTS = 4;
 	public static final int SIMPLE_JELLYFISH = 5;
+	public static final int SINGLE_ROD = 6;
 	
 	public static Organism fromGene(IGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
@@ -105,6 +106,11 @@ public class OrganismFactory {
 			musclelist.add(new Muscle(jointlist.get(0),2));
 			break;
 			
+		case SINGLE_ROD:
+			pmlist.add(new PointMass(1));
+			pmlist.add(new PointMass(1));
+			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(1)));
+			break;
 		}
 		
 		o.addAllPointMasses(pmlist);
