@@ -1,18 +1,26 @@
 package graphics.opengl;
 
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
+
+import java.nio.FloatBuffer;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Program {
 
 	private int glId;
 	private Shader vShader, fShader;
-	private boolean is_linked;
+	private boolean is_being_used;
+
+	private List<Integer> activeAttributes;
 
 	private Program(int id, Shader vs, Shader fs){
 		glId = id;
 		vShader = vs;
 		fShader = fs;
-		is_linked = false;
+		is_being_used = false;
+		activeAttributes = new LinkedList<Integer>();
 	}
 
 	public static Program createProgram(Shader vShader, Shader fShader){
@@ -24,6 +32,17 @@ public class Program {
 
 		vShader.attach(id);
 		fShader.attach(id);
+		
+		glLinkProgram(id);
+		
+		if(glGetProgrami(id, GL_LINK_STATUS) == GL_FALSE){
+			System.err.println("error linking program");
+			
+			int msglen = glGetProgrami(id, GL_INFO_LOG_LENGTH);
+			String errmsg = glGetProgramInfoLog(id, msglen);
+			System.err.println(errmsg);
+			return null;
+		}
 
 		return new Program(id, vShader, fShader);
 	}
@@ -35,20 +54,14 @@ public class Program {
 	}
 
 	public void begin(){
-		if(is_linked)
-			glUseProgram(glId);
-		else
-			System.err.println("OpenGL Program: must call link() before using it with begin()");
+		glUseProgram(glId);
+		is_being_used = true;
 	}
 
-	public void link(){
-		// TODO - must bind shader inputs and outputs before linking!
-		glLinkProgram(glId);
-		is_linked = true;
-	}
-	
 	public void end(){
 		glUseProgram(0);
+		is_being_used = false;
+		unsetArrayAttribs();
 	}
 
 	/**
@@ -60,8 +73,19 @@ public class Program {
 		glDeleteProgram(glId);
 	}
 
+	/*
+	 * FUNCTIONS FOR SETTING UNIFORMS
+	 */
+
+	public int getUniform(String name){
+		if(name == null) return -1;
+		return glGetUniformLocation(glId, name);
+	}
+
 	public void setParam(String name, int ... values){
-		if(values != null){
+		if(!is_being_used)
+			System.err.println("cannot define uniform unless the program is being used");
+		else if(values != null){
 			int param = getUniform(name);
 			switch(values.length){
 			case 1:
@@ -83,7 +107,9 @@ public class Program {
 	}
 
 	public void setParam(String name, float ... values){
-		if(values != null){
+		if(!is_being_used)
+			System.err.println("cannot define uniform unless the program is being used");
+		else if(values != null){
 			int param = getUniform(name);
 			switch(values.length){
 			case 1:
@@ -104,11 +130,49 @@ public class Program {
 		}
 	}
 
+	public void setParamMatrix(String name, FloatBuffer flatMatrix){
+		if(!is_being_used)
+			System.err.println("cannot define uniform matrix unless the program is being used");
+		else{
+			int param = getUniform(name);
+			glUniformMatrix4(param, false, flatMatrix);
+		}
+	}
+
+	/*
+	 * FUNCTIONS FOR SETTING ATTRIBUTES (inputs)
+	 */
+
 	public int getAttribute(String name){
+		if(name == null) return -1;
 		return glGetAttribLocation(glId, name);
 	}
 
-	public int getUniform(String name){
-		return glGetUniformLocation(glId, name);
+	public void setVertexArrayAttrib(String name, int size, int type, int stride, int offset) {
+		setVertexArrayAttrib(getAttribute(name), size, type, stride, offset);
+	}
+	
+	public void setVertexArrayAttrib(int attribute, int size, int type, int stride, int offset){
+		if(!is_being_used)
+			System.err.println("cannot define attribute unless the program is being used");
+		else{
+			activeAttributes.add(attribute);
+			glEnableVertexAttribArray(attribute);
+			glVertexAttribPointer(attribute, size, type, false, stride, (long) offset);
+		}
+	}
+
+	public void setVertexArrayAttribNormalize(int attribute, int size, int type, int stride, int offset){
+		if(!is_being_used)
+			System.err.println("cannot define attribute unless the program is being used");
+		else{
+			activeAttributes.add(attribute);
+			glEnableVertexAttribArray(attribute);
+			glVertexAttribPointer(attribute, size, type, true, stride, (long) offset);
+		}
+	}
+
+	public void unsetArrayAttribs(){
+		for(int loc : activeAttributes) glDisableVertexAttribArray(loc);
 	}
 }

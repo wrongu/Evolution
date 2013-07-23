@@ -18,9 +18,9 @@ public class PrimitiveArray {
 	private static final int T_OFFSET = 3;
 	private static final int COLOR_OFFSET = 4;
 	/** The total number of 4-byte attributes for each vertex */
-	private static final int INT_STRIDE = 5;
+	public static final int INT_STRIDE = 5;
 	/** The total number of bytes to specify all data for a single vertex */
-	private static final int BYTE_STRIDE = INT_STRIDE << 2;
+	public static final int BYTE_STRIDE = INT_STRIDE << 2;
 
 	private int[] rawBuffer;
 	private int bufferSize;
@@ -28,6 +28,9 @@ public class PrimitiveArray {
 	private int vertexCount;
 	private int vboId;
 	//	private int vaoId;
+
+	private int vAttrib, tAttrib, cAttrib;
+	private Program program;
 
 	private int drawMode;
 	private boolean isDrawing;
@@ -40,7 +43,8 @@ public class PrimitiveArray {
 	private float curTexS, curTexT;
 	private int curColorBytes;
 
-	private boolean useTex, useColor;
+	private boolean useTex;
+	// always use color (default to white)
 
 	public static PrimitiveArray create(int vbos){
 		return new PrimitiveArray(0x8000, vbos);
@@ -63,6 +67,7 @@ public class PrimitiveArray {
 		byteBuffer.clear();
 		isDrawing = false;
 		vertexCount = 0;
+		curColorBytes = 1; // reset to white
 		//		GL30.glBindVertexArray(0);
 	}
 
@@ -73,10 +78,16 @@ public class PrimitiveArray {
 			drawMode = gl_mode;
 			isDrawing = true;
 			useTex = false;
-			useColor = false;
 		} else{
 			System.err.println("already drawing!");
 		}
+	}
+
+	public void setProgram(Program p, String v2DAttribName, String tAttribName, String cAttribName){
+		program = p;
+		vAttrib = p.getAttribute(v2DAttribName);
+		tAttrib = p.getAttribute(tAttribName);
+		cAttrib = p.getAttribute(cAttribName);
 	}
 
 	public void addTexVertex(float x, float y, float s, float t){
@@ -91,9 +102,8 @@ public class PrimitiveArray {
 			rawBuffer[rawBufferIndex + T_OFFSET] = Float.floatToRawIntBits(curTexT);
 		}
 
-		if(useColor){
-			rawBuffer[rawBufferIndex + COLOR_OFFSET] = curColorBytes;
-		}
+		rawBuffer[rawBufferIndex + COLOR_OFFSET] = curColorBytes;
+
 
 		rawBuffer[rawBufferIndex + X_OFFSET] = Float.floatToRawIntBits(x);
 		rawBuffer[rawBufferIndex + Y_OFFSET] = Float.floatToRawIntBits(y);
@@ -110,17 +120,18 @@ public class PrimitiveArray {
 		useTex = true;
 	}
 
-	public void setColor(float r, float g, float b, float a){
+	public void setColor(float r, float g, float b){
+		r = r > 1f ? 1f : (r < 0f ? 0f : r);
+		g = g > 1f ? 1f : (g < 0f ? 0f : g);
+		b = b > 1f ? 1f : (b < 0f ? 0f : b);
 		setColor(
-				(byte) (r * 255f),
-				(byte) (g * 255f),
-				(byte) (b * 255f),
-				(byte) (a * 255f));
+				(int) (r * 255f),
+				(int) (g * 255f),
+				(int) (b * 255f));
 	}
 
-	public void setColor(byte r, byte g, byte b, byte a){
-		curColorBytes = (r << 24) | (g << 16) | (b << 8) | a;
-		useColor = true;
+	public void setColor(int r, int g, int b){
+		curColorBytes = (b << 16) | (g << 8) | r;
 	}
 
 
@@ -135,26 +146,38 @@ public class PrimitiveArray {
 		byteBuffer.position(0);
 		byteBuffer.limit(rawBufferIndex * 4);
 
+		if(program != null) program.begin();
+
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
 		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, byteBuffer, GL15.GL_STREAM_DRAW);
 
 		if(useTex){
-			GL11.glTexCoordPointer(2, GL11.GL_FLOAT, BYTE_STRIDE, S_OFFSET << 2);
+			if(program != null && tAttrib >= 0)
+				program.setVertexArrayAttrib(tAttrib, 2, GL11.GL_FLOAT, BYTE_STRIDE, S_OFFSET << 2);
+			else
+				GL11.glTexCoordPointer(2, GL11.GL_FLOAT, BYTE_STRIDE, S_OFFSET << 2);
 			GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
 		}
-		if(useColor){
-			GL11.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, BYTE_STRIDE, COLOR_OFFSET << 2);
-			GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
-		}
 
-		GL11.glVertexPointer(2, GL11.GL_FLOAT, BYTE_STRIDE, X_OFFSET << 2);
+		if(program != null && cAttrib >= 0)
+			program.setVertexArrayAttribNormalize(cAttrib, 4, GL11.GL_UNSIGNED_BYTE, BYTE_STRIDE, COLOR_OFFSET << 2);
+		else
+			GL11.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, BYTE_STRIDE, COLOR_OFFSET << 2);
+		GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+
+		if(program != null && vAttrib >= 0)
+			program.setVertexArrayAttrib(vAttrib, 2, GL11.GL_FLOAT, BYTE_STRIDE, X_OFFSET << 2);
+		else
+			GL11.glVertexPointer(2, GL11.GL_FLOAT, BYTE_STRIDE, X_OFFSET << 2);
 		GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
 
 		GL11.glDrawArrays(drawMode, 0, vertexCount);
 
 		GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
+		GL11.glDisableClientState(GL11.GL_COLOR_ARRAY);
 		if(useTex) 		GL11.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-		if(useColor)	GL11.glDisableClientState(GL11.GL_COLOR_ARRAY);
+
+		if(program != null) program.end();
 
 		reset();
 	}

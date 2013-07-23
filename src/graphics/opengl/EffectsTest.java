@@ -12,6 +12,8 @@ import org.lwjgl.opengl.Display;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL13;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL13.*;
@@ -22,15 +24,19 @@ import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL40.*;
 
 /* TODO list
+ * test programs
  * element arrays
- * multiple textures per FBO
  */
 
 public class EffectsTest extends JApplet {
 
 	private static final long serialVersionUID = 7064505951633558969L;
 
+	private GLList bgList, glowList;
+	private FrameBuffer glowMap, scene;
 	private PrimitiveArray gl_array;
+	private Program pBlur;
+	private FloatBuffer modelViewMatrix, projectionMatrix;
 
 	public void init(){
 		setSize(600, 600);
@@ -45,7 +51,10 @@ public class EffectsTest extends JApplet {
 			e.printStackTrace();
 		}
 
+		System.out.println("OpenGL version is "+glGetString(GL_VERSION));
+
 		initGL();
+		initGLAdvanced();
 
 		float[] tex = new float[]{
 				1f, 0f, 0f,   0f, 1f, 0f,
@@ -62,6 +71,8 @@ public class EffectsTest extends JApplet {
 		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGB, GL_FLOAT, texBuff);
 
 		FrameBuffer fb = new FrameBuffer(600, 600);
+		projectionMatrix = BufferUtils.createFloatBuffer(16);
+		modelViewMatrix  = BufferUtils.createFloatBuffer(16);
 
 		while(!Display.isCloseRequested()){
 			// reset graphics
@@ -79,11 +90,19 @@ public class EffectsTest extends JApplet {
 			glEnable(GL_TEXTURE_2D);
 			clearGraphics();
 
+			GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewMatrix);
+			GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, projectionMatrix);
+
+			pBlur.begin();
+			pBlur.setParamMatrix("mModelView", modelViewMatrix);
+			pBlur.setParamMatrix("mProjection", projectionMatrix);
+			pBlur.end();
+
 			GL11.glColor3f(1f, 1f, 1f);
 			fb.bindTex();
 			drawTexSquareArray(-0.6f, -0.1f, -0.6f, -0.1f);
 			drawTexSquare(-0.6f, -0.1f, 0.1f, 0.6f);
-			
+
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, sillyTex);
 			drawTexSquareArray(0.1f, 0.6f, -0.6f, -0.1f);
 			drawTexSquare(0.1f, 0.6f, 0.1f, 0.6f);
@@ -122,6 +141,21 @@ public class EffectsTest extends JApplet {
 		gl_array = PrimitiveArray.create(1);
 	}
 
+	private void initGLAdvanced(){
+		GLList[] lists = GLList.createLists(2);
+		bgList = lists[0];
+		glowList = lists[1];
+
+		pBlur = Program.createProgram("../resources/default2D.vs", "../resources/default2D.fs");
+		pBlur.begin();
+		{
+			pBlur.setParam("Texture", 0);
+		}
+		pBlur.end();
+
+		gl_array.setProgram(pBlur, "position", "texUV", "color");
+	}
+
 	private void drawSquare(float l, float r, float b, float t){
 		GL11.glBegin(GL11.GL_QUADS);
 		{
@@ -147,10 +181,25 @@ public class EffectsTest extends JApplet {
 	private void drawTexSquareArray(float l, float r, float b, float t){
 		gl_array.beginDrawing(GL11.GL_QUADS);
 		{
+			gl_array.setColor(1f, 1f, 1f);
 			gl_array.addTexVertex(l, b, 0, 0);
 			gl_array.addTexVertex(r, b, 1, 0);
 			gl_array.addTexVertex(r, t, 1, 1);
 			gl_array.addTexVertex(l, t, 0, 1);
+		}
+		gl_array.draw();
+	}
+	
+	private void drawTriangleArray(float l, float r, float b, float t){
+		gl_array.beginDrawing(GL11.GL_TRIANGLES);
+		{
+			gl_array.addVertex(l, b);
+			gl_array.addVertex(r, b);
+			gl_array.addVertex(l, t);
+			
+			gl_array.addVertex(l, t);
+			gl_array.addVertex(r, t);
+			gl_array.addVertex(r, b);
 		}
 		gl_array.draw();
 	}

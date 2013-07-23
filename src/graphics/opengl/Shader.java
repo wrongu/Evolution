@@ -41,7 +41,10 @@ public class Shader {
 			glCompileShader(shader);
 			// check compilation
 			if(glGetShaderi(shader, GL_COMPILE_STATUS) == GL_FALSE){
+				int loglen = glGetShaderi(shader, GL_INFO_LOG_LENGTH);
+				String errmsg = glGetShaderInfoLog(shader, loglen+1);
 				System.err.println("error compiling shader from " + source);
+				System.err.println(errmsg);
 				glDeleteShader(shader);
 				return 0;
 			}
