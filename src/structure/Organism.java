@@ -160,23 +160,23 @@ public class Organism implements IDrawable, IDrawableGL {
 		if(selfCollisions) doCollisions();
 		
 		// PointMass friction
-		force.subi(vel.mul(1));
+		force.subi(vel.mul(0));
 	}
 	
 	public void move(double dt) {
 		// Add in forces.
 		acc.addi(force.mulColumnVector(massRec));
-		force.mul(0);
 		
 		// TODO Cap speed.
 		DoubleMatrix overSpeed = speed.gt(theEnvironment.MAX_SPEED);
 		vel = vel.mulColumnVector(overSpeed.not()).add(vel.mulColumnVector(overSpeed).mulColumnVector(Util.recip(speed)).mul(theEnvironment.MAX_SPEED));
 		
-		// Update pos and vel.
-		pos.addi(vel.mul(dt).add(acc.mul(0.5*dt*dt)));
+		// Update pos, vel, speed, and force.
+		pos.addi( vel.mul(dt) );
 		vel.addi(acc.mul(dt));
 		acc.muli(0);
 		speed = Util.mag(vel);
+		force.mul(0);
 		
 		// Update center of mass and radius.
 		DoubleMatrix centerOfMass = pos.mulColumnVector(mass);

@@ -31,7 +31,7 @@ public class Environment implements IDrawable, IDrawableGL {
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.SINGLE_ROD,this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.TRIANGLE_WITH_TAIL,this));
 		width = w;
 		height = h;
 	}
