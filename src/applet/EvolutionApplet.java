@@ -1,3 +1,4 @@
+package applet;
 import java.awt.Canvas;
 import java.awt.Dimension;
 import java.nio.FloatBuffer;

@@ -1,6 +1,7 @@
 package graphics.opengl;
 
 import java.awt.Canvas;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -11,6 +12,7 @@ import org.lwjgl.util.glu.GLU;
 import org.lwjgl.BufferUtils;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL20.*;
 
 
@@ -48,6 +50,9 @@ public class RenderGL {
 	private static final int BLUR_WIDTH = 10;
 	private static final float BLUR_SCALE = 1.0F;
 	private static final float BLUR_STRENGTH = 0.0F;
+
+	// DEBUGGING
+	private int sillyTex;
 
 
 	public RenderGL(Canvas canvas, Environment env, int w, int h){
@@ -92,30 +97,34 @@ public class RenderGL {
 		 * all that's left to render them is a call to glCallList
 		 */
 
-		glEffects.bind();
-		{
-			clearGraphics();
-			glOrganismList.call();
-		}
-		glEffects.unbind();
+		glEnable(GL_TEXTURE_2D);
+		//		glEffects.bind();
+		//		{
+		//			clearGraphics();
+		//			glOrganismList.call();
+		//		}
+		//		glEffects.unbind();
 		{
 			clearGraphics();
 			glBackgroundList.call();
+			glOrganismList.call();
+			//			glEffects.bindTex(0);
+			fullScreenQuadTex();
 		}
 
 		// update the display (i.e. swap buffers, etc)
 		Display.update();
 	}
 
-	private void renderFullScreenQuadTex(){
-		
-		glColor3f(1,1,1);
+	private void fullScreenQuadTex(){
+		glEnable(GL_TEXTURE_2D);
+		glColor3f(1, 1, 1);
 		glBegin(GL_QUADS);
 		{
-			glTexCoord2f(0, 0); glVertex2f(-1.0F, -1.0F);
-			glTexCoord2f(1, 0); glVertex2f( 1.0F, -1.0F);
-			glTexCoord2f(1, 1); glVertex2f( 1.0F,  1.0F);
-			glTexCoord2f(0, 1); glVertex2f(-1.0F,  1.0F);
+			glTexCoord2f(0, 0); glVertex2f(-1F, -1F);
+			glTexCoord2f(1, 0); glVertex2f( 1F, -1F);
+			glTexCoord2f(1, 1); glVertex2f( 1F,  1F);
+			glTexCoord2f(0, 1); glVertex2f(-1F,  1F);
 		}
 		glEnd();
 	}
@@ -157,7 +166,6 @@ public class RenderGL {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		// load and compile shaders
 		initGLShaders();
-		glEnable(GL_TEXTURE_2D);
 	}
 
 	private void glWindowSize(){
@@ -186,11 +194,10 @@ public class RenderGL {
 				pHBlur = Program.createProgram(vDefault, fBlur);
 				pVBlur = Program.createProgram(vDefault, fBlur);	
 				pBlend = Program.createProgram(vDefault, fBlend);
-				pScreenTex = Program.createProgram(vScreenTex, fDefault);
 			}
 			// create texture and framebuffer
 			{
-				glEffects = new FrameBuffer(width, height, 2);
+				glEffects = new FrameBuffer(width, height);
 			}
 		} else{
 			System.err.println("FBO not available");

@@ -1,59 +1,57 @@
+#version 110
 
 /// Fragment shader for performing a seperable blur on the specified texture. 
-#ifdef GL_ES
-	precision highp float;
-#endif
 
 /// Uniform variables. 
-uniform vec2 TexelSize;
-uniform sampler2D Sample0;
+uniform sampler2D Texture;
+uniform sampler1D Gaussian;
 uniform int Orientation;
-uniform int BlurAmount;
-uniform float BlurScale;
-uniform float BlurStrength;
+uniform int BlurWidth;
+uniform int TextureWidth;
 
-/// Varying variables. 
-varying vec2 vUv;
+/// Inputs from vertex Shader 
+varying vec2 TexCoord;
+varying vec4 Color;
 
-/// Gets the Gaussian value in the first dimension. 
-/// Distance from origin on the x-axis.
-/// Standard deviation.
-/// The gaussian value on the x-axis.
-float Gaussian (float x, float deviation) {
-	return (1.0 / sqrt(2.0 * 3.141592 * deviation)) * exp(-((x * x) / (2.0 * deviation)));
-} 
+const vec4 yellow = vec4(1.0, 1.0, 0.0, 1.0);
 
-/// Fragment shader entry. 
 void main () {
-	// Locals
-	float halfBlur = float(BlurAmount) * 0.5;
-	vec4 colour = vec4(0.0);
-	vec4 texColour = vec4(0.0);
 
-	// Gaussian deviation
-	float deviation = halfBlur * 0.35;
-	deviation *= deviation;
-	float strength = 1.0 - BlurStrength;
-
+	// initialize summed color
+	vec4 texColor = vec4(0.0);
+	vec4 color = vec4(0.0);
+	
+	float texwf = float(TextureWidth);
+	float widthf = float(BlurWidth);
+	float halfWidth = widthf / 2.0;
+	
+	float gauss_sum = 0.0;
+	
 	if ( Orientation == 0 ) {
 		// Horizontal blur
-		for (int i = 0; i < 10; ++i) {
-			if ( i >= BlurAmount ) break;
-			float offset = float(i) - halfBlur;
-			texColour = texture2D(Sample0, vUv + vec2(offset * TexelSize.x * BlurScale, 0.0)) * Gaussian(offset * strength, deviation);
-			colour += texColour;
+		for (int i = 0; i < BlurWidth; ++i) {
+			float x = (float(i) - 5.0) / 100.0;
+			vec4 gauss = texture1D(Gaussian, float(i) / widthf);
+			gauss_sum += gauss.x;
+			texColor = texture2D(Texture, TexCoord + vec2(x, 0.0));
+			color = color + gauss.x * texColor;
 		}
-	} else { 
+	} else if(Orientation == 1){
 		// Vertical blur
-		for (int i = 0; i < 10; ++i) { 
-			if ( i >= BlurAmount ) break;
-			float offset = float(i) - halfBlur;
-			texColour = texture2D(Sample0, vUv + vec2(0.0, offset * TexelSize.y * BlurScale)) * Gaussian(offset * strength, deviation);
-			colour += texColour;
+		for (int i = 0; i < BlurWidth; ++i) {
+			float x = (float(i) - 5.0) / 100.0;
+			vec4 gauss = texture1D(Gaussian, float(i) / widthf);
+			gauss_sum += gauss.x;
+			texColor = texture2D(Texture, TexCoord + vec2(0.0, x));
+			color = color + gauss.x * texColor;
 		}
+	} else{
+		color = yellow;
 	}
 	
-	// Apply colour
-	gl_FragColor = clamp(colour, 0.0, 1.0);
+	if(gauss_sum > 0.0) color = color / gauss_sum;
+	
+	// Apply color
+	gl_FragColor = clamp(color, 0.0, 1.0);
 	gl_FragColor.w = 1.0;
 }

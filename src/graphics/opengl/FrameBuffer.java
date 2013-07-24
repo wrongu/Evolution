@@ -17,7 +17,7 @@ public class FrameBuffer {
 		
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, glId);
 		{
-			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texture.getId(), 0);
+			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, getTexture().getId(), 0);
 		}
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 		checkFBO();
@@ -28,11 +28,10 @@ public class FrameBuffer {
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, glId);
 		glPushAttrib(GL_VIEWPORT_BIT);
 		glViewport(0, 0, width, height);
-		bindTex();
 	}
 
 	public void bindTex(){
-		glBindTexture(GL_TEXTURE_2D, texture.getId());
+		glBindTexture(GL_TEXTURE_2D, getTexture().getId());
 	}
 
 	public void unbind(){
@@ -42,7 +41,7 @@ public class FrameBuffer {
 	}
 	
 	public void destroy(){
-		texture.destroy();
+		getTexture().destroy();
 		glDeleteFramebuffersEXT(glId);
 	}
 
@@ -72,6 +71,10 @@ public class FrameBuffer {
 		default:
 			throw new RuntimeException( "Unexpected reply from glCheckFramebufferStatusEXT: " + framebuffer );
 		}
+	}
+
+	public Texture getTexture() {
+		return texture;
 	}
 
 }

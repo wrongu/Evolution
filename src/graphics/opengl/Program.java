@@ -32,12 +32,12 @@ public class Program {
 
 		vShader.attach(id);
 		fShader.attach(id);
-		
+
 		glLinkProgram(id);
-		
+
 		if(glGetProgrami(id, GL_LINK_STATUS) == GL_FALSE){
 			System.err.println("error linking program");
-			
+
 			int msglen = glGetProgrami(id, GL_INFO_LOG_LENGTH);
 			String errmsg = glGetProgramInfoLog(id, msglen);
 			System.err.println(errmsg);
@@ -61,7 +61,7 @@ public class Program {
 	public void end(){
 		glUseProgram(0);
 		is_being_used = false;
-		unsetArrayAttribs();
+		unbindArrayAttribs();
 	}
 
 	/**
@@ -77,16 +77,16 @@ public class Program {
 	 * FUNCTIONS FOR SETTING UNIFORMS
 	 */
 
-	public int getUniform(String name){
+	public int getUniformLocation(String name){
 		if(name == null) return -1;
 		return glGetUniformLocation(glId, name);
 	}
 
-	public void setParam(String name, int ... values){
+	public void setUniform(String name, int ... values){
 		if(!is_being_used)
 			System.err.println("cannot define uniform unless the program is being used");
 		else if(values != null){
-			int param = getUniform(name);
+			int param = getUniformLocation(name);
 			switch(values.length){
 			case 1:
 				glUniform1i(param, values[0]);
@@ -106,11 +106,11 @@ public class Program {
 		}
 	}
 
-	public void setParam(String name, float ... values){
+	public void setUniform(String name, float ... values){
 		if(!is_being_used)
 			System.err.println("cannot define uniform unless the program is being used");
 		else if(values != null){
-			int param = getUniform(name);
+			int param = getUniformLocation(name);
 			switch(values.length){
 			case 1:
 				glUniform1f(param, values[0]);
@@ -130,12 +130,26 @@ public class Program {
 		}
 	}
 
-	public void setParamMatrix(String name, FloatBuffer flatMatrix){
+	public void setUniformMatrix(String name, FloatBuffer flatMatrix){
 		if(!is_being_used)
 			System.err.println("cannot define uniform matrix unless the program is being used");
 		else{
-			int param = getUniform(name);
-			glUniformMatrix4(param, false, flatMatrix);
+			int param = getUniformLocation(name);
+			switch(flatMatrix.capacity()){
+			case 4:
+				glUniformMatrix2(param, false, flatMatrix);
+				break;
+			case 9:
+				glUniformMatrix3(param, false, flatMatrix);
+				break;
+			case 16:
+				glUniformMatrix4(param, false, flatMatrix);
+				break;
+			default:
+				System.err.println("setUniformMatrix was given a non-square matrix. size was "+flatMatrix.capacity());
+				break;
+			}
+
 		}
 	}
 
@@ -143,15 +157,15 @@ public class Program {
 	 * FUNCTIONS FOR SETTING ATTRIBUTES (inputs)
 	 */
 
-	public int getAttribute(String name){
+	public int getAttributeLocation(String name){
 		if(name == null) return -1;
 		return glGetAttribLocation(glId, name);
 	}
 
 	public void setVertexArrayAttrib(String name, int size, int type, int stride, int offset) {
-		setVertexArrayAttrib(getAttribute(name), size, type, stride, offset);
+		setVertexArrayAttrib(getAttributeLocation(name), size, type, stride, offset);
 	}
-	
+
 	public void setVertexArrayAttrib(int attribute, int size, int type, int stride, int offset){
 		if(!is_being_used)
 			System.err.println("cannot define attribute unless the program is being used");
@@ -172,7 +186,15 @@ public class Program {
 		}
 	}
 
-	public void unsetArrayAttribs(){
+	public void setVertexArrayAttrib(Attribute attr, int stride){
+		activeAttributes.add(attr.location);
+		if(attr.normalized)
+			setVertexArrayAttribNormalize(attr.location, attr.numel, attr.type, stride, attr.vbo_offset);
+		else
+			setVertexArrayAttrib(attr.location, attr.numel, attr.type, stride, attr.vbo_offset);
+	}
+
+	public void unbindArrayAttribs(){
 		for(int loc : activeAttributes) glDisableVertexAttribArray(loc);
 	}
 }

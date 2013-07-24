@@ -24,26 +24,34 @@ public class Texture {
 	 */
 	public static Texture create(int w, int h){
 		int id = glGenTextures();
-		Texture tex = new Texture(id);
+		Texture tex = (new Texture(id)).setFilter(GL_LINEAR).setWrap(GL_CLAMP_TO_EDGE);;
 		glBindTexture(GL_TEXTURE_2D, id);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGB, GL_FLOAT, (ByteBuffer) null);
-		tex.setFilter(GL_LINEAR);
-		tex.setWrap(GL_CLAMP_TO_EDGE);
 		return tex;
 	}
 	
-	public void setFilter(int type){
-		glBindTexture(GL_TEXTURE_2D, glId);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, type);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, type);
+	public Texture setActiveLayer(int layer){
+		active_layer = layer;
+		return this;
 	}
 	
-	public void setWrap(int type){
-		int prev_tex = glGetInteger(GL_TEXTURE_BINDING_2D);
+	public void bind(){
+		activate();
 		glBindTexture(GL_TEXTURE_2D, glId);
+	}
+	
+	public Texture setFilter(int type){
+		bind();
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, type);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, type);
+		return this;
+	}
+	
+	public Texture setWrap(int type){
+		bind();
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, type);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, type);
-		glBindTexture(GL_TEXTURE_2D, prev_tex);
+		return this;
 	}
 	
 	public void activate(){
