@@ -30,7 +30,7 @@ void main () {
 	if ( Orientation == 0 ) {
 		// Horizontal blur
 		for (int i = 0; i < BlurWidth; ++i) {
-			float x = (float(i) - 5.0) / 100.0;
+			float x = (float(i) - halfWidth) / texwf;
 			vec4 gauss = texture1D(Gaussian, float(i) / widthf);
 			gauss_sum += gauss.x;
 			texColor = texture2D(Texture, TexCoord + vec2(x, 0.0));
@@ -39,7 +39,7 @@ void main () {
 	} else if(Orientation == 1){
 		// Vertical blur
 		for (int i = 0; i < BlurWidth; ++i) {
-			float x = (float(i) - 5.0) / 100.0;
+			float x = (float(i) - halfWidth) / texwf;
 			vec4 gauss = texture1D(Gaussian, float(i) / widthf);
 			gauss_sum += gauss.x;
 			texColor = texture2D(Texture, TexCoord + vec2(0.0, x));

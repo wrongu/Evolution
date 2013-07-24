@@ -166,7 +166,7 @@ public class EffectsTest extends JApplet implements ControlListener {
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_LIGHTING);
 		glDisable(GL_FOG);
-		glClearColor(0f, 0.8f, 0.8f, 1f);
+		glClearColor(0f, 0f, 0f, 0f);
 	}
 
 	private void initGLAdvanced(){
@@ -230,7 +230,7 @@ public class EffectsTest extends JApplet implements ControlListener {
 		// horizontal blur
 		vboBlur.setUniformi("Orientation", 0);
 		vboBlur.setUniformi("BlurWidth", 10);
-		vboBlur.setUniformf("TextureWidth", 100);
+		vboBlur.setUniformi("TextureWidth", 100);
 
 		// draw the glowMap to the framebuffer glowMap2 using the blur shader 
 		glowMap2.bind();
