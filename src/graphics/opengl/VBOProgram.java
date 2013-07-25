@@ -15,7 +15,9 @@ public class VBOProgram {
 	private static enum ProgramState {INIT, ACTIVE, INACTIVE};
 
 	private HashMap<String, Attribute> attributes;
-	private String vAttrName;
+	// shortcut to the 3 most common attributes: vertices, color, and texture
+	private Attribute colorAttribute, texAttribute, vertAttribute;
+	private boolean colorSingleByte;
 	private int byte_stride;
 
 	private int[] rawBuffer;
@@ -42,7 +44,6 @@ public class VBOProgram {
 	public static VBOProgram create(Program p, String vertexName, boolean is3D){
 		VBOProgram ret = new VBOProgram(0x8000);
 		ret.program = p;
-		ret.vAttrName = vertexName;
 		ret.addAttribute(vertexName, GL11.GL_FLOAT, (is3D ? 3 : 2), false, GL11.GL_VERTEX_ARRAY);	
 		return ret;
 	}
@@ -68,8 +69,24 @@ public class VBOProgram {
 	 * coordinates, then you would set glState to GL11.GL_TEXTURE_COORD_ARRAY
 	 */
 	public void addAttribute(String shaderName, int glType, int numel, boolean normalize, int glState){
-		if(myState == ProgramState.INIT)
-			attributes.put(shaderName, new Attribute(numel, glType, normalize, glState));
+		if(myState == ProgramState.INIT){
+			Attribute attr = new Attribute(numel, glType, normalize, glState);
+			attributes.put(shaderName, attr);
+			switch(glState){
+			case GL11.GL_VERTEX_ARRAY:
+				vertAttribute = attr;
+				break;
+			case GL11.GL_TEXTURE_COORD_ARRAY:
+				texAttribute = attr;
+				break;
+			case GL11.GL_COLOR_ARRAY:
+				colorAttribute = attr;
+				colorSingleByte = (glType == GL11.GL_UNSIGNED_BYTE || glType == GL11.GL_BYTE);
+				break;
+			default:
+				break;
+			}
+		}
 		else
 			System.err.println("Cannot add more attributes because VBOProgram is no longer in the INIT phase");
 	}
@@ -223,7 +240,7 @@ public class VBOProgram {
 			return;
 		}
 
-		setAttributef(vAttrName, x, y);
+		vertAttribute.setValue(x, y);
 
 		for(Attribute attr : attributes.values())
 			attr.writeToBuffer(rawBuffer, rawBufferIndex);
@@ -260,7 +277,7 @@ public class VBOProgram {
 			return;
 		}
 
-		setAttributef(vAttrName, x, y, z);
+		vertAttribute.setValue(x, y, z);
 
 		for(Attribute attr : attributes.values())
 			attr.writeToBuffer(rawBuffer, rawBufferIndex);
@@ -283,6 +300,49 @@ public class VBOProgram {
 	 */
 	public void addVertexWithAttribute(float x, float y, float z, String attrName, int ... value){
 		setAttributei(attrName, value);
+		addVertex(x, y, z);
+	}
+
+	/**
+	 * if an attribute has been specified with the state GL_COLOR_ARRAY, then it will be update by this call. If none
+	 * has been set, this function does nothing.
+	 */
+	public void setColor(float r, float g, float b, float a){
+		if(colorAttribute != null){
+			if(!colorSingleByte) colorAttribute.setValue(r, g, b, a);
+			else{
+				int ri = 0xFF & ((int) (r * 255f));
+				int gi = 0xFF & ((int) (g * 255f));
+				int bi = 0xFF & ((int) (b * 255f));
+				int ai = 0xFF & ((int) (a * 255f));
+
+				int value = ri | (gi << 8) | (bi << 16) | (ai << 24);
+				colorAttribute.setValue(value);
+			}
+		}
+	}
+
+	/**
+	 * if an attribute has been specified with the state GL_TEXTURE_COORD_ARRAY, then it will be update by this call. If none
+	 * has been set, this function does nothing.
+	 */
+	public void setTexCoord(float s, float t){
+		if(texAttribute != null) texAttribute.setValue(s, t);
+	}
+	
+	/**
+	 * Equivalent to setTexCoord(s,t) followed by addVertex(x, y)
+	 */
+	public void addVertexWithTex(float x, float y, float s, float t){
+		setTexCoord(s, t);
+		addVertex(x, y);
+	}
+	
+	/**
+	 * Equivalent to setTexCoord(s,t) followed by addVertex(x, y, z)
+	 */
+	public void addVertexWithTex(float x, float y, float z, float s, float t){
+		setTexCoord(s, t);
 		addVertex(x, y, z);
 	}
 

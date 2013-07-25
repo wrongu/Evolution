@@ -3,6 +3,7 @@ package graphics.opengl;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL13.*;
+import static org.lwjgl.opengl.GL30.*;
 
 import java.nio.ByteBuffer;
 
@@ -10,10 +11,13 @@ public class Texture {
 	
 	private int glId;
 	private int active_layer;
+	private int width, height;
 	
-	private Texture(int id){
+	private Texture(int id, int w, int h){
 		glId = id;
 		active_layer = 0;
+		width = w;
+		height = h;
 	}
 	
 	/**
@@ -24,7 +28,7 @@ public class Texture {
 	 */
 	public static Texture create(int w, int h){
 		int id = glGenTextures();
-		Texture tex = (new Texture(id)).setFilter(GL_LINEAR).setWrap(GL_CLAMP_TO_EDGE);;
+		Texture tex = (new Texture(id, w, h)).setFilter(GL_LINEAR).setWrap(GL_CLAMP_TO_EDGE);
 		glBindTexture(GL_TEXTURE_2D, id);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGB, GL_FLOAT, (ByteBuffer) null);
 		return tex;
@@ -69,5 +73,8 @@ public class Texture {
 	public void destroy() {
 		glDeleteTextures(glId);
 	}
-	
+
+	public void genMipMaps() {
+		// TODO
+	}
 }

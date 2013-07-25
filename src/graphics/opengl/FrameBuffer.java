@@ -1,6 +1,8 @@
 package graphics.opengl;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.EXTFramebufferObject.*;
 
 public class FrameBuffer {
@@ -31,6 +33,11 @@ public class FrameBuffer {
 	}
 
 	public void bindTex(){
+		glBindTexture(GL_TEXTURE_2D, getTexture().getId());
+	}
+	
+	public void bindTex(int active_layer){
+		glActiveTexture(GL_TEXTURE0 + active_layer);
 		glBindTexture(GL_TEXTURE_2D, getTexture().getId());
 	}
 

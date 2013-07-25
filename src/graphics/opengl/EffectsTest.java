@@ -44,12 +44,11 @@ public class EffectsTest extends JApplet implements ControlListener {
 		eye4.put(13, 0);
 		eye4.put(14, 0);
 		eye4.put(15, 1);
-
 	}
 
 	private FrameBuffer glowMap, glowMap2;
 	private Program pDefault, pBlur;
-	private VBOProgram vboDefault, vboBlur;
+	private VBOProgram vboDefault, vboBlur, vboNoTex;
 	private FloatBuffer modelViewMatrix, projectionMatrix;
 
 	private int gauss_kernel_size;
@@ -103,33 +102,38 @@ public class EffectsTest extends JApplet implements ControlListener {
 				createGaussTexture();
 			}
 			
-			// reset graphics
-			glBindTexture(GL_TEXTURE_2D, 0); // thanks to FBOExample
+			// reset textures
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, 0);
 
-			// render thingy (red diamond on top of white square) to glow map
+			// clear color and view transformations
+			clearGraphics();
+
+			// load current view transform into uniform matrices that need them
+			glGetFloat(GL_MODELVIEW_MATRIX, modelViewMatrix);
+			glGetFloat(GL_PROJECTION_MATRIX, projectionMatrix);
+			vboDefault.setUniformMat("mModelView", modelViewMatrix);
+			vboDefault.setUniformMat("mProjection", projectionMatrix);
+			vboNoTex.setUniformMat("mModelView", modelViewMatrix);
+			vboNoTex.setUniformMat("mProjection", projectionMatrix);
+			
+			// render thing to be blurred to glowmap
 			glowMap.bind();
 			{
 				clearGraphics();
-				drawThingy();
+				drawThingy(vboNoTex);
 			}
 			glowMap.unbind();
 
 			// render texture from frame buffer
 			glEnable(GL_TEXTURE_2D);
-			clearGraphics();
 
-			glGetFloat(GL_MODELVIEW_MATRIX, modelViewMatrix);
-			glGetFloat(GL_MODELVIEW_MATRIX, projectionMatrix);
-
-			vboDefault.setUniformMat("mModelView", modelViewMatrix);
-			vboDefault.setUniformMat("mProjection", projectionMatrix);
-
-			glColor3f(1f, 1f, 1f);
-			glowMap.bindTex();
+			glowMap.bindTex(0);
 			drawTexSquareArray(vboDefault, -0.6f, -0.1f, -0.6f, -0.1f);
 			blurGlowMap();
-			glActiveTexture(GL_TEXTURE0);
-			glowMap.bindTex();
+			glowMap.bindTex(0);
 			drawTexSquareArray(vboDefault, -0.6f, -0.1f, 0.1f, 0.6f);
 
 			glBindTexture(GL_TEXTURE_2D, sillyTex);
@@ -162,10 +166,11 @@ public class EffectsTest extends JApplet implements ControlListener {
 		glMatrixMode(GL_MODELVIEW);
 		glViewport(0, 0, 600, 600);
 
-		glDisable(GL_CULL_FACE);
 		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_FOG);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_LINE_SMOOTH);
+		
 		glClearColor(0f, 0f, 0f, 0f);
 	}
 
@@ -174,7 +179,7 @@ public class EffectsTest extends JApplet implements ControlListener {
 		vboDefault = VBOProgram.create(pDefault, "position", false);
 		vboDefault.setUniformi("Texture", 0);
 		vboDefault.addAttribute("texUV", GL_FLOAT, 2, false, GL_TEXTURE_COORD_ARRAY);
-		vboDefault.addAttribute("color", GL_UNSIGNED_BYTE, 4, true, GL_COLOR_ARRAY);
+		vboDefault.addAttribute("color", GL_FLOAT, 4, false, GL_COLOR_ARRAY);
 		vboDefault.initComplete();
 
 		// blur setup
@@ -185,8 +190,14 @@ public class EffectsTest extends JApplet implements ControlListener {
 		vboBlur.setUniformi("Texture", 0);
 		vboBlur.setUniformi("Gaussian", 1);
 		vboBlur.addAttribute("texUV", GL_FLOAT, 2, false, GL_TEXTURE_COORD_ARRAY);
-		vboBlur.addAttribute("color", GL_UNSIGNED_BYTE, 4, true, GL_COLOR_ARRAY);
+		vboBlur.addAttribute("color", GL_FLOAT, 4, false, GL_COLOR_ARRAY);
 		vboBlur.initComplete();
+		
+		// notex setup
+		Program notex = Program.createProgram("../resources/notex2D.vs", "../resources/notex2D.fs"); 
+		vboNoTex = VBOProgram.create(notex, "position", false);
+		vboNoTex.addAttribute("color", GL_FLOAT, 4, false, GL_COLOR_ARRAY);
+		vboNoTex.initComplete();
 
 		// precompute gaussian
 		gauss_kernel_size = 64;
@@ -196,7 +207,6 @@ public class EffectsTest extends JApplet implements ControlListener {
 
 	private void createGaussTexture(){
 		gaussian = getGaussian(gauss_kernel_size, 0.1f, 0.8f);
-		// TODO - does this need to be a power of 2?
 		FloatBuffer gfb = BufferUtils.createFloatBuffer(gauss_kernel_size);
 		gfb.put(gaussian);
 		gfb.flip();
@@ -220,8 +230,7 @@ public class EffectsTest extends JApplet implements ControlListener {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_1D, texGaussId);
 		// make sure glowMap (unblurreD) is bound to sampler 0
-		glActiveTexture(GL_TEXTURE0);
-		glowMap.bindTex();
+		glowMap.bindTex(0);
 
 		// no-transform matrices
 		vboBlur.setUniformMat("mModelView", eye4);
@@ -238,11 +247,11 @@ public class EffectsTest extends JApplet implements ControlListener {
 			clearGraphics();
 			vboBlur.beginDrawing(GL_QUADS);
 			{
-				vboBlur.setAttributei("color", 0xFFFFFFFF);
-				vboBlur.addVertexWithAttribute(-1f, -1f, "texUV", 0f, 0f);
-				vboBlur.addVertexWithAttribute( 1f, -1f, "texUV", 1f, 0f);
-				vboBlur.addVertexWithAttribute( 1f,  1f, "texUV", 1f, 1f);
-				vboBlur.addVertexWithAttribute(-1f,  1f, "texUV", 0f, 1f);
+				vboBlur.setColor(1f, 1f, 1f, 1f);
+				vboBlur.addVertexWithTex(-1f, -1f, 0f, 0f);
+				vboBlur.addVertexWithTex( 1f, -1f, 1f, 0f);
+				vboBlur.addVertexWithTex( 1f,  1f, 1f, 1f);
+				vboBlur.addVertexWithTex(-1f,  1f, 0f, 1f);
 			}
 			vboBlur.draw();
 		}
@@ -252,19 +261,18 @@ public class EffectsTest extends JApplet implements ControlListener {
 		// vertical blur
 		vboBlur.setUniformi("Orientation", 1);
 		// make sure glowMap2 (already horizontal blurred) is bound to sampler 0
-		glActiveTexture(GL_TEXTURE0);
-		glowMap2.bindTex();
+		glowMap2.bindTex(0);
 		
 		glowMap.bind();
 		{
 			clearGraphics();
 			vboBlur.beginDrawing(GL_QUADS);
 			{
-				vboBlur.setAttributei("color", 0xFFFFFFFF);
-				vboBlur.addVertexWithAttribute(-1f, -1f, "texUV", 0f, 0f);
-				vboBlur.addVertexWithAttribute( 1f, -1f, "texUV", 1f, 0f);
-				vboBlur.addVertexWithAttribute( 1f,  1f, "texUV", 1f, 1f);
-				vboBlur.addVertexWithAttribute(-1f,  1f, "texUV", 0f, 1f);
+				vboBlur.setColor(1f, 1f, 1f, 1f);
+				vboBlur.addVertexWithTex(-1f, -1f, 0f, 0f);
+				vboBlur.addVertexWithTex( 1f, -1f, 1f, 0f);
+				vboBlur.addVertexWithTex( 1f,  1f, 1f, 1f);
+				vboBlur.addVertexWithTex(-1f,  1f, 0f, 1f);
 			}
 			vboBlur.draw();
 		}
@@ -296,21 +304,39 @@ public class EffectsTest extends JApplet implements ControlListener {
 	private static void drawTexSquareArray(VBOProgram vbo, float l, float r, float b, float t){
 		vbo.beginDrawing(GL_QUADS);
 		{
-			vbo.setAttributei("color", (int) 0xFFFFFFFF);
-			vbo.addVertexWithAttribute(l, b, "texUV", 0f, 0f);
-			vbo.addVertexWithAttribute(r, b, "texUV", 1f, 0f);
-			vbo.addVertexWithAttribute(r, t, "texUV", 1f, 1f);
-			vbo.addVertexWithAttribute(l, t, "texUV", 0f, 1f);
+			vbo.setColor(1f, 1f, 1f, 1f);
+			vbo.addVertexWithTex(l, b, 0f, 0f);
+			vbo.addVertexWithTex(r, b, 1f, 0f);
+			vbo.addVertexWithTex(r, t, 1f, 1f);
+			vbo.addVertexWithTex(l, t, 0f, 1f);
 		}
 		vbo.draw();
 	}
 
-	private void drawThingy(){
-		glColor3f(1f, 1f, 1f);
-		drawSquare(-0.5f, 0.5f, -0.5f, 0.5f);
-		glRotatef(45f, 0f, 0f, 1f);
-		glColor3f(1f, 0f, 0f);
-		drawSquare(-0.5f, 0.5f, -0.5f, 0.5f);
+	private void drawThingy(VBOProgram vbo){
+		glLineWidth(5f);
+		vbo.beginDrawing(GL_LINE_LOOP);
+		{
+			vbo.setColor(1f, 1f, 1f, 1f);
+			vbo.addVertex(-.5f, 0f);
+//			vbo.addVertex(0f, -.5f);
+			vbo.setColor(0f, 1f, 1f, 1f);
+			vbo.addVertex(0f, -.5f);
+//			vbo.addVertex( .5f, 0f);
+
+			vbo.setColor(1f, 0f, 1f, 1f);
+			vbo.addVertex( .5f, 0f);
+//			vbo.addVertex(0f,  .5f);
+			vbo.setColor(1f, 1f, 0f, 1f);
+			vbo.addVertex(0f,  .5f);
+//			vbo.addVertex(-.5f, 0f);
+		}
+		vbo.draw();
+//		glColor3f(1f, 1f, 1f);
+//		drawSquare(-0.5f, 0.5f, -0.5f, 0.5f);
+//		glRotatef(45f, 0f, 0f, 1f);
+//		glColor3f(1f, 0f, 0f);
+//		drawSquare(-0.5f, 0.5f, -0.5f, 0.5f);
 	}
 
 	private static float[] getGaussian(int kernel, float sigma2, float peak){

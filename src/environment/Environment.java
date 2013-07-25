@@ -2,10 +2,13 @@ package environment;
 
 import graphics.IDrawable;
 import graphics.opengl.IDrawableGL;
+import graphics.opengl.VBOProgram;
 
 import java.awt.Graphics2D;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.lwjgl.opengl.GL11;
 
 import structure.Organism;
 import structure.OrganismFactory;
@@ -65,10 +68,10 @@ public class Environment implements IDrawable, IDrawableGL {
 			o.draw(g, sx, sy, scx, scy);
 	}
 	
-	public void glDraw() {
-		// TODO - draw some sort of background?
-		for(Organism o : organisms)
-			o.glDraw();
+	public void glDraw(VBOProgram vbo) {
+		// TODO ? background, food, etc
+		GL11.glLineWidth(2f);
+		for(Organism o : organisms) o.glDraw(vbo);
 	}
 	
 	/**

@@ -4,17 +4,12 @@ import environment.Environment;
 import graphics.IDrawable;
 import graphics.RenderPanel;
 import graphics.opengl.IDrawableGL;
+import graphics.opengl.VBOProgram;
 
-import static org.lwjgl.opengl.ARBBufferObject.*;
-import static org.lwjgl.opengl.ARBVertexBufferObject.*;
-import static org.lwjgl.opengl.GL11.*;
 
 import java.awt.Graphics2D;
-import java.nio.FloatBuffer;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.lwjgl.BufferUtils;
 
 import bio.ann.ISense;
 
@@ -96,9 +91,9 @@ public class Organism implements IDrawable, IDrawableGL {
 			r.draw(g, sx, sy, scx, scy);
 	}
 
-	public void glDraw() {
+	public void glDraw(VBOProgram vbo) {
 		for(Rod r : rods)
-			r.glDraw();
+			r.glDraw(vbo);
 	}
 
 	public double requestEnergy(double d) {

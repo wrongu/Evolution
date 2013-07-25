@@ -3,6 +3,7 @@ package physics;
 import java.awt.Graphics2D;
 
 import environment.Environment;
+import graphics.opengl.VBOProgram;
 
 /**
  * One PointMass is the hub for multiple rods, but a joint only connects any two of those rods. 
@@ -134,7 +135,7 @@ public class Joint extends Structure {
 	@Override
 	public double getEPMS() {return ENERGY_PER_MUSCLE_STRENGTH;}
 
-	public void glDraw() {
+	public void glDraw(VBOProgram vbo) {
 		// opengl drawing
 		// currently, joints are not rendered as anything
 	}

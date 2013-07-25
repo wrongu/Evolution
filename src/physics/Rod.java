@@ -3,7 +3,7 @@ package physics;
 import java.awt.Graphics2D;
 import javax.vecmath.Vector2d;
 import environment.Environment;
-import static org.lwjgl.opengl.GL11.*;
+import graphics.opengl.VBOProgram;
 
 public class Rod extends Structure {
 	
@@ -49,15 +49,11 @@ public class Rod extends Structure {
 		}
 	}
 
-	public void glDraw() {
+	public void glDraw(VBOProgram vbo) {
 		// opengl render
-		glColor4f(0f, 0.4f, 1.0f, 1.0f);
-		glBegin(GL_LINES);
-		{
-			glVertex2d(points[0].getX(), points[0].getY());
-			glVertex2d(points[1].getX(), points[1].getY());
-		}
-		glEnd();
+		vbo.setColor(0f, 0.4f, 1.0f, 1.0f);
+		vbo.addVertex((float) points[0].getX(), (float) points[0].getY());
+		vbo.addVertex((float) points[1].getX(), (float) points[1].getY());
 	}
 	
 	/**
