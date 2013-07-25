@@ -54,13 +54,16 @@ public class Organism implements IDrawable, IDrawableGL {
 			j.initPosition(x + Math.cos(i*angle_delta)*meanhalflen, y + Math.sin(i*angle_delta)*meanhalflen);
 			i++;
 		}
-		for(i=0; i<5; i++) physicsUpdate(1.0);
+		for(i=0; i<5; i++) {
+			physicsUpdate();
+			for( PointMass pm : pointmasses ) {
+				pm.move(theEnvironment,1.0);
+			}
+		}
 		for(PointMass pm : pointmasses) pm.clearPhysics();
-		
-//		updateHitBox();
 	}
 	
-	public void physicsUpdate(double dt){
+	public void physicsUpdate(){
 		brain.update();
 		// distribute energy between muscles
 		for(Muscle m : muscles)
@@ -69,7 +72,9 @@ public class Organism implements IDrawable, IDrawableGL {
 			j.physicsUpdate(theEnvironment);
 		for(Rod r : rods)
 			r.physicsUpdate(theEnvironment);
-		
+	}
+	
+	public void move(double dt) {
 		// move point-mass-joints, update center-x and center-y coordinates
 		double sx = 0.0, sy = 0.0;
 		for(PointMass j : pointmasses){
@@ -79,7 +84,7 @@ public class Organism implements IDrawable, IDrawableGL {
 		}
 		x = sx / pointmasses.size();
 		y = sy / pointmasses.size();
-		
+
 		radius = 0;
 		double dx, dy;
 		for(PointMass p : pointmasses) {

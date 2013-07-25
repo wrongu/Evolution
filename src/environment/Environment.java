@@ -41,8 +41,8 @@ public class Environment implements IDrawable, IDrawableGL {
 	
 		dt /= 100.0;
 		for(Organism o : organisms){
-			//o.drift(0, -GRAVITY);
-			o.physicsUpdate(dt > 1.0 ? 1.0 : dt);
+//			o.drift(0, -GRAVITY);
+			o.physicsUpdate();
 			o.contain(this);
 			
 			 if(mouse_buttons[0] != 0) {
@@ -56,6 +56,10 @@ public class Environment implements IDrawable, IDrawableGL {
 				 o.getFirstMuscle().setStrength(-1);
 			 else
 				 o.getFirstMuscle().setStrength(0.2);
+		}
+		
+		for(Organism o : organisms) {
+			o.move(dt > 1.0 ? 1.0 : dt);
 		}
 	}
 
