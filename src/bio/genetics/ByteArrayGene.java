@@ -187,4 +187,9 @@ public class ByteArrayGene implements IGene<Organism> {
 		// TODO create organism from this gene
 		return null;
 	}
+
+	public boolean isCompatible(IGene<Organism> other) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

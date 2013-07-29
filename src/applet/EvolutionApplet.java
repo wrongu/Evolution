@@ -1,3 +1,4 @@
+package applet;
 import java.awt.Canvas;
 import java.awt.Dimension;
 import java.nio.FloatBuffer;
@@ -119,7 +120,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 				env.organisms.get(0).getFirstMuscle().setStrength(-2);
 			else
 				env.organisms.get(0).getFirstMuscle().setStrength(1);
-		} catch (ArrayIndexOutOfBoundsException e) { }
+		} catch (Exception e) { }
 		
 		// mouse movement
 		FloatBuffer mouseCoords = renderer.screenToWorldCoordinates(Mouse.getX(), Mouse.getY());

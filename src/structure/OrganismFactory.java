@@ -6,6 +6,8 @@ import java.util.List;
 import physics.Joint;
 import physics.PointMass;
 import physics.Rod;
+import utils.MathHelper;
+import bio.genetics.CellDivideGene;
 import bio.genetics.IGene;
 import environment.Environment;
 
@@ -17,6 +19,7 @@ public class OrganismFactory {
 	public static final int TRIANGLE_WITH_MUSCLE = 3;
 	public static final int SNAKE_WITH_JOINTS = 4;
 	public static final int SIMPLE_JELLYFISH = 5;
+	public static final int GENE_TEST = 6;
 	
 	public static Organism fromGene(IGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
@@ -103,6 +106,28 @@ public class OrganismFactory {
 			jointlist.add(new Joint(0.15*Math.PI, 0.9*Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
 			musclelist.add(new Muscle(jointlist.get(0),2));
 			break;
+			
+		case GENE_TEST:
+			StringBuilder builder = new StringBuilder();
+			MathHelper.writeIntAsHex(builder, 16);
+			
+			builder.append("#S");
+			MathHelper.writeIntAsHex(builder, 0);
+			MathHelper.writeIntAsHex(builder, 3);
+			MathHelper.writeIntAsHex(builder, 1);
+			MathHelper.writeFloatAsHex(builder, 20f);
+			MathHelper.writeFloatAsHex(builder, 40f);
+			builder.append('.');
+			builder.append('S');
+			MathHelper.writeIntAsHex(builder, 1);
+			MathHelper.writeIntAsHex(builder, 3);
+			MathHelper.writeIntAsHex(builder, 2);
+			MathHelper.writeFloatAsHex(builder, 40f);
+			MathHelper.writeFloatAsHex(builder, 60f);
+			
+			String gene = builder.toString();
+			System.out.println(gene);
+			return new CellDivideGene(gene).create(0, 0, e);
 			
 		}
 		

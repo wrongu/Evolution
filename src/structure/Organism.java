@@ -144,5 +144,8 @@ public class Organism implements IDrawable, IDrawableGL {
 	}
 	
 	// This method for DEBUGGING PURPOSES ONLY!
-	public Muscle getFirstMuscle() { return muscles.get(0); }
+	public Muscle getFirstMuscle() {
+		if(muscles.size() > 0) return muscles.get(0);
+		else return null;
+	}
 }

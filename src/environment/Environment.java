@@ -31,7 +31,8 @@ public class Environment implements IDrawable, IDrawableGL {
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
+//		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.GENE_TEST, this));
 		width = w;
 		height = h;
 	}
@@ -53,10 +54,12 @@ public class Environment implements IDrawable, IDrawableGL {
 			 	System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
 			 }
 			 
+			 try{
 			 if(spaceIsPressed)
 				 o.getFirstMuscle().setStrength(-1);
 			 else
 				 o.getFirstMuscle().setStrength(0.2);
+			 } catch(Exception e){}
 		}
 	}
 
