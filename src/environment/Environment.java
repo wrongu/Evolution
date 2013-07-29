@@ -21,7 +21,6 @@ public class Environment implements IDrawable, IDrawableGL {
 	private int width, height;
 	
 	private int[] mouse_in;
-	private boolean[] mouse_down;
 	private int[] mouse_buttons;
 	private int mousex, mousey;
 	private boolean spaceIsPressed;
@@ -43,8 +42,8 @@ public class Environment implements IDrawable, IDrawableGL {
 	
 		dt /= 100.0;
 		for(Organism o : organisms){
-			//o.drift(0, -GRAVITY);
-			o.physicsUpdate(dt > 1.0 ? 1.0 : dt);
+//			o.drift(0, -GRAVITY);
+			o.physicsUpdate();
 			o.contain(this);
 			
 			 if(mouse_buttons[0] != 0) {
@@ -60,6 +59,10 @@ public class Environment implements IDrawable, IDrawableGL {
 			 else
 				 o.getFirstMuscle().setStrength(0.2);
 			 } catch(Exception e){}
+		}
+		
+		for(Organism o : organisms) {
+			o.move(dt > 1.0 ? 1.0 : dt);
 		}
 	}
 

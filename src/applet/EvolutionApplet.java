@@ -31,7 +31,6 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	// input stuff
 	/** four booleans indicating "isDown()" state of up, down, left, and right respectively */
 	private boolean[] direction_keys = new boolean[4];
-	private boolean space_key; // FOR MUSCLE TEST
 	public static final int UP = 0, DOWN = 1, LEFT = 2, RIGHT = 3;
 	/** two integers {dx, dy} of the mouse */
 	private int[] mouse_move = new int[2];
