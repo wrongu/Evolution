@@ -8,7 +8,7 @@ import physics.PointMass;
 import physics.Rod;
 import utils.MathHelper;
 import bio.genetics.CellDivideGene;
-import bio.genetics.IGene;
+import bio.genetics.ISexGene;
 import environment.Environment;
 
 public class OrganismFactory {
@@ -21,7 +21,7 @@ public class OrganismFactory {
 	public static final int SIMPLE_JELLYFISH = 5;
 	public static final int GENE_TEST = 6;
 	
-	public static Organism fromGene(IGene<Organism> g, Environment e){
+	public static Organism fromGene(ISexGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
 		int posx = (int) (Math.random()*(bounds[2]-bounds[0]) + bounds[0]);
 		int posy = (int) (Math.random()*(bounds[3]-bounds[1]) + bounds[1]);
