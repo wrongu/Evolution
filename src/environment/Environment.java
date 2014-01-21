@@ -30,8 +30,8 @@ public class Environment implements IDrawable, IDrawableGL {
 		friction = 0.0;
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-//		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.GENE_TEST, this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
+//		organisms.add(OrganismFactory.testDummy(OrganismFactory.GENE_TEST, this));
 		width = w;
 		height = h;
 	}
@@ -59,6 +59,12 @@ public class Environment implements IDrawable, IDrawableGL {
 			 else
 				 o.getFirstMuscle().setStrength(0.2);
 			 } catch(Exception e){}
+		}
+		
+		for(int i = 0; i < organisms.size(); i++) {
+			for(int j = i+1; j < organisms.size(); j++) {
+				organisms.get(i).doCollisions(organisms.get(j));
+			}
 		}
 		
 		for(Organism o : organisms) {

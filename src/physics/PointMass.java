@@ -72,8 +72,9 @@ public class PointMass {
 //		addForce(-vel.x * e.friction / vmag, -vel.y * e.friction / vmag);
 		
 		// move the point - acceleration needed for extreme forces
-		pos.x += dt * vel.x + 0.5 * dt * dt * acc.x;
-		pos.y += dt * vel.y + 0.5 * dt * dt * acc.y;
+		// TODO: Test against 0.5 * acc * acc * dt.
+		pos.x += dt * vel.x;
+		pos.y += dt * vel.y;
 		
 		// newton's law for acceleration
 		vel.x += dt * acc.x;
@@ -105,6 +106,14 @@ public class PointMass {
 
 	public double getVY() {
 		return vel.y;
+	}
+	
+	public double getMass() {
+		return mass;
+	}
+	
+	public double getSpeed() {
+		return Math.sqrt(vel.x*vel.x + vel.y*vel.y);
 	}
 
 	public Vector2d getVel(){

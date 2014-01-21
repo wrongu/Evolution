@@ -27,6 +27,8 @@ public class Organism implements IDrawable, IDrawableGL {
 	
 	private double energy;
 	private double x, y;
+	private double velX, velY;
+	private double maxSpeed;
 	private double radius;
 	
 	public Organism(double comx, double comy, Environment e){
@@ -39,6 +41,7 @@ public class Organism implements IDrawable, IDrawableGL {
 		// brain = new Brain(senses, muscles);
 		x = comx;
 		y = comy;
+		maxSpeed = 0;
 		theEnvironment = e;
 	}
 	
@@ -75,24 +78,38 @@ public class Organism implements IDrawable, IDrawableGL {
 	}
 	
 	public void move(double dt) {
-		// move point-mass-joints, update center-x and center-y coordinates
+		// move point-mass-joints, update center-x and center-y coordinates, and average velocity.
 		double sx = 0.0, sy = 0.0;
+		double svx = 0, svy = 0, sm = 0;
+		double m = 0;
 		for(PointMass j : pointmasses){
 			j.move(theEnvironment, dt);
-			sx += j.getX();
-			sy += j.getY();
+			m = j.getMass();
+			sx += j.getX()*m;
+			sy += j.getY()*m;
+			svx = j.getVX()*m;
+			svy = j.getVY()*m;
+			sm += m;
 		}
-		x = sx / pointmasses.size();
-		y = sy / pointmasses.size();
+		x = sx / sm;
+		y = sy / sm;
+		velX = svx / sm;
+		velY = svy / sm;
 
 		radius = 0;
+		maxSpeed = 0;
 		double dx, dy;
+		double dvx, dvy;
 		for(PointMass p : pointmasses) {
 			dx = p.getX() - x;
 			dy = p.getY() - y;
 			radius = Math.max(radius, (dx)*(dx) + (dy)*(dy));
+			dvx = p.getVX() - velX;
+			dvy = p.getVY() - velY;
+			maxSpeed = Math.max(maxSpeed, dvx*dvx + dvy*dvy);
 		}
 		radius = Math.sqrt(radius);
+		maxSpeed = Math.sqrt(maxSpeed);
 	}
 	
 	public void drift(double fx, double fy){
@@ -155,6 +172,18 @@ public class Organism implements IDrawable, IDrawableGL {
 	public double getY(){
 		return y;
 	}
+	
+	public double getVelX() {
+		return velX;
+	}
+	
+	public double getVelY() {
+		return velY;
+	}
+	
+	public double getSpeed() {
+		return Math.sqrt(velX*velX + velY*velY);
+	}
 
 	public List<PointMass> getPoints() {
 		return pointmasses;
@@ -166,5 +195,26 @@ public class Organism implements IDrawable, IDrawableGL {
 		else return null;
 	}
 	public double getRadius() { return radius; }
+
+	public void doCollisions(Organism o) {
+		// TODO Detect whether or not the organisms are too far apart to collide. Return if yes.
+		double dx = x - o.getX();
+		double dy = y - o.getY();
+		
+		// Iterate through the rod pairs.
+		for(Rod r : rods) {
+			for(Rod q : o.rods) {
+				// TODO Detect if rods r and q are too far apart to collide. Continue of yes.
+				
+				// TODO Calculate at what time the collision will occur, call it t.
+				//      If no collision occurs, or t = NaN, continue.
+				
+				// TODO Apply correct forces on PointMasses of r and q to ensure that the rods do not collide.
+				//		To do this, we take the state of the rods at time t and apply a force with will bring
+				//		the rod to this position by the end of this frame. Note that t < time of end of update.
+			}
+		}
+		
+	}
 	
 }
