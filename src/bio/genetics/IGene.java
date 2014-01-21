@@ -9,7 +9,7 @@ import environment.Environment;
 public interface IGene<T> {
 	public IGene<T> mutate(double rate);
 	
-	public T create(int posx, int posy, Environment e);
+	public T create(double posx, double posy, Environment e);
 	
 	public void serialize(OutputStream s) throws IOException;
 	

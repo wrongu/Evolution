@@ -7,10 +7,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
+import physics.Joint;
 import physics.PointMass;
+import physics.Rod;
 
 import environment.Environment;
+import structure.Muscle;
 import structure.Organism;
 
 /**
@@ -40,7 +45,7 @@ public class DigraphGene implements IGene<Organism> {
 		private ArrayList<GraphEdge> edges_out;
 		private int local_uid;
 		// special values for graph traversal algorithm
-		private PointMass last_instance;
+		public PointMass last_instance;
 		// genetic stuff that defines a joint
 		public double mass;
 		public double rest_low, rest_high;
@@ -64,6 +69,11 @@ public class DigraphGene implements IGene<Organism> {
 		
 		public int getId(){
 			return this.local_uid;
+		}
+		
+		public PointMass createPointMass(){
+			this.last_instance = new PointMass(this.mass);
+			return this.last_instance;
 		}
 	}
 	
@@ -114,9 +124,34 @@ public class DigraphGene implements IGene<Organism> {
 	}
 
 	@Override
-	public Organism create(int posx, int posy, Environment e) {
-		// TODO Auto-generated method stub
-		return null;
+	public Organism create(double posx, double posy, Environment e) {
+		// ensure that all edges are reset in terms of recursion depth
+		for(GraphEdge ed : this.edges) ed.recursionReset(); 
+		// start creating structure from the root
+		PointMass init_pm = this.root.createPointMass();
+		init_pm.initPosition(posx, posy);
+		// all structures will be added to these lists
+		List<PointMass> all_points = new ArrayList<PointMass>();
+		List<Rod> all_rods = new ArrayList<Rod>();
+		List<Joint> all_joints = new ArrayList<Joint>();
+		List<Muscle> all_muscles = new ArrayList<Muscle>();
+		// crazy traversal algorithm
+		traverse_helper(this.root, init_pm, all_points, all_rods, all_joints, all_muscles);
+		Organism o = new Organism(posx, posy, e);
+		o.addAllPointMasses(all_points);
+		o.addAllRods(all_rods);
+		o.addAllJoints(all_joints);
+		o.addAllMuscles(all_muscles);
+		return o;
+	}
+	
+	private void traverse_helper(GraphNode sub_root, PointMass cur_pm, List<PointMass> P, List<Rod> R, List<Joint> J, List<Muscle> M){
+		for(GraphEdge e : sub_root.edges_out){
+			if(e.current_recurse <= e.max_recurse){
+				// step dfs and create rod in the process
+				
+			}
+		}
 	}
 
 	@Override
@@ -178,6 +213,8 @@ public class DigraphGene implements IGene<Organism> {
 				double strength = muscle ? source.readDouble() : 0.0;
 				GraphNode n = new GraphNode(id, mass, rl, rh, muscle, strength);
 				this.nodes.put(id, n);
+				// set root to the first node
+				if(this.root == null) this.root = n;
 			} else{
 				// read IDs of nodes this edge connects to
 				int from_id = source.readInt();

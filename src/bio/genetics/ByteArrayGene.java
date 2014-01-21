@@ -5,9 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.Random;
 
 import environment.Environment;
@@ -185,7 +183,7 @@ public class ByteArrayGene implements ISexGene<Organism> {
 		return g;
 	}
 
-	public Organism create(int posx, int posy, Environment e) {
+	public Organism create(double posx, double posy, Environment e) {
 		// TODO create organism from this gene
 		return null;
 	}
@@ -196,13 +194,13 @@ public class ByteArrayGene implements ISexGene<Organism> {
 	}
 
 	@Override
-	public void serialize(OutputStreamWriter dest) {
+	public void serialize(OutputStream dest) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void deserialize(InputStreamReader reader) {
+	public void deserialize(InputStream reader) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -1,7 +1,7 @@
 package bio.genetics;
 
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
@@ -105,7 +105,7 @@ public class CellDivideGene implements ISexGene<Organism> {
 		return null;
 	}
 
-	public Organism create(int posx, int posy, Environment e) {
+	public Organism create(double posx, double posy, Environment e) {
 
 		/** PointMasses must have ids so that a loop instruction, for example, know which point to loop back to.*/
 		HashMap<Integer, PointMass> pm_map = new HashMap<Integer, PointMass>();
@@ -402,13 +402,13 @@ public class CellDivideGene implements ISexGene<Organism> {
 	}
 
 	@Override
-	public void serialize(OutputStreamWriter dest) {
+	public void serialize(OutputStream dest) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void deserialize(InputStreamReader reader) {
+	public void deserialize(InputStream reader) {
 		// TODO Auto-generated method stub
 		
 	}
