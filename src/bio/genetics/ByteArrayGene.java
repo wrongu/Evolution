@@ -12,7 +12,7 @@ import environment.Environment;
 
 import structure.Organism;
 
-public class ByteArrayGene implements IGene<Organism> {
+public class ByteArrayGene implements ISexGene<Organism> {
 	
 	public static Random rand = new Random();
 	
@@ -162,7 +162,7 @@ public class ByteArrayGene implements IGene<Organism> {
 		return v;
 	}
 
-	public IGene<Organism> cross(IGene<Organism> other, int minblock, int maxblock) {
+	public ISexGene<Organism> cross(ISexGene<Organism> other, int minblock, int maxblock) {
 		ByteArrayGene byteother = (ByteArrayGene) other;
 		ByteArrayGene g = new ByteArrayGene(this);
 		g.data = new byte[Math.max(this.data.length, byteother.data.length)];
@@ -183,13 +183,25 @@ public class ByteArrayGene implements IGene<Organism> {
 		return g;
 	}
 
-	public Organism create(int posx, int posy, Environment e) {
+	public Organism create(double posx, double posy, Environment e) {
 		// TODO create organism from this gene
 		return null;
 	}
 
-	public boolean isCompatible(IGene<Organism> other) {
+	public boolean isCompatible(ISexGene<Organism> other) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public void serialize(OutputStream dest) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deserialize(InputStream reader) {
+		// TODO Auto-generated method stub
+		
 	}
 }

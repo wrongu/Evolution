@@ -1,5 +1,7 @@
 package bio.genetics;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
@@ -12,7 +14,7 @@ import structure.Organism;
 import utils.Levenshtein;
 import utils.MathHelper;
 
-public class CellDivideGene implements IGene<Organism> {
+public class CellDivideGene implements ISexGene<Organism> {
 
 	private static final char GOTO = 'G';
 	private static final char LOOP = 'L';
@@ -84,7 +86,7 @@ public class CellDivideGene implements IGene<Organism> {
 		} 
 	}
 
-	public IGene<Organism> mutate(double rate) {
+	public ISexGene<Organism> mutate(double rate) {
 
 		// FIRST PASS: potentially alter +/- existing fields
 
@@ -93,7 +95,7 @@ public class CellDivideGene implements IGene<Organism> {
 		return null;
 	}
 
-	public IGene<Organism> cross(IGene<Organism> mate, int minblock, int maxblock) throws IncompatibleParentsException {
+	public ISexGene<Organism> cross(ISexGene<Organism> mate, int minblock, int maxblock) throws IncompatibleParentsException {
 
 		if(!isCompatible(mate)) throw new IncompatibleParentsException();
 		CellDivideGene other = (CellDivideGene) mate;
@@ -103,7 +105,7 @@ public class CellDivideGene implements IGene<Organism> {
 		return null;
 	}
 
-	public Organism create(int posx, int posy, Environment e) {
+	public Organism create(double posx, double posy, Environment e) {
 
 		/** PointMasses must have ids so that a loop instruction, for example, know which point to loop back to.*/
 		HashMap<Integer, PointMass> pm_map = new HashMap<Integer, PointMass>();
@@ -146,7 +148,7 @@ public class CellDivideGene implements IGene<Organism> {
 	 * (computed as the Levenshtein distance between their serialized strings) must be less than the minimum allowable
 	 * distance (compatibleDist) between the two parents
 	 */
-	public boolean isCompatible(IGene<Organism> mate) {
+	public boolean isCompatible(ISexGene<Organism> mate) {
 		if(!(mate instanceof CellDivideGene)) return false;
 
 		CellDivideGene other = (CellDivideGene) mate;
@@ -397,6 +399,18 @@ public class CellDivideGene implements IGene<Organism> {
 			return super.charSize() + 24;
 		}
 
+	}
+
+	@Override
+	public void serialize(OutputStream dest) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deserialize(InputStream reader) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	/*
