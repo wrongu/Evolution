@@ -20,10 +20,6 @@ public class PointMass {
 
 	private List<Rod> connections;
 
-	public PointMass(double init_angle){
-		this(DEFAULT_MASS, new Rod[]{});
-	}
-
 	public PointMass(double m, Rod ... rods){
 		connections = new ArrayList<Rod>();
 		for(Rod r : rods){
