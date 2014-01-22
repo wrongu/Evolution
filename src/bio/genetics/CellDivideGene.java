@@ -135,7 +135,8 @@ public class CellDivideGene implements ISexGene<Organism> {
 		for(PointMass pm : pm_map.values())
 			pmList.add(pm);
 		
-		Organism o = new Organism(posx, posy, e);
+		// TODO pointmass locations
+		Organism o = new Organism(e);
 		o.addAllPointMasses(pmList);
 		o.addAllRods(rodList);
 		o.initStructure();
@@ -401,13 +402,11 @@ public class CellDivideGene implements ISexGene<Organism> {
 
 	}
 
-	@Override
 	public void serialize(OutputStream dest) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public void deserialize(InputStream reader) {
 		// TODO Auto-generated method stub
 		
