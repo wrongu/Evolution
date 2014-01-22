@@ -103,6 +103,10 @@ public class Rod extends Structure {
 		
 		return Math.sqrt(dx*dx + dy+dy);
 	}
+	
+	public Vector2d asVector(){
+		return new Vector2d(points[1].getX() - points[0].getX(), points[1].getY() - points[0].getY());
+	}
 
 	@Override
 	public void physicsUpdate(Environment e) {
