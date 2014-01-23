@@ -242,7 +242,7 @@ public class PointMass {
 		double velNormal = dvx*norm.x + dvy*norm.y;
 		
 		// Displace the rod and point mass and adjust velocities.
-		rod.displace(overlap*mass/(mass + rodEffMass), velNormal*mass/(mass + rodEffMass), t);
+		rod.displace(overlap*mass/(mass + rodEffMass), -velNormal*mass/(mass + rodEffMass), t);
 		pos.x -= overlap*rodEffMass/(mass + rodEffMass)*norm.x;
 		pos.y -= overlap*rodEffMass/(mass + rodEffMass)*norm.y;
 		vel.x += velNormal*rodEffMass/(mass + rodEffMass)*norm.x*(1 + ELASTICITY);

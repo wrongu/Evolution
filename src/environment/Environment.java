@@ -28,9 +28,9 @@ public class Environment implements IDrawable, IDrawableGL {
 	public Environment(int w, int h){
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
 //		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
 //		organisms.add(OrganismFactory.testDummy(OrganismFactory.GENE_TEST, this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.DUMBELL, this));
 		for(int i = 0; i < 20; i++)
 			organisms.add(OrganismFactory.testDummy(OrganismFactory.POINT_MASS, this));
 		
