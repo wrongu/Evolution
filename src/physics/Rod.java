@@ -12,9 +12,9 @@ public class Rod extends Structure {
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 0.01;
 	
 	/** FORCE_PER_DISPLACEMENT and SPRING_FRICTION_CONSTANT
-	 *  should be set equal and take values between 0.5 and 1.0. */
-	public static final double FORCE_PER_DISPLACEMENT = 0.8;
-	public static final double SPRING_FRICTION_CONSTANT = 0.8;
+	 *  should be set nearly equal and take values between 0.3 and 1.0. */
+	public static final double FORCE_PER_DISPLACEMENT = 0.5;
+	public static final double SPRING_FRICTION_CONSTANT = 0.6;
 	
 	private PointMass[] points;
 	

@@ -88,6 +88,7 @@ public class Organism implements IDrawable, IDrawableGL {
 
 	public void glDraw() {
 		for(Rod r : rods) r.glDraw();
+		for(PointMass p : pointmasses) p.glDraw();
 	}
 
 	public double requestEnergy(double d) {

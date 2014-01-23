@@ -1,5 +1,11 @@
 package physics;
 
+import static org.lwjgl.opengl.GL11.GL_LINES;
+import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.glColor4f;
+import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glVertex2d;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -170,15 +176,29 @@ public class PointMass {
 		pm.pos.x -= overlap*dx*mass/(mass + pm.mass);
 		pm.pos.y -= overlap*dy*mass/(mass + pm.mass);
 		
-		double dvx = vel.x - pm.vel.x;
-		double dvy = vel.y - pm.vel.y;
-		double projdvx = (dvx*dx + dvy*dy)*dx;
-		double projdvy = (dvx*dx + dvy*dy)*dy;
-		vel.x += projdvx*pm.mass/(mass + pm.mass);
-		vel.y += projdvx*pm.mass/(mass + pm.mass);
-		pm.vel.x -= projdvx*mass/(mass + pm.mass);
-		pm.vel.y -= projdvy*mass/(mass + pm.mass);
+//		double dvx = vel.x - pm.vel.x;
+//		double dvy = vel.y - pm.vel.y;
+//		double projdvx = (dvx*dx + dvy*dy)*dx;
+//		double projdvy = (dvx*dx + dvy*dy)*dy;
+//		vel.x += projdvx*pm.mass/(mass + pm.mass);
+//		vel.y += projdvx*pm.mass/(mass + pm.mass);
+//		pm.vel.x -= projdvx*mass/(mass + pm.mass);
+//		pm.vel.y -= projdvy*mass/(mass + pm.mass);
 		
 		return true;
+	}
+	
+	public void glDraw() {
+		int n = (int)radius;
+		
+		glColor4f(0.5f, 0.8f, 1.0f, 1.0f);
+		glBegin(GL_LINES);
+		{
+			for(int i = 0; i < n; i++) {
+				glVertex2d(pos.x + radius*Math.cos(2*Math.PI*i/(double)n), pos.y + radius*Math.sin(2*Math.PI*i/(double)n));
+				glVertex2d(pos.x + radius*Math.cos(2*Math.PI*(i+1)/(double)n), pos.y + radius*Math.sin(2*Math.PI*(i+1)/(double)n));
+			}
+		}
+		glEnd();
 	}
 }
