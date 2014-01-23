@@ -19,6 +19,8 @@ public class PointMass {
 	public static final double DEFAULT_RADIUS = 10;
 	public static final double DEFAULT_MASS = 1.0;
 	public static final double VEL_MAX = 5.0;
+	public static final double ELASTICITY = 0; // Values between 0 and 1 (though negatives are interesting...)
+	public static final double COLLISION_TAX = 1; // EXPERIMENTAL PURPOSES ONLY. Set very close to 1.
 	private double mass;
 	private double radius;
 	private Vector2d pos;
@@ -73,13 +75,13 @@ public class PointMass {
 			}
 			
 		}
-		// apply viscosity and friction
-//		addForce(-vel.x * Environment.VISCOSITY, -vel.y * Environment.VISCOSITY);
+		// apply friction
 		if(vmag > 0)
 			addForce(-vel.x * Environment.FRICTION / vmag, -vel.y * Environment.FRICTION / vmag);
 		
-		// move the point - acceleration needed for extreme forces
-		// TODO: Test against 0.5 * acc * acc * dt.
+		// move the point
+		// pos.x += dt * vel.x + 0.5 * acc.x * dt * dt;
+		// pos.y += dt * vel.y + 0.5 * acc.x * dt * dt;
 		pos.x += dt * vel.x;
 		pos.y += dt * vel.y;
 		
@@ -180,10 +182,16 @@ public class PointMass {
 		double dvy = vel.y - pm.vel.y;
 		double projdvx = (dvx*dx + dvy*dy)*dx;
 		double projdvy = (dvx*dx + dvy*dy)*dy;
-		vel.x -= projdvx*pm.mass/(mass + pm.mass);
-		vel.y -= projdvx*pm.mass/(mass + pm.mass);
-		pm.vel.x += projdvx*mass/(mass + pm.mass);
-		pm.vel.y += projdvy*mass/(mass + pm.mass);
+		vel.x -= projdvx*pm.mass/(mass + pm.mass)*(1 + ELASTICITY);
+		vel.y -= projdvx*pm.mass/(mass + pm.mass)*(1 + ELASTICITY);
+		pm.vel.x += projdvx*mass/(mass + pm.mass)*(1 + ELASTICITY);
+		pm.vel.y += projdvy*mass/(mass + pm.mass)*(1 + ELASTICITY);
+		
+		// OPTIONAL: Apply collision tax to velocity.
+		vel.x *= COLLISION_TAX;
+		vel.y *= COLLISION_TAX;
+		pm.vel.x *= COLLISION_TAX;
+		pm.vel.y *= COLLISION_TAX;
 		
 		return true;
 	}
@@ -237,8 +245,8 @@ public class PointMass {
 		rod.displace(overlap*mass/(mass + rodEffMass), velNormal*mass/(mass + rodEffMass), t);
 		pos.x -= overlap*rodEffMass/(mass + rodEffMass)*norm.x;
 		pos.y -= overlap*rodEffMass/(mass + rodEffMass)*norm.y;
-		vel.x += velNormal*rodEffMass/(mass + rodEffMass)*norm.x;
-		vel.y += velNormal*rodEffMass/(mass + rodEffMass)*norm.y;
+		vel.x += velNormal*rodEffMass/(mass + rodEffMass)*norm.x*(1 + ELASTICITY);
+		vel.y += velNormal*rodEffMass/(mass + rodEffMass)*norm.y*(1 + ELASTICITY);
 		
 		return true;
 	}

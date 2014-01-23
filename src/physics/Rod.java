@@ -76,14 +76,14 @@ public class Rod extends Structure {
 			// first point
 			double proj1 = norm.dot(mot1);
 			points[0].addForce(
-					-e.VISCOSITY * proj1 * norm.x / norm.length(),
-					-e.VISCOSITY * proj1 * norm.y / norm.length()
+					-Environment.VISCOSITY * proj1 * norm.x / norm.length(),
+					-Environment.VISCOSITY * proj1 * norm.y / norm.length()
 					);
 			// second point
 			double proj2 = norm.dot(mot2);
 			points[1].addForce(
-					-e.VISCOSITY * proj2 * norm.x / norm.length(),
-					-e.VISCOSITY * proj2 * norm.y / norm.length()
+					-Environment.VISCOSITY * proj2 * norm.x / norm.length(),
+					-Environment.VISCOSITY * proj2 * norm.y / norm.length()
 					);
 		}
 	}
@@ -191,8 +191,8 @@ public class Rod extends Structure {
 		points[1].addPos(norm.x*v1, norm.y*v1);
 		
 		// Do velocities
-		v0 = m1*(1-t)*vel/(m0*t*t + m1*(1-t)*(1-t));
-		v1 = m0*t*vel/(m0*t*t + m1*(1-t)*(1-t));
+		v0 = m1*(1-t)*vel/(m0*t*t + m1*(1-t)*(1-t))*(1 + PointMass.ELASTICITY);
+		v1 = m0*t*vel/(m0*t*t + m1*(1-t)*(1-t))*(1 + PointMass.ELASTICITY);
 		points[0].addVel(norm.x*v0, norm.y*v0);
 		points[1].addVel(norm.x*v1, norm.y*v1);
 	}

@@ -14,7 +14,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	
 	public static final double GRAVITY = 0.1;
 	public static final double MOUSE_CONSTANT = 0.1;
-	public static final double FRICTION = 0.01;
+	public static final double FRICTION = 0.1;
 	public static final double VISCOSITY = 0.004;
 
 	public List<Organism> organisms;
@@ -28,11 +28,11 @@ public class Environment implements IDrawable, IDrawableGL {
 	public Environment(int w, int h){
 		organisms = new LinkedList<Organism>();
 		// DEBUGGING
-//		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
+		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
 //		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
 //		organisms.add(OrganismFactory.testDummy(OrganismFactory.GENE_TEST, this));
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.POINT_MASS, this));
-		organisms.add(OrganismFactory.testDummy(OrganismFactory.DUMBELL, this));
+		for(int i = 0; i < 20; i++)
+			organisms.add(OrganismFactory.testDummy(OrganismFactory.POINT_MASS, this));
 		
 		width = w;
 		height = h;
