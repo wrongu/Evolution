@@ -165,5 +165,36 @@ public class Rod extends Structure {
 				(points[0].getVX()+points[1].getVX()) / 2,
 				(points[0].getVY()+points[1].getVY()) / 2);
 	}
+
+	public PointMass getEnd(int i) {
+		if(i < 0 || i > 1)
+			return null;
+		
+		return points[i];
+	}
+	
+	/**
+	 * Displace the rod by 'displacement' at point 'position' along the rod.
+	 * 
+	 * @param displacement
+	 * @param position
+	 */
+	public void displace(double dis, double vel, double t) {
+		// Do positions
+		double m0 = points[0].getMass();
+		double m1 = points[1].getMass();
+		double v0 = m1*(1-t)*dis/(m0*t*t + m1*(1-t)*(1-t));
+		double v1 = m0*t*dis/(m0*t*t + m1*(1-t)*(1-t));
+		Vector2d norm = new Vector2d(-asVector().y, asVector().x);
+		norm.normalize();
+		points[0].addPos(norm.x*v0, norm.y*v0);
+		points[1].addPos(norm.x*v1, norm.y*v1);
+		
+		// Do velocities
+		v0 = m1*(1-t)*vel/(m0*t*t + m1*(1-t)*(1-t));
+		v1 = m0*t*vel/(m0*t*t + m1*(1-t)*(1-t));
+		points[0].addVel(norm.x*v0, norm.y*v0);
+		points[1].addVel(norm.x*v1, norm.y*v1);
+	}
 	
 }

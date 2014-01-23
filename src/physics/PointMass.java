@@ -18,7 +18,7 @@ public class PointMass {
 	/** for physics, joints are modeled as point masses */
 	public static final double DEFAULT_RADIUS = 10;
 	public static final double DEFAULT_MASS = 1.0;
-	public static final double VEL_MAX = 10.0;
+	public static final double VEL_MAX = 5.0;
 	private double mass;
 	private double radius;
 	private Vector2d pos;
@@ -156,7 +156,7 @@ public class PointMass {
 		double dx = pos.x - pm.pos.x;
 		double dy = pos.y - pm.pos.y;
 		double mindist = radius + pm.radius;
-		double dist = Math.sqrt(dx*dx + dy*dy);
+		double dist = Math.hypot(dx, dy);
 		double overlap = mindist - dist;
 		if(overlap < 0)
 			return false;
@@ -184,6 +184,61 @@ public class PointMass {
 		vel.y -= projdvx*pm.mass/(mass + pm.mass);
 		pm.vel.x += projdvx*mass/(mass + pm.mass);
 		pm.vel.y += projdvy*mass/(mass + pm.mass);
+		
+		return true;
+	}
+	
+	public boolean collide(Rod rod) {
+		
+		// Test to see if PointMass intersects with rod.
+		Vector2d r = rod.asVector();
+		double rodLength = r.length();
+		r.normalize();
+		Vector2d norm = new Vector2d(-r.y, r.x);
+		
+		double dx = pos.x - rod.getEnd(0).pos.x;
+		double dy = pos.y - rod.getEnd(0).pos.y;
+		double dist = Math.hypot(dx,dy);
+		double projNormal = -r.x*dy + r.y*dx;
+		double projTangent = r.x*dx + r.y*dy;
+		
+		if(projTangent <= 0 || projTangent >= rodLength || Math.abs(projNormal) >= radius) {
+			return false;
+		}
+		
+		// Perform collision
+		// Determine "effective mass" of the rod at point t.
+		double t = projTangent/rodLength;
+		double m0 = rod.getEnd(0).getMass();
+		double m1 = rod.getEnd(1).getMass();
+		double rodEffMass = m0*m1/(m0*t*t + m1*(1-t)*(1-t));
+		
+		// Determine magnitude and direction of overlap. We want
+		// the PointMass to be ejected to the nearest free space.
+		double overlap;
+		if(projNormal >= 0) {
+			overlap = radius - projNormal;
+		} else {
+			overlap = -projNormal - radius;
+		}
+		
+		// Determine the rate at which PointMass is approaching rod.
+		double vx0 = rod.getEnd(0).vel.x;
+		double vy0 = rod.getEnd(0).vel.y;
+		double vx1 = rod.getEnd(1).vel.x;
+		double vy1 = rod.getEnd(1).vel.y;
+		double vxt = (1-t)*vx0 + t*vx1;
+		double vyt = (1-t)*vy0 + t*vy1;
+		double dvx = vxt - vel.x;
+		double dvy = vyt - vel.y;
+		double velNormal = dvx*norm.x + dvy*norm.y;
+		
+		// Displace the rod and point mass and adjust velocities.
+		rod.displace(overlap*mass/(mass + rodEffMass), velNormal*mass/(mass + rodEffMass), t);
+		pos.x -= overlap*rodEffMass/(mass + rodEffMass)*norm.x;
+		pos.y -= overlap*rodEffMass/(mass + rodEffMass)*norm.y;
+		vel.x += velNormal*rodEffMass/(mass + rodEffMass)*norm.x;
+		vel.y += velNormal*rodEffMass/(mass + rodEffMass)*norm.y;
 		
 		return true;
 	}

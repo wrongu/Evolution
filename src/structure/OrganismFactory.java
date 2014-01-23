@@ -21,6 +21,7 @@ public class OrganismFactory {
 	public static final int SIMPLE_JELLYFISH = 5;
 	public static final int GENE_TEST = 6;
 	public static final int POINT_MASS = 7;
+	public static final int DUMBELL = 8;
 	
 	public static Organism fromGene(ISexGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
@@ -156,6 +157,12 @@ public class OrganismFactory {
 			
 		case POINT_MASS:
 			pmlist.add(new PointMass(1));
+			break;
+			
+		case DUMBELL:
+			pmlist.add(new PointMass(1));
+			pmlist.add(new PointMass(1));
+			rodlist.add(new Rod(100,100,pmlist.get(0), pmlist.get(1)));
 			break;
 		}
 		

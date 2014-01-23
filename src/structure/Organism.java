@@ -146,14 +146,14 @@ public class Organism implements IDrawable, IDrawableGL {
 	public void doCollisions(Organism o) {
 
 		// Detect whether or not the organisms are too far apart to collide. Return if yes.
-		double dx = x - o.getX();
-		double dy = y - o.getY();
+		double dx = x - o.x;
+		double dy = y - o.y;
 		double mindist = radius + o.radius;
 		
 		// d619b346d5f85b6c3c5a71623e9b39d4491f8d86
-		// ...waht?
+		// ...wat?
 		
-		if(dx*dx + dy*dy >= mindist*mindist)
+		if(Math.hypot(dx, dy) >= mindist)
 			return;
 		
 		// Do pointmass on pointmass collisions
@@ -164,7 +164,17 @@ public class Organism implements IDrawable, IDrawableGL {
 		}
 		
 		// Do pointmass on rod collisions and rod on pointmass collisions
+		for(PointMass pm : pointmasses) {
+			for(Rod r : o.rods) {
+				pm.collide(r);
+			}
+		}
 		
+		for(PointMass pm : o.pointmasses) {
+			for(Rod r : rods) {
+				pm.collide(r);
+			}
+		}
 	}
 	
 	private void updateXYRad() {
@@ -189,6 +199,7 @@ public class Organism implements IDrawable, IDrawableGL {
 				radius = tempRadius;
 			}
 		}
+		radius += 10;
 	}
 	
 }
