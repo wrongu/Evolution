@@ -10,9 +10,11 @@ import environment.Environment;
 public class PointMass {
 
 	/** for physics, joints are modeled as point masses */
+	public static final double DEFAULT_RADIUS = 10;
 	public static final double DEFAULT_MASS = 1.0;
 	public static final double VEL_MAX = 10.0;
 	private double mass;
+	private double radius;
 	private Vector2d pos;
 	private Vector2d vel;
 	private Vector2d acc;
@@ -31,6 +33,7 @@ public class PointMass {
 		acc = new Vector2d();
 		force = new Vector2d();
 		mass = m;
+		radius = DEFAULT_RADIUS;
 	}
 
 	public void initPosition(double x, double y){
@@ -43,6 +46,7 @@ public class PointMass {
 		force.y += fy;
 	}
 
+	// TODO: Perhaps get rid of the Environment e parameter?
 	public void move(Environment e, double dt){
 
 		double vmag = vel.length();
@@ -64,8 +68,9 @@ public class PointMass {
 			
 		}
 		// apply viscosity and friction
-		addForce(-vel.x * e.viscosity, -vel.y * e.viscosity);
-//		addForce(-vel.x * e.friction / vmag, -vel.y * e.friction / vmag);
+//		addForce(-vel.x * Environment.VISCOSITY, -vel.y * Environment.VISCOSITY);
+		if(vmag > 0)
+			addForce(-vel.x * Environment.FRICTION / vmag, -vel.y * Environment.FRICTION / vmag);
 		
 		// move the point - acceleration needed for extreme forces
 		// TODO: Test against 0.5 * acc * acc * dt.
@@ -78,6 +83,10 @@ public class PointMass {
 		
 		// reset forces and acceleration to be summed for next update
 		force.x = force.y = acc.x = acc.y = 0.0;
+	}
+	
+	public double getRadius() {
+		return radius;
 	}
 	
 	public Vector2d getPos() {
@@ -123,5 +132,53 @@ public class PointMass {
 	public void addAcc(double fx, double fy) {
 		force.x += fx/mass;
 		force.y += fy/mass;
+	}
+
+	public void addPos(double dx, double dy) {
+		pos.x += dx;
+		pos.y += dy;
+	}
+	
+	public void addVel(double dx, double dy) {
+		vel.x += dx;
+		vel.y += dy;
+	}
+	
+	public boolean collide(PointMass pm) {
+		
+		// Test to see if point masses intersect. Return false if they do not.
+		double dx = pos.x - pm.pos.x;
+		double dy = pos.y - pm.pos.y;
+		double mindist = radius + pm.radius;
+		double dist = Math.sqrt(dx*dx + dy*dy);
+		double overlap = mindist - dist;
+		if(overlap < 0)
+			return false;
+		
+		// Normalize dx, dy.
+		if(dist > 0) {
+			dx /= dist;
+			dy /= dist;
+		} else {
+			dx = 1;
+			dy = 0;
+		}
+		
+		// Set point masses apart and adjust velocities.
+		pos.x += overlap*dx*pm.mass/(mass + pm.mass);
+		pos.y += overlap*dy*pm.mass/(mass + pm.mass);
+		pm.pos.x -= overlap*dx*mass/(mass + pm.mass);
+		pm.pos.y -= overlap*dy*mass/(mass + pm.mass);
+		
+		double dvx = vel.x - pm.vel.x;
+		double dvy = vel.y - pm.vel.y;
+		double projdvx = (dvx*dx + dvy*dy)*dx;
+		double projdvy = (dvx*dx + dvy*dy)*dy;
+		vel.x += projdvx*pm.mass/(mass + pm.mass);
+		vel.y += projdvx*pm.mass/(mass + pm.mass);
+		pm.vel.x -= projdvx*mass/(mass + pm.mass);
+		pm.vel.y -= projdvy*mass/(mass + pm.mass);
+		
+		return true;
 	}
 }

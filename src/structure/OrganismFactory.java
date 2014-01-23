@@ -20,6 +20,7 @@ public class OrganismFactory {
 	public static final int SNAKE_WITH_JOINTS = 4;
 	public static final int SIMPLE_JELLYFISH = 5;
 	public static final int GENE_TEST = 6;
+	public static final int POINT_MASS = 7;
 	
 	public static Organism fromGene(ISexGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
@@ -130,6 +131,9 @@ public class OrganismFactory {
 			System.out.println(gene);
 			return new CellDivideGene(gene).create(0, 0, e);
 			
+		case POINT_MASS:
+			pmlist.add(new PointMass(1));
+			break;
 		}
 		
 		o.addAllPointMasses(pmlist);

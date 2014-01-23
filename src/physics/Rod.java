@@ -10,8 +10,11 @@ public class Rod extends Structure {
 	/** change in value per unit strength */
 	public static final double MUSCLE_MULTIPLIER = 1.0;
 	public static final double ENERGY_PER_MUSCLE_STRENGTH = 0.01;
-	public static final double FORCE_PER_DISPLACEMENT = 0.5;
-	public static final double SPRING_FRICTION_CONSTANT = 0.5;
+	
+	/** FORCE_PER_DISPLACEMENT and SPRING_FRICTION_CONSTANT
+	 *  should be set equal and take values between 0.5 and 1.0. */
+	public static final double FORCE_PER_DISPLACEMENT = 0.8;
+	public static final double SPRING_FRICTION_CONSTANT = 0.8;
 	
 	private PointMass[] points;
 	
@@ -73,14 +76,14 @@ public class Rod extends Structure {
 			// first point
 			double proj1 = norm.dot(mot1);
 			points[0].addForce(
-					-e.viscosity * proj1 * norm.x / norm.length(),
-					-e.viscosity * proj1 * norm.y / norm.length()
+					-e.VISCOSITY * proj1 * norm.x / norm.length(),
+					-e.VISCOSITY * proj1 * norm.y / norm.length()
 					);
 			// second point
 			double proj2 = norm.dot(mot2);
 			points[1].addForce(
-					-e.viscosity * proj2 * norm.x / norm.length(),
-					-e.viscosity * proj2 * norm.y / norm.length()
+					-e.VISCOSITY * proj2 * norm.x / norm.length(),
+					-e.VISCOSITY * proj2 * norm.y / norm.length()
 					);
 		}
 	}

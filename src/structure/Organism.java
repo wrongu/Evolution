@@ -197,23 +197,22 @@ public class Organism implements IDrawable, IDrawableGL {
 	public double getRadius() { return radius; }
 
 	public void doCollisions(Organism o) {
-		// TODO Detect whether or not the organisms are too far apart to collide. Return if yes.
+		// Detect whether or not the organisms are too far apart to collide. Return if yes.
 		double dx = x - o.getX();
 		double dy = y - o.getY();
+		double mindist = radius + o.radius;
 		
-		// Iterate through the rod pairs.
-		for(Rod r : rods) {
-			for(Rod q : o.rods) {
-				// TODO Detect if rods r and q are too far apart to collide. Continue of yes.
-				
-				// TODO Calculate at what time the collision will occur, call it t.
-				//      If no collision occurs, or t = NaN, continue.
-				
-				// TODO Apply correct forces on PointMasses of r and q to ensure that the rods do not collide.
-				//		To do this, we take the state of the rods at time t and apply a force with will bring
-				//		the rod to this position by the end of this frame. Note that t < time of end of update.
+		if(dx*dx + dy*dy >= mindist*mindist)
+			return;
+		
+		// Do pointmass on pointmass collisions
+		for(PointMass pm1 : pointmasses) {
+			for(PointMass pm2 : o.pointmasses) {
+				pm1.collide(pm2);
 			}
 		}
+		
+		// Do pointmass on rod collisions and rod on pointmass collisions
 		
 	}
 	
