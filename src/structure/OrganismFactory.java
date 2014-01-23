@@ -37,20 +37,24 @@ public class OrganismFactory {
 		List<Joint> jointlist = new LinkedList<Joint>();
 		List<Muscle> musclelist = new LinkedList<Muscle>();
 		
-		Organism o = new Organism(
-				Math.random()*(bounds[2]-bounds[0]) + bounds[0],
-				Math.random()*(bounds[3]-bounds[1]) + bounds[1],
-				e);
+		double cx = (bounds[2] + bounds[0]) / 2.0;
+		double cy = (bounds[3] + bounds[1]) / 2.0;
+		
+		Organism o = new Organism(e);
 		
 		int n;
 
 		switch(creature) {
 		
 		case TRIANGLE_WITH_TAIL:
-			PointMass pm0 = new PointMass(1); 
+			PointMass pm0 = new PointMass(1);
+				pm0.initPosition(cx + Math.random()*30., cy+Math.random()*30.);
 			PointMass pm1 = new PointMass(1); 
+				pm1.initPosition(cx + Math.random()*30., cy+Math.random()*30.);
 			PointMass pm2 = new PointMass(1); 
+				pm2.initPosition(cx + Math.random()*30., cy+Math.random()*30.);
 			PointMass pm3 = new PointMass(0.5);
+				pm3.initPosition(cx + Math.random()*30., cy+Math.random()*30.);
 			pmlist.add(pm0);
 			pmlist.add(pm1);
 			pmlist.add(pm2);
@@ -67,8 +71,11 @@ public class OrganismFactory {
 			break;
 			
 		case TWO_RODS_WITH_JOINT:
-			for(int i = 0; i < 3; i++)
-				pmlist.add(new PointMass(1));
+			for(int i = 0; i < 3; i++){
+				PointMass chain = new PointMass(1);
+					chain.initPosition(cx + Math.random()*30., cy+Math.random()*30.);
+				pmlist.add(chain);
+			}
 			rodlist.add(new Rod(50, 50, pmlist.get(1), pmlist.get(0)));
 			rodlist.add(new Rod(50, 50, pmlist.get(2), pmlist.get(0)));
 			jointlist.add(new Joint(0.3*Math.PI, 0.9*Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
@@ -76,14 +83,23 @@ public class OrganismFactory {
 			
 		case JOINTLESS_SNAKE:
 			n = 8;
-			for(int i = 0; i < n+1; i++)
-				pmlist.add(new PointMass((double)1/(double)(i*i)));
-			for(int i = 0; i < n; i++)
+			double width = n*30.0;
+			for(int i = 0; i < n+1; i++){
+				PointMass pm = new PointMass((double)1/(double)(i*i));
+					pm.initPosition(cx - width/2.0 + i*30., cy);
+				pmlist.add(pm);
+			}
+			for(int i = 0; i < n; i++){
 				rodlist.add(new Rod(30, 30, pmlist.get(i), pmlist.get(i+1)));
+			}
 			break;
 			
 		case TRIANGLE_WITH_MUSCLE:
-			for(int i = 0; i < 3; i++) {pmlist.add(new PointMass(1));}
+			for(int i = 0; i < 3; i++) {
+				PointMass pm = new PointMass(1);
+				pm.initPosition(cx + Math.random()*30., cy+Math.random()*30.);
+				pmlist.add(pm);
+			}
 			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(1)));
 			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(2)));
 			rodlist.add(new Rod(30,70, pmlist.get(1), pmlist.get(2)));
@@ -92,8 +108,12 @@ public class OrganismFactory {
 			
 		case SNAKE_WITH_JOINTS:
 			n = 6;
-			for(int i = 0; i < n+1; i++)
-				pmlist.add(new PointMass((double)1/(double)(i*i)));
+			double width2 = n * 30.;
+			for(int i = 0; i < n+1; i++){
+				PointMass chain = new PointMass((double)1/(double)(i*i));
+				chain.initPosition(cx - width2/2.0 + i*30., cy);
+				pmlist.add(chain);
+			}
 			for(int i = 0; i < n; i++)
 				rodlist.add(new Rod(30, 30, pmlist.get(i), pmlist.get(i+1)));
 			for(int i = 1; i < n; i++)
@@ -101,8 +121,11 @@ public class OrganismFactory {
 			break;
 			
 		case SIMPLE_JELLYFISH:
-			for(int i = 0; i < 3; i++)
-				pmlist.add(new PointMass(1));
+			for(int i = 0; i < 3; i++){
+				PointMass pm = new PointMass(1);
+				pm.initPosition(cx + Math.random() * 50, cy + Math.random() * 50);
+				pmlist.add(pm);
+			}
 			rodlist.add(new Rod(50, 50, pmlist.get(1), pmlist.get(0)));
 			rodlist.add(new Rod(50, 50, pmlist.get(2), pmlist.get(0)));
 			jointlist.add(new Joint(0.15*Math.PI, 0.9*Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));

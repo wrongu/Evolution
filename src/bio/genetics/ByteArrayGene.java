@@ -193,13 +193,11 @@ public class ByteArrayGene implements ISexGene<Organism> {
 		return false;
 	}
 
-	@Override
 	public void serialize(OutputStream dest) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public void deserialize(InputStream reader) {
 		// TODO Auto-generated method stub
 		

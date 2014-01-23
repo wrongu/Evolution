@@ -6,6 +6,7 @@ import java.io.OutputStream;
 
 import environment.Environment;
 
+// TODO metadata (for example, let the gene specify its own mutation rate)
 public interface IGene<T> {
 	public IGene<T> mutate(double rate);
 	

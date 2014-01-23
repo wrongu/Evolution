@@ -26,12 +26,12 @@ public class Organism implements IDrawable, IDrawableGL {
 	private Environment theEnvironment;
 	
 	private double energy;
-	private double x, y;
-	private double velX, velY;
-	private double maxSpeed;
+	
+	private double x;
+	private double y;
 	private double radius;
 	
-	public Organism(double comx, double comy, Environment e){
+	public Organism(Environment e){
 		energy = 20.0;
 		rods = new LinkedList<Rod>();
 		joints = new LinkedList<Joint>();
@@ -39,25 +39,12 @@ public class Organism implements IDrawable, IDrawableGL {
 		muscles = new LinkedList<Muscle>();
 		senses = new LinkedList<ISense>();
 		// brain = new Brain(senses, muscles);
-		x = comx;
-		y = comy;
-		maxSpeed = 0;
 		theEnvironment = e;
 	}
 	
 	public void initStructure(){
 		brain = new Brain(senses, muscles);
-		double sumlen = 0.0;
-		for(Rod r : rods)
-			sumlen += 0.5*(r.getRestValue1() + r.getRestValue2());
-		double meanhalflen = sumlen / rods.size() / 2;
-		double angle_delta = 2 * Math.PI / pointmasses.size();
-		int i = 0;
-		for(PointMass j : pointmasses){
-			j.initPosition(x + Math.cos(i*angle_delta)*meanhalflen, y + Math.sin(i*angle_delta)*meanhalflen);
-			i++;
-		}
-		for(i=0; i<5; i++) {
+		for(int i=0; i<5; i++) {
 			physicsUpdate();
 			for( PointMass pm : pointmasses ) {
 				pm.move(theEnvironment,1.0);
@@ -70,6 +57,7 @@ public class Organism implements IDrawable, IDrawableGL {
 		brain.update();
 		// distribute energy between muscles
 		for(Muscle m : muscles)
+			// TODO this is backwards. muscles should requestEnergy() _before_ the simulation resolves forces
 			energy -= m.act();
 		for(Joint j : joints)
 			j.physicsUpdate(theEnvironment);
@@ -79,37 +67,11 @@ public class Organism implements IDrawable, IDrawableGL {
 	
 	public void move(double dt) {
 		// move point-mass-joints, update center-x and center-y coordinates, and average velocity.
-		double sx = 0.0, sy = 0.0;
-		double svx = 0, svy = 0, sm = 0;
-		double m = 0;
 		for(PointMass j : pointmasses){
 			j.move(theEnvironment, dt);
-			m = j.getMass();
-			sx += j.getX()*m;
-			sy += j.getY()*m;
-			svx = j.getVX()*m;
-			svy = j.getVY()*m;
-			sm += m;
 		}
-		x = sx / sm;
-		y = sy / sm;
-		velX = svx / sm;
-		velY = svy / sm;
-
-		radius = 0;
-		maxSpeed = 0;
-		double dx, dy;
-		double dvx, dvy;
-		for(PointMass p : pointmasses) {
-			dx = p.getX() - x;
-			dy = p.getY() - y;
-			radius = Math.max(radius, (dx)*(dx) + (dy)*(dy));
-			dvx = p.getVX() - velX;
-			dvy = p.getVY() - velY;
-			maxSpeed = Math.max(maxSpeed, dvx*dvx + dvy*dvy);
-		}
-		radius = Math.sqrt(radius);
-		maxSpeed = Math.sqrt(maxSpeed);
+		
+		updateXYRad();
 	}
 	
 	public void drift(double fx, double fy){
@@ -122,7 +84,6 @@ public class Organism implements IDrawable, IDrawableGL {
 		g.setColor(RenderPanel.ORGANISM_COLOR);
 		for(Rod r : rods)
 			r.draw(g, sx, sy, scx, scy);
-		// TODO - add glow to represent energy? <-- can only be done in opengl, I think
 	}
 
 	public void glDraw() {
@@ -164,26 +125,6 @@ public class Organism implements IDrawable, IDrawableGL {
 				pm.addForce(0, -2*Environment.GRAVITY);
 		}
 	}
-	
-	public double getX(){
-		return x;
-	}
-	
-	public double getY(){
-		return y;
-	}
-	
-	public double getVelX() {
-		return velX;
-	}
-	
-	public double getVelY() {
-		return velY;
-	}
-	
-	public double getSpeed() {
-		return Math.sqrt(velX*velX + velY*velY);
-	}
 
 	public List<PointMass> getPoints() {
 		return pointmasses;
@@ -194,13 +135,22 @@ public class Organism implements IDrawable, IDrawableGL {
 		if(muscles.size() > 0) return muscles.get(0);
 		else return null;
 	}
-	public double getRadius() { return radius; }
+	public double getX(){
+		return this.pointmasses.get(0).getX();
+	}
+	public double getY(){
+		return this.pointmasses.get(0).getY();
+	}
 
 	public void doCollisions(Organism o) {
+
 		// Detect whether or not the organisms are too far apart to collide. Return if yes.
 		double dx = x - o.getX();
 		double dy = y - o.getY();
 		double mindist = radius + o.radius;
+		
+		// d619b346d5f85b6c3c5a71623e9b39d4491f8d86
+		// ...waht?
 		
 		if(dx*dx + dy*dy >= mindist*mindist)
 			return;
@@ -214,6 +164,30 @@ public class Organism implements IDrawable, IDrawableGL {
 		
 		// Do pointmass on rod collisions and rod on pointmass collisions
 		
+	}
+	
+	private void updateXYRad() {
+		x = 0;
+		y = 0;
+		radius = 0;
+		for(PointMass pm : pointmasses) {
+			x += pm.getX();
+			y += pm.getY();
+		}
+		x /= (double)pointmasses.size();
+		y /= (double)pointmasses.size();
+		
+		double dx;
+		double dy;
+		double tempRadius = 0;
+		for(PointMass pm : pointmasses) {
+			dx = x - pm.getX();
+			dy = y - pm.getY();
+			tempRadius = Math.sqrt(dx*dx + dy*dy) + pm.getRadius();
+			if(tempRadius > radius) {
+				radius = tempRadius;
+			}
+		}
 	}
 	
 }
