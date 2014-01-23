@@ -176,14 +176,14 @@ public class PointMass {
 		pm.pos.x -= overlap*dx*mass/(mass + pm.mass);
 		pm.pos.y -= overlap*dy*mass/(mass + pm.mass);
 		
-//		double dvx = vel.x - pm.vel.x;
-//		double dvy = vel.y - pm.vel.y;
-//		double projdvx = (dvx*dx + dvy*dy)*dx;
-//		double projdvy = (dvx*dx + dvy*dy)*dy;
-//		vel.x += projdvx*pm.mass/(mass + pm.mass);
-//		vel.y += projdvx*pm.mass/(mass + pm.mass);
-//		pm.vel.x -= projdvx*mass/(mass + pm.mass);
-//		pm.vel.y -= projdvy*mass/(mass + pm.mass);
+		double dvx = vel.x - pm.vel.x;
+		double dvy = vel.y - pm.vel.y;
+		double projdvx = (dvx*dx + dvy*dy)*dx;
+		double projdvy = (dvx*dx + dvy*dy)*dy;
+		vel.x -= projdvx*pm.mass/(mass + pm.mass);
+		vel.y -= projdvx*pm.mass/(mass + pm.mass);
+		pm.vel.x += projdvx*mass/(mass + pm.mass);
+		pm.vel.y += projdvy*mass/(mass + pm.mass);
 		
 		return true;
 	}
