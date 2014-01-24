@@ -20,7 +20,6 @@ public class PointMass {
 	public static final double DEFAULT_MASS = 1.0;
 	public static final double VEL_MAX = 5.0;
 	public static final double ELASTICITY = 0; // Values between 0 and 1 (though negatives are interesting...)
-	public static final double COLLISION_TAX = 1; // EXPERIMENTAL PURPOSES ONLY. Set very close to 1.
 	private double mass;
 	private double radius;
 	private Vector2d pos;
@@ -183,15 +182,9 @@ public class PointMass {
 		double projdvx = (dvx*dx + dvy*dy)*dx;
 		double projdvy = (dvx*dx + dvy*dy)*dy;
 		vel.x -= projdvx*pm.mass/(mass + pm.mass)*(1 + ELASTICITY);
-		vel.y -= projdvx*pm.mass/(mass + pm.mass)*(1 + ELASTICITY);
+		vel.y -= projdvy*pm.mass/(mass + pm.mass)*(1 + ELASTICITY);
 		pm.vel.x += projdvx*mass/(mass + pm.mass)*(1 + ELASTICITY);
 		pm.vel.y += projdvy*mass/(mass + pm.mass)*(1 + ELASTICITY);
-		
-		// OPTIONAL: Apply collision tax to velocity.
-		vel.x *= COLLISION_TAX;
-		vel.y *= COLLISION_TAX;
-		pm.vel.x *= COLLISION_TAX;
-		pm.vel.y *= COLLISION_TAX;
 		
 		return true;
 	}
