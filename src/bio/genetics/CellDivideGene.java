@@ -14,7 +14,7 @@ import structure.Organism;
 import utils.Levenshtein;
 import utils.MathHelper;
 
-public class CellDivideGene implements ISexGene<Organism> {
+public class CellDivideGene extends SexGene<Organism> {
 
 	private static final char GOTO = 'G';
 	private static final char LOOP = 'L';
@@ -85,8 +85,9 @@ public class CellDivideGene implements ISexGene<Organism> {
 			index += curInst.charSize() + 1;
 		} 
 	}
-
-	public ISexGene<Organism> mutate(double rate) {
+	
+	@Override
+	public SexGene<Organism> mutate(double rate) {
 
 		// FIRST PASS: potentially alter +/- existing fields
 
@@ -94,8 +95,9 @@ public class CellDivideGene implements ISexGene<Organism> {
 
 		return null;
 	}
-
-	public ISexGene<Organism> cross(ISexGene<Organism> mate, int minblock, int maxblock) throws IncompatibleParentsException {
+	
+	@Override
+	public SexGene<Organism> cross(SexGene<Organism> mate, int minblock, int maxblock) throws IncompatibleParentsException {
 
 		if(!isCompatible(mate)) throw new IncompatibleParentsException();
 		CellDivideGene other = (CellDivideGene) mate;
@@ -105,6 +107,7 @@ public class CellDivideGene implements ISexGene<Organism> {
 		return null;
 	}
 
+	@Override
 	public Organism create(double posx, double posy, Environment e) {
 
 		/** PointMasses must have ids so that a loop instruction, for example, know which point to loop back to.*/
@@ -149,7 +152,8 @@ public class CellDivideGene implements ISexGene<Organism> {
 	 * (computed as the Levenshtein distance between their serialized strings) must be less than the minimum allowable
 	 * distance (compatibleDist) between the two parents
 	 */
-	public boolean isCompatible(ISexGene<Organism> mate) {
+	@Override
+	public boolean isCompatible(SexGene<Organism> mate) {
 		if(!(mate instanceof CellDivideGene)) return false;
 
 		CellDivideGene other = (CellDivideGene) mate;
@@ -402,11 +406,13 @@ public class CellDivideGene implements ISexGene<Organism> {
 
 	}
 
+	@Override
 	public void serialize(OutputStream dest) {
 		// TODO Auto-generated method stub
 		
 	}
-
+	
+	@Override
 	public void deserialize(InputStream reader) {
 		// TODO Auto-generated method stub
 		

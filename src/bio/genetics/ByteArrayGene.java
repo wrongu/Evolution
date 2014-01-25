@@ -12,7 +12,7 @@ import environment.Environment;
 
 import structure.Organism;
 
-public class ByteArrayGene implements ISexGene<Organism> {
+public class ByteArrayGene extends SexGene<Organism> {
 	
 	public static Random rand = new Random();
 	
@@ -105,6 +105,7 @@ public class ByteArrayGene implements ISexGene<Organism> {
 		return Double.longBitsToDouble(readLong());
 	}
 	
+	@Override
 	public ByteArrayGene mutate(double rate){
 		ByteArrayGene g = new ByteArrayGene(this);
 		for(int i = 0; i < size; i++){
@@ -161,8 +162,9 @@ public class ByteArrayGene implements ISexGene<Organism> {
 		v++;
 		return v;
 	}
-
-	public ISexGene<Organism> cross(ISexGene<Organism> other, int minblock, int maxblock) {
+	
+	@Override
+	public SexGene<Organism> cross(SexGene<Organism> other, int minblock, int maxblock) {
 		ByteArrayGene byteother = (ByteArrayGene) other;
 		ByteArrayGene g = new ByteArrayGene(this);
 		g.data = new byte[Math.max(this.data.length, byteother.data.length)];
@@ -183,21 +185,25 @@ public class ByteArrayGene implements ISexGene<Organism> {
 		return g;
 	}
 
+	@Override
 	public Organism create(double posx, double posy, Environment e) {
 		// TODO create organism from this gene
 		return null;
 	}
 
-	public boolean isCompatible(ISexGene<Organism> other) {
+	@Override
+	public boolean isCompatible(SexGene<Organism> other) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
+	@Override
 	public void serialize(OutputStream dest) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public void deserialize(InputStream reader) {
 		// TODO Auto-generated method stub
 		

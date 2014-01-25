@@ -26,7 +26,7 @@ import static applet.Util.clamp_radians;
  * 
  * TODO tests (serialization, mutation, f(g) properties)
  */
-public class DigraphGene implements IGene<Organism> {
+public class DigraphGene extends Gene<Organism> {
 	
 	/**
 	 * graph traversal always starts from the same root node (the first node in serialization)
@@ -183,6 +183,7 @@ public class DigraphGene implements IGene<Organism> {
 		}
 	}
 	
+	@Override
 	public DigraphGene mutate(double rate) {
 		// TODO
 		// (maybe) alter existing graph elements
@@ -207,6 +208,7 @@ public class DigraphGene implements IGene<Organism> {
 	 * @param posy the y position of the root (first-created point)
 	 * @param e the environment into which this organism should be added
 	 */
+	@Override
 	public Organism create(double posx, double posy, Environment e) {
 		// ensure that all edges are reset in terms of recursion depth
 		for(GraphEdge ed : this.edges) ed.recursionReset();
@@ -322,7 +324,8 @@ public class DigraphGene implements IGene<Organism> {
 			}
 		}
 	}
-
+	
+	@Override
 	public void serialize(OutputStream s) throws IOException {
 		DataOutputStream dest = new DataOutputStream(s);
 		// NOTE that local_uid is never mutated but only used for convenience when
@@ -361,7 +364,8 @@ public class DigraphGene implements IGene<Organism> {
 			if(edge.is_muscle) dest.writeDouble(edge.muscle_strength);
 		}
 	}
-
+	
+	@Override
 	public void deserialize(InputStream in) throws IOException {
 		DataInputStream source = new DataInputStream(in);
 		// parse nodes

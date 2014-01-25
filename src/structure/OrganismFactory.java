@@ -8,7 +8,7 @@ import physics.PointMass;
 import physics.Rod;
 import utils.MathHelper;
 import bio.genetics.CellDivideGene;
-import bio.genetics.ISexGene;
+import bio.genetics.SexGene;
 import environment.Environment;
 
 public class OrganismFactory {
@@ -23,7 +23,7 @@ public class OrganismFactory {
 	public static final int POINT_MASS = 7;
 	public static final int DUMBELL = 8;
 	
-	public static Organism fromGene(ISexGene<Organism> g, Environment e){
+	public static Organism fromGene(SexGene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
 		int posx = (int) (Math.random()*(bounds[2]-bounds[0]) + bounds[0]);
 		int posy = (int) (Math.random()*(bounds[3]-bounds[1]) + bounds[1]);
