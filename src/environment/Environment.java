@@ -6,6 +6,7 @@ import graphics.opengl.IDrawableGL;
 import java.awt.Graphics2D;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import structure.Organism;
 import structure.OrganismFactory;
@@ -20,13 +21,22 @@ public class Environment implements IDrawable, IDrawableGL {
 	public List<Organism> organisms;
 	private int width, height;
 	
+	private Random seedRand;
+	
 	private int[] mouse_in;
 	private int[] mouse_buttons;
 	private int mousex, mousey;
 	private boolean spaceIsPressed;
 	
 	public Environment(int w, int h){
+		this(w, h, 12345L);
+	}
+	
+	public Environment(int w, int h, long seed){
 		organisms = new LinkedList<Organism>();
+		width = w;
+		height = h;
+		seedRand = new Random(seed);
 		// DEBUGGING
 //		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
 //		organisms.add(OrganismFactory.testDummy(OrganismFactory.GENE_TEST, this));
@@ -34,8 +44,10 @@ public class Environment implements IDrawable, IDrawableGL {
 		for(int i = 0; i < 20; i++)
 			organisms.add(OrganismFactory.testDummy(OrganismFactory.POINT_MASS, this));
 		
-		width = w;
-		height = h;
+	}
+	
+	public Random getRandom(){
+		return seedRand;
 	}
 	
 	public void update(double dt){

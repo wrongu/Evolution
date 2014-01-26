@@ -6,7 +6,7 @@ import java.util.List;
 import physics.Joint;
 import physics.PointMass;
 import physics.Rod;
-import bio.genetics.SexGene;
+import bio.genetics.Gene;
 import environment.Environment;
 
 public class OrganismFactory {
@@ -17,14 +17,13 @@ public class OrganismFactory {
 	public static final int TRIANGLE_WITH_MUSCLE = 3;
 	public static final int SNAKE_WITH_JOINTS = 4;
 	public static final int SIMPLE_JELLYFISH = 5;
-	public static final int GENE_TEST = 6;
-	public static final int POINT_MASS = 7;
-	public static final int DUMBELL = 8;
+	public static final int POINT_MASS = 6;
+	public static final int DUMBELL = 7;
 	
-	public static Organism fromGene(SexGene<Organism> g, Environment e){
+	public static Organism fromGene(Gene<Organism> g, Environment e){
 		double[] bounds = e.getBounds();
-		int posx = (int) (Math.random()*(bounds[2]-bounds[0]) + bounds[0]);
-		int posy = (int) (Math.random()*(bounds[3]-bounds[1]) + bounds[1]);
+		int posx = (int) (e.getRandom().nextDouble()*(bounds[2]-bounds[0]) + bounds[0]);
+		int posy = (int) (e.getRandom().nextDouble()*(bounds[3]-bounds[1]) + bounds[1]);
 		return g.create(posx, posy, e);
 	}
 	
