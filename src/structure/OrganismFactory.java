@@ -6,8 +6,6 @@ import java.util.List;
 import physics.Joint;
 import physics.PointMass;
 import physics.Rod;
-import utils.MathHelper;
-import bio.genetics.CellDivideGene;
 import bio.genetics.SexGene;
 import environment.Environment;
 
@@ -132,28 +130,6 @@ public class OrganismFactory {
 			jointlist.add(new Joint(0.15*Math.PI, 0.9*Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
 			musclelist.add(new Muscle(jointlist.get(0),2));
 			break;
-			
-		case GENE_TEST:
-			StringBuilder builder = new StringBuilder();
-			MathHelper.writeIntAsHex(builder, 16);
-			
-			builder.append("#S");
-			MathHelper.writeIntAsHex(builder, 0);
-			MathHelper.writeIntAsHex(builder, 3);
-			MathHelper.writeIntAsHex(builder, 1);
-			MathHelper.writeFloatAsHex(builder, 20f);
-			MathHelper.writeFloatAsHex(builder, 40f);
-			builder.append('.');
-			builder.append('S');
-			MathHelper.writeIntAsHex(builder, 1);
-			MathHelper.writeIntAsHex(builder, 3);
-			MathHelper.writeIntAsHex(builder, 2);
-			MathHelper.writeFloatAsHex(builder, 40f);
-			MathHelper.writeFloatAsHex(builder, 60f);
-			
-			String gene = builder.toString();
-			System.out.println(gene);
-			return new CellDivideGene(gene).create(0, 0, e);
 			
 		case POINT_MASS:
 			pmlist.add(new PointMass(1));
