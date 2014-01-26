@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Stack;
 
 import physics.PointMass;
@@ -87,7 +88,7 @@ public class CellDivideGene extends SexGene<Organism> {
 	}
 	
 	@Override
-	public SexGene<Organism> mutate(double rate) {
+	public SexGene<Organism> mutate(Random r) {
 
 		// FIRST PASS: potentially alter +/- existing fields
 

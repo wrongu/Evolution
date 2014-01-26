@@ -22,8 +22,10 @@ public class ByteArrayGene extends SexGene<Organism> {
 	private int wi, ri, size;
 	
 	public ByteArrayGene(){
+		super();
 		wi = ri = size = 0;
 		data = new byte[1024];
+		this.initMutable("CHANGE_VALUE");
 	}
 	
 	private ByteArrayGene(ByteArrayGene copy){
@@ -106,10 +108,10 @@ public class ByteArrayGene extends SexGene<Organism> {
 	}
 	
 	@Override
-	public ByteArrayGene mutate(double rate){
+	public ByteArrayGene mutate(Random r){
 		ByteArrayGene g = new ByteArrayGene(this);
 		for(int i = 0; i < size; i++){
-			if(Math.random() < rate){
+			if(r.nextDouble() < this.mutationRate("CHANGE_VALUE")){
 				g.data[i] = (byte) (rand.nextInt() & 0xFF);
 			}
 		}

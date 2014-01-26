@@ -2,11 +2,15 @@ package bio.genetics;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import javax.vecmath.Vector2d;
 
@@ -33,6 +37,34 @@ public class DigraphGene extends Gene<Organism> {
 	 */
 	private GraphNode root;
 	
+	private ArrayList<Integer> ACTIVE_IDS = new ArrayList<Integer>();
+	private int max_id = -1;
+	
+	// mutation rates for single structures
+	private static final String MUT_MASS = "MASS";
+	private static final String MUT_LEN = "LENGTH";
+	private static final String MUT_ANGLE = "ANGLE";
+	// mutation rates for creating structures
+	private static final String MUT_ADD_JOINT = "+JOINT";
+	private static final String MUT_ADD_JOINT_MUSCLE = "+JMUSCLE";
+	private static final String MUT_ADD_ROD_MUSCLE = "+RMUSCLE";
+	// mutation rates for removing structures
+	private static final String MUT_REM_JOINT = "-JOINT";
+	private static final String MUT_REM_JOINT_MUSCLE = "-JMUSCLE";
+	private static final String MUT_REM_ROD_MUSCLE = "-RMUSCLE";
+	// mutation rates for altering graph objects
+	private static final String MUT_EDGE_REC = "RECURSE";
+	private static final String MUT_ADD_CYC = "+CYCLE";
+	private static final String MUT_REM_CYC = "-CYCLE";
+	private static final String MUT_ADD_TERMINAL = "+TERM";
+	private static final String MUT_REM_TERMINAL = "-TERM";
+	// mutation rates for creating graph objects
+	private static final String MUT_ADD_NODE = "+NODE";
+	private static final String MUT_ADD_EDGE = "+EDGE";
+	// mutation rates for removing graph objects
+	private static final String MUT_REM_NODE = "-NODE";
+	private static final String MUT_REM_EDGE = "-EDGE";
+	
 	// note that if we could guarantee that this graph is connected, then only the root would be needed
 	// to track the full structure (by traversing it). But here I assume that there may be 'latent' nodes
 	// or edges with the gene that will be mutated with everything else. Having a list of nodes and edges
@@ -53,13 +85,21 @@ public class DigraphGene extends Gene<Organism> {
 	public DigraphGene(){
 		nodes = new HashMap<Integer, GraphNode>();
 		edges = new ArrayList<GraphEdge>();
+		this.initMutables(
+				new String[] {MUT_MASS, MUT_LEN, MUT_ANGLE, 
+				MUT_ADD_JOINT, MUT_REM_JOINT, 
+				MUT_ADD_JOINT_MUSCLE, MUT_REM_JOINT_MUSCLE,
+				MUT_ADD_ROD_MUSCLE, MUT_REM_ROD_MUSCLE, 
+				MUT_ADD_NODE, MUT_REM_NODE, 
+				MUT_ADD_EDGE, MUT_REM_EDGE});
 	}
-	
+
 	/**
 	 * This class acts as a node in the directed graph and is responsible for instantiating PointMasses during traversal
 	 * @author wrongu
 	 */
-	private static class GraphNode{
+	private class GraphNode{
+		
 		/** edges in which this node is 'from' */
 		private ArrayList<GraphEdge> edges_out;
 		/** just for logistics, each node gets a unique id. this is unchanged by mutation. */
@@ -118,6 +158,12 @@ public class DigraphGene extends Gene<Organism> {
 			this.is_joint = true;
 			this.is_muscle = true;
 			this.edges_out = new ArrayList<GraphEdge>();
+			System.out.println("created node "+id);
+			DigraphGene.this.nodes.put(id, this);
+			DigraphGene.this.ACTIVE_IDS.add(id);
+			if(id > DigraphGene.this.max_id){
+				DigraphGene.this.max_id = id;
+			}
 		}
 		
 		public void addEdge(GraphEdge e){
@@ -145,7 +191,7 @@ public class DigraphGene extends Gene<Organism> {
 	 * This class acts as an edge in the directed graph and is responsible for instantiating Rods during traversal
 	 * @author wrongu
 	 */
-	private static class GraphEdge{
+	private class GraphEdge{
 		/** in terms of the directed graph, the 'source' and 'destination' nodes */
 		private GraphNode from, to;
 		/** maximum number of times to follow this edge in a given branch of DFS traversal */
@@ -176,6 +222,7 @@ public class DigraphGene extends Gene<Organism> {
 			this.muscle_strength = strength;
 			this.recursionReset();
 			this.from.addEdge(this);
+			DigraphGene.this.edges.add(this);
 		}
 		
 		public void recursionReset(){
@@ -184,20 +231,118 @@ public class DigraphGene extends Gene<Organism> {
 	}
 	
 	@Override
-	public DigraphGene mutate(double rate) {
-		// TODO
+	public DigraphGene mutate(Random r) {
+		super.metaMutate(r);
 		// (maybe) alter existing graph elements
 		for(GraphNode n: this.nodes.values()){
-			
+			if(r.nextDouble() < mutationRate(MUT_MASS)){
+				n.mass *= (r.nextDouble() + 0.5);
+				if(n.mass < 1.0) n.mass = 1.0;
+			}
+			if(n.is_joint){
+				if(r.nextDouble() < mutationRate(MUT_REM_JOINT)){
+					n.is_joint = false;
+				} else{
+					if(r.nextDouble() < mutationRate(MUT_ANGLE)){
+						n.rest_low = clamp_radians(r.nextDouble() * 2.0 * Math.PI);
+						n.rest_high = clamp_radians(n.rest_low + r.nextDouble() * 2.0 * Math.PI);
+					}
+					if(n.is_muscle){
+						if(r.nextDouble() < mutationRate(MUT_REM_JOINT_MUSCLE)){
+							n.is_muscle = false;
+						}
+					} else{
+						if(r.nextDouble() < mutationRate(MUT_ADD_JOINT_MUSCLE)){
+							n.is_muscle = true;
+							n.muscle_strength = 1.0;
+						}
+					}
+				}
+			} else{
+				if(r.nextDouble() < mutationRate(MUT_ADD_JOINT)){
+					n.is_joint = true;
+				}
+			}
 		}
 		for(GraphEdge e: this.edges){
-			
+			// mutate structural properties
+			if(r.nextDouble() < mutationRate(MUT_LEN)){
+				e.rest_low = r.nextDouble() * 50;
+				e.rest_high = e.rest_low + r.nextDouble() * 50;
+			}
+			if(e.is_muscle){
+				if(r.nextDouble() < mutationRate(MUT_REM_ROD_MUSCLE)){
+					e.is_muscle = false;
+				}
+			} else{
+				if(r.nextDouble() < mutationRate(MUT_ADD_ROD_MUSCLE)){
+					e.is_muscle = true;
+					e.muscle_strength = 1.0;
+				}
+			}
+			// mutate graph traversal properties
+			if(e.is_cyclic){
+				if(r.nextDouble() < mutationRate(MUT_REM_CYC)){
+					e.is_cyclic = false;
+				}
+			} else{
+				if(r.nextDouble() < mutationRate(MUT_ADD_CYC)){
+					e.is_cyclic = true;
+				}
+			}
+			if(e.is_terminal){
+				if(r.nextDouble() < mutationRate(MUT_REM_TERMINAL)){
+					e.is_terminal = false;
+				}
+			} else{
+				if(r.nextDouble() < mutationRate(MUT_ADD_TERMINAL)){
+					e.is_terminal = true;
+				}
+			}
+			if(r.nextDouble() < mutationRate(MUT_EDGE_REC)){
+				// add to limit
+				if(r.nextDouble() >= 0.5){
+					e.max_recurse += 1;
+				}
+				// subtract from limit
+				else{
+					e.max_recurse -= 1;
+					if(e.max_recurse < 0) e.max_recurse = 0;
+				}
+			}
 		}
 		
 		// (maybe) add new graph elements
+		if(r.nextDouble() < mutationRate(MUT_ADD_NODE)){
+			new GraphNode(++max_id, 1.0 + r.nextDouble()*4.0);
+		}
+		if(nodes.size() > 0 && r.nextDouble() < mutationRate(MUT_ADD_EDGE)){
+			int n_ids = ACTIVE_IDS.size();
+			int id_f = ACTIVE_IDS.get(r.nextInt(n_ids));
+			int id_t = ACTIVE_IDS.get(r.nextInt(n_ids));
+			boolean cyc = r.nextDouble() < mutationRate(MUT_ADD_CYC);
+			boolean term = r.nextDouble() < mutationRate(MUT_ADD_CYC);
+			int rec = r.nextInt(3);
+			double rest_low = r.nextDouble() * 50;
+			double rest_high = rest_low + r.nextDouble() * 50;
+			System.out.println("creating edge from "+id_f+" to "+id_t);
+			new GraphEdge(nodes.get(id_f), nodes.get(id_t), rec, cyc, term, rest_low, rest_high, false, 0.0);
+		}
 		
-		
-		return null;
+		// (maybe) remove existing graph elements
+		if(nodes.size() > 0){
+			if(r.nextDouble() < mutationRate(MUT_REM_NODE)){
+				int rand_index = r.nextInt(ACTIVE_IDS.size());
+				this.nodes.remove(ACTIVE_IDS.get(rand_index));
+				ACTIVE_IDS.remove(rand_index);
+			}
+		}
+		if(edges.size() > 0){
+			if(r.nextDouble() < mutationRate(MUT_REM_EDGE)){
+				this.edges.remove(r.nextInt(this.edges.size()));
+			}
+		}
+		return this; // TODO clone
 	}
 	
 	/**
@@ -327,11 +472,13 @@ public class DigraphGene extends Gene<Organism> {
 	
 	@Override
 	public void serialize(OutputStream s) throws IOException {
+		super.serialize(s);
 		DataOutputStream dest = new DataOutputStream(s);
 		// NOTE that local_uid is never mutated but only used for convenience when
 		// serializing and deserializing.
 		//
 		// write all nodes
+		dest.writeInt(nodes.size());
 		for(GraphNode node : this.nodes.values()){
 			// write node id first
 			dest.writeInt(node.getId());
@@ -346,9 +493,8 @@ public class DigraphGene extends Gene<Organism> {
 				if(node.is_muscle) dest.writeDouble(node.muscle_strength);
 			}
 		}
-		// separator to denote end of nodes (avoiding -1 since that marks end-of-file)
-		dest.writeInt(-2);
 		// write all edges
+		dest.writeInt(edges.size());
 		for(GraphEdge edge : this.edges){
 			// write graph porperties
 			dest.writeInt(edge.from.getId());
@@ -367,56 +513,75 @@ public class DigraphGene extends Gene<Organism> {
 	
 	@Override
 	public void deserialize(InputStream in) throws IOException {
+		super.deserialize(in);
 		DataInputStream source = new DataInputStream(in);
 		// parse nodes
-		int id;
 		GraphNode n;
-		GraphEdge e;
-		boolean parsing_nodes = true;
-		while(source.available() > 0){
-			if(parsing_nodes){
-				if((id = source.readInt()) == -2){
-					parsing_nodes = false;
-					continue;
-				}
-				double mass = source.readDouble();
-				// read joint properties
-				boolean joint = source.readBoolean();
-				if(joint){
-					double rl = source.readDouble();
-					double rh = source.readDouble();
-					// read muscle properties
-					boolean muscle = source.readBoolean();
-					if(muscle){
-						double strength = source.readDouble();
-						n = new GraphNode(id, mass, rl, rh, strength);
-					} else{
-						n = new GraphNode(id, mass, rl, rh);
-					}
-				} else{
-					n = new GraphNode(id, mass);
-				}
-				this.nodes.put(id, n);
-				// set root to the first node
-				if(this.root == null) this.root = n;
-			} else{
-				// read IDs of nodes this edge connects to
-				int from_id = source.readInt();
-				int to_id = source.readInt();
-				// read recursive depth
-				int rec = source.readInt();
-				boolean cyc = source.readBoolean();
-				boolean term = source.readBoolean();
-				// read structure properties
+		int n_nodes = source.readInt();
+		for(int i=0; i<n_nodes; i++){
+			int id = source.readInt();
+			double mass = source.readDouble();
+			// read joint properties
+			boolean joint = source.readBoolean();
+			if(joint){
 				double rl = source.readDouble();
 				double rh = source.readDouble();
 				// read muscle properties
 				boolean muscle = source.readBoolean();
-				double strength = muscle ? source.readDouble() : 0.0;
-				// create edge
-				e = new GraphEdge(this.nodes.get(from_id), this.nodes.get(to_id), rec, cyc, term, rl, rh, muscle, strength);
-				this.edges.add(e);
+				if(muscle){
+					double strength = source.readDouble();
+					n = new GraphNode(id, mass, rl, rh, strength);
+				} else{
+					n = new GraphNode(id, mass, rl, rh);
+				}
+			} else{
+				n = new GraphNode(id, mass);
 			}
+			// set root to the first node
+			if(this.root == null) this.root = n;
 		}
+		// parse edges
+		GraphEdge e;
+		int n_edges = source.readInt();
+		for(int i=0; i<n_edges; i++){
+			// read IDs of nodes this edge connects to
+			int from_id = source.readInt();
+			int to_id = source.readInt();
+			// read recursive depth
+			int rec = source.readInt();
+			boolean cyc = source.readBoolean();
+			boolean term = source.readBoolean();
+			// read structure properties
+			double rl = source.readDouble();
+			double rh = source.readDouble();
+			// read muscle properties
+			boolean muscle = source.readBoolean();
+			double strength = muscle ? source.readDouble() : 0.0;
+			// create edge
+			e = new GraphEdge(this.nodes.get(from_id), this.nodes.get(to_id), rec, cyc, term, rl, rh, muscle, strength);
+			this.edges.add(e);
+		}
+	}
+	
+	// TESTING: output empty gene to file
+	public static void main(String[] args){
+		Random r = new Random(12345);
+		System.out.println("-creating empty gene-");
+		DigraphGene g = new DigraphGene();
+		for(int i=0; i<100; i++) g.metaMutate(r);
+		for(int i=0; i<100; i++) g.mutate(r);
+		File dest = new File("/home/richard/.evolutionapp/digraphtest.gene");
+		try {
+			dest.createNewFile();
+			FileOutputStream out = new FileOutputStream(dest);
+			System.out.println("-writing gene-");
+			g.serialize(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("-done-");
 	}
 }
