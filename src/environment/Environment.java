@@ -72,7 +72,7 @@ public class Environment implements IDrawable, IDrawableGL {
 			 	double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
 //			 	o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
 			 	o.getPoints().get(0).addForce(MOUSE_CONSTANT*(mousex - o.getX()) / dist, MOUSE_CONSTANT*(mousey - o.getY())/ dist);
-			 	System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
+			 	//System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
 			 }
 			 
 			 try{
@@ -135,6 +135,8 @@ public class Environment implements IDrawable, IDrawableGL {
 		Organism evolved = testgene.create(cur.getX(), cur.getY(), this);
 		this.organisms.clear();
 		this.organisms.add(evolved);
+		System.out.println("=======================");
+		System.out.println(testgene);
 	}
 
 }

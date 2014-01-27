@@ -54,7 +54,7 @@ public class Organism implements IDrawable, IDrawableGL {
 	}
 	
 	public void physicsUpdate(){
-		brain.update();
+		//brain.update();
 		// distribute energy between muscles
 		for(Muscle m : muscles)
 			// TODO this is backwards. muscles should requestEnergy() _before_ the simulation resolves forces

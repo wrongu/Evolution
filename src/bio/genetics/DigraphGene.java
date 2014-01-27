@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-import javax.vecmath.Vector2d;
-
 import physics.Joint;
 import physics.PointMass;
 import physics.Rod;
@@ -154,7 +152,6 @@ public class DigraphGene extends Gene<Organism> {
 			this.is_joint = true;
 			this.is_muscle = true;
 			this.edges_out = new ArrayList<GraphEdge>();
-			System.out.println("created node "+id);
 			DigraphGene.this.nodes.put(id, this);
 			DigraphGene.this.ACTIVE_IDS.add(id);
 			if(id > DigraphGene.this.max_id){
@@ -182,7 +179,6 @@ public class DigraphGene extends Gene<Organism> {
 		public PointMass createPointMass(Rod incident){
 			this.last_instance = new PointMass(this.mass);
 			this.last_incident_rod = incident;
-			System.out.println("Node "+this.local_uid+" creating point with rod " + incident);
 			return this.last_instance;
 		}
 	}
@@ -307,7 +303,7 @@ public class DigraphGene extends Gene<Organism> {
 				// subtract from limit
 				else{
 					e.max_recurse -= 1;
-					if(e.max_recurse < 0) e.max_recurse = 0;
+					if(e.max_recurse < 1) e.max_recurse = 1;
 				}
 			}
 		}
@@ -322,10 +318,9 @@ public class DigraphGene extends Gene<Organism> {
 			int id_t = ACTIVE_IDS.get(r.nextInt(n_ids));
 			boolean cyc = r.nextDouble() < mutationRate(MUT_ADD_CYC);
 			boolean term = r.nextDouble() < mutationRate(MUT_ADD_CYC);
-			int rec = r.nextInt(3);
+			int rec = 1;
 			double rest_low = r.nextDouble() * 50;
 			double rest_high = rest_low + r.nextDouble() * 50;
-			System.out.println("creating edge from "+id_f+" to "+id_t);
 			new GraphEdge(nodes.get(id_f), nodes.get(id_t), rec, cyc, term, rest_low, rest_high, false, 0.0);
 		}
 		
@@ -357,7 +352,7 @@ public class DigraphGene extends Gene<Organism> {
 	public Organism create(double posx, double posy, Environment e) {
 		// ensure that all edges are reset in terms of recursion depth
 		for(GraphEdge ed : this.edges) ed.recursionReset();
-		// initialize arrays
+		// initialize arrays (effectively clearing them)
 		this.all_points = new ArrayList<PointMass>();
 		this.all_rods = new ArrayList<Rod>();
 		this.all_joints = new ArrayList<Joint>();
@@ -365,6 +360,7 @@ public class DigraphGene extends Gene<Organism> {
 		// start creating structure from the root
 		PointMass init_pm = this.root.createPointMass(null);
 		init_pm.initPosition(posx, posy);
+		this.all_points.add(init_pm);
 		// crazy traversal algorithm
 		traverse_helper(this.root);
 		Organism o = new Organism(e);
@@ -437,14 +433,13 @@ public class DigraphGene extends Gene<Organism> {
 		boolean recursion_taken = false;
 		// handle non-terminal edges
 		for(GraphEdge e : root.edges_out){
-			if(!e.is_terminal && e.current_recurse <= e.max_recurse){
+			if(!e.is_terminal && e.current_recurse < e.max_recurse){
 				recursion_taken = true;
 				// mark another step of dfs traversal
 				e.current_recurse += 1;
 				// create structures
 				this.instantiateGraphEdge(e, root);
 				// recurse (DFS)
-				// note that if no structure was created, this is basically where "goto" happens
 				this.traverse_helper(e.to);
 				// when traversal is done (i.e. when the above line is finished),
 				// set recursive depth back to 0
@@ -460,7 +455,6 @@ public class DigraphGene extends Gene<Organism> {
 					// create structures
 					this.instantiateGraphEdge(e, root);
 					// recurse (DFS)
-					// note that if no structure was created, this is basically where "goto" happens
 					this.traverse_helper(e.to);
 					// when traversal is done (i.e. when the above line is finished),
 					// set recursive depth back to 0
@@ -561,6 +555,27 @@ public class DigraphGene extends Gene<Organism> {
 			e = new GraphEdge(this.nodes.get(from_id), this.nodes.get(to_id), rec, cyc, term, rl, rh, muscle, strength);
 			this.edges.add(e);
 		}
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder str = new StringBuilder();
+		for(GraphNode n : this.nodes.values()){
+			str.append(n.local_uid);
+			str.append(":\n");
+			for(GraphEdge e : n.edges_out){
+				str.append("\t");
+				str.append(e.to.local_uid);
+				str.append("\trec ");
+				str.append(e.max_recurse);
+				str.append("\tlen ");
+				str.append(e.rest_low);
+				if(e.is_cyclic) str.append("\tcyc");
+				if(e.is_terminal) str.append("\tterm");
+				str.append("\n");
+			}
+		}
+		return str.toString();
 	}
 	
 	// TESTING: output empty gene to file

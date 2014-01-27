@@ -4,9 +4,6 @@ import java.awt.Dimension;
 import java.nio.FloatBuffer;
 
 import environment.Environment;
-import graphics.DebugGenes;
-import graphics.DrawGraph;
-import graphics.RenderPanel;
 import graphics.opengl.RenderGL;
 
 import javax.swing.JApplet;
@@ -63,7 +60,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	
 	public void run(){
 		// initialize everything
-		env = new Environment(APPLET_WIDTH, APPLET_HEIGHT);
+		env = new Environment(APPLET_WIDTH, APPLET_HEIGHT, 0);
 		env.bindInput(mouse_buttons, mouse_move);
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
@@ -139,7 +136,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 			fps = frame_counter;
 			frame_counter = 0;
 			second_timer = now;
-			System.out.println(fps);
+			//System.out.println(fps);
 		}
 	}
 }
