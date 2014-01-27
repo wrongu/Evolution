@@ -72,10 +72,6 @@ public class DigraphGene extends Gene<Organism> {
 	private HashMap<Integer, GraphNode> nodes;
 	private ArrayList<GraphEdge> edges;
 	
-	// shared reference vector for 'horizontal'
-	// used to 
-	private static final Vector2d HORIZONTAL = new Vector2d(1.0, 0.0);
-	
 	// lists used during construction
 	private ArrayList<PointMass> all_points;
 	private ArrayList<Rod> all_rods;
@@ -164,6 +160,9 @@ public class DigraphGene extends Gene<Organism> {
 			if(id > DigraphGene.this.max_id){
 				DigraphGene.this.max_id = id;
 			}
+			if(DigraphGene.this.root == null){
+				DigraphGene.this.root = this;
+			}
 		}
 		
 		public void addEdge(GraphEdge e){
@@ -183,6 +182,7 @@ public class DigraphGene extends Gene<Organism> {
 		public PointMass createPointMass(Rod incident){
 			this.last_instance = new PointMass(this.mass);
 			this.last_incident_rod = incident;
+			System.out.println("Node "+this.local_uid+" creating point with rod " + incident);
 			return this.last_instance;
 		}
 	}
@@ -330,7 +330,7 @@ public class DigraphGene extends Gene<Organism> {
 		}
 		
 		// (maybe) remove existing graph elements
-		if(nodes.size() > 0){
+		if(nodes.size() > 1){
 			if(r.nextDouble() < mutationRate(MUT_REM_NODE)){
 				int rand_index = r.nextInt(ACTIVE_IDS.size());
 				this.nodes.remove(ACTIVE_IDS.get(rand_index));
@@ -390,7 +390,7 @@ public class DigraphGene extends Gene<Organism> {
 		PointMass next;
 		// note that "cycle" only works if destination already exists - otherwise it acts
 		// as non-cyclic and creates the destination
-		if(e.is_cyclic && e.to.last_instance != null){
+		if(e.is_cyclic && e.to != e.from && e.to.last_instance != null){
 			next = e.to.last_instance;
 			e.to.last_incident_rod = r;
 		} else {
@@ -400,7 +400,7 @@ public class DigraphGene extends Gene<Organism> {
 			// decide where in space it goes using some trig
 			double l = (r.getRestValue1() + r.getRestValue2()) / 2.0;
 			// angle of the rod based on joint and previous rod
-			double angle = parent.last_incident_rod.asVector().angle(HORIZONTAL);
+			double angle = parent.last_incident_rod.getAngleOffHorizontal();
 			// add in mean joint angle
 			if(parent.is_joint)
 				angle += (clamp_radians(root.rest_low) + clamp_radians(root.rest_high)) / 2.0;

@@ -23,7 +23,7 @@ public class Rod extends Structure {
 	}
 	
 	public Rod(double rest_length1, double rest_length2){
-		this(rest_length1, rest_length2, new PointMass(1), new PointMass(1));
+		this(rest_length1, rest_length2, null, null);
 	}
 	
 	public Rod(double rest_length1, double rest_length2, PointMass pm0, PointMass pm1) {
@@ -108,7 +108,15 @@ public class Rod extends Structure {
 	}
 	
 	public Vector2d asVector(){
-		return new Vector2d(points[1].getX() - points[0].getX(), points[1].getY() - points[0].getY());
+		return new Vector2d(points[1].getX()-points[0].getX(), points[1].getY()-points[0].getY());
+	}
+	
+	public double getAngleOffHorizontal(){
+		if(points[0] != null && points[1] != null){
+			return Math.atan2(points[1].getY()-points[0].getY(), points[1].getX()-points[0].getX());
+		} else{
+			return 0.0;
+		}
 	}
 
 	@Override
@@ -185,7 +193,8 @@ public class Rod extends Structure {
 		double m1 = points[1].getMass();
 		double v0 = m1*(1-t)*dis/(m0*t*t + m1*(1-t)*(1-t));
 		double v1 = m0*t*dis/(m0*t*t + m1*(1-t)*(1-t));
-		Vector2d norm = new Vector2d(-asVector().y, asVector().x);
+		// 0-1 and 1-0 is deliberate - perp([x,y]) = [-y,x]
+		Vector2d norm = new Vector2d(points[0].getY()-points[1].getY(), points[1].getX()-points[0].getX());
 		norm.normalize();
 		points[0].addPos(norm.x*v0, norm.y*v0);
 		points[1].addPos(norm.x*v1, norm.y*v1);

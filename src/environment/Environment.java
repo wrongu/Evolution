@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import bio.genetics.DigraphGene;
+
 import structure.Organism;
 import structure.OrganismFactory;
 
@@ -28,6 +30,9 @@ public class Environment implements IDrawable, IDrawableGL {
 	private int mousex, mousey;
 	private boolean spaceIsPressed;
 	
+	// TESTING
+	private DigraphGene testgene;
+	
 	public Environment(int w, int h){
 		this(w, h, 12345L);
 	}
@@ -41,8 +46,11 @@ public class Environment implements IDrawable, IDrawableGL {
 //		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
 //		organisms.add(OrganismFactory.testDummy(OrganismFactory.GENE_TEST, this));
 //		organisms.add(OrganismFactory.testDummy(OrganismFactory.DUMBELL, this));
-		for(int i = 0; i < 20; i++)
-			organisms.add(OrganismFactory.testDummy(OrganismFactory.POINT_MASS, this));
+//		for(int i = 0; i < 20; i++)
+//			organisms.add(OrganismFactory.testDummy(OrganismFactory.POINT_MASS, this));
+		testgene = new DigraphGene();
+		for(int i=0; i<100; i++) testgene.mutate(seedRand);
+		organisms.add(OrganismFactory.fromGene(testgene, this));
 		
 	}
 	
@@ -118,6 +126,15 @@ public class Environment implements IDrawable, IDrawableGL {
 	public void bindInput(int[] mouse_buttons, int[] mouse_move) {
 		this.mouse_buttons = mouse_buttons;
 		this.mouse_in = mouse_move;
+	}
+	
+	// TESTING ONLY
+	public void mutateTestGene(){
+		testgene.mutate(seedRand);
+		Organism cur = this.organisms.get(0);
+		Organism evolved = testgene.create(cur.getX(), cur.getY(), this);
+		this.organisms.clear();
+		this.organisms.add(evolved);
 	}
 
 }

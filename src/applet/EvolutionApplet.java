@@ -113,6 +113,9 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		else if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) direction_keys[RIGHT] = true;
 		else direction_keys[RIGHT] = false;
 		
+		// TESTING - 'M' for mutate
+		if(Keyboard.isKeyDown(Keyboard.KEY_M)) env.mutateTestGene();
+		
 		// DELETE this after we are done moving the jellyfish with the spacebar.
 		try {
 			if(Keyboard.isKeyDown(Keyboard.KEY_SPACE))
