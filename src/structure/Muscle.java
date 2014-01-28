@@ -4,7 +4,7 @@ import physics.Structure;
 
 /**
  * A muscle is basically a wrapper class around structures (i.e. joints and rods).
- * @author Richard
+ * @author wrongu
  *
  */
 public class Muscle {

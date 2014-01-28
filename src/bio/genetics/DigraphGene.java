@@ -585,7 +585,7 @@ public class DigraphGene extends Gene<Organism> {
 		DigraphGene g = new DigraphGene();
 		for(int i=0; i<100; i++) g.metaMutate(r);
 		for(int i=0; i<100; i++) g.mutate(r);
-		File dest = new File("/home/richard/.evolutionapp/digraphtest.gene");
+		File dest = new File(System.getProperty("user.home") + File.separator + ".evolutionapp"  + File.separator + "digraphtest.gene");
 		try {
 			dest.createNewFile();
 			FileOutputStream out = new FileOutputStream(dest);
