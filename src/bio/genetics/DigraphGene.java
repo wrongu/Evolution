@@ -350,19 +350,24 @@ public class DigraphGene extends Gene<Organism> {
 	 */
 	@Override
 	public Organism create(double posx, double posy, Environment e) {
-		// ensure that all edges are reset in terms of recursion depth
-		for(GraphEdge ed : this.edges) ed.recursionReset();
 		// initialize arrays (effectively clearing them)
 		this.all_points = new ArrayList<PointMass>();
 		this.all_rods = new ArrayList<Rod>();
 		this.all_joints = new ArrayList<Joint>();
 		this.all_muscles = new ArrayList<Muscle>();
-		// start creating structure from the root
-		PointMass init_pm = this.root.createPointMass(null);
-		init_pm.initPosition(posx, posy);
-		this.all_points.add(init_pm);
-		// crazy traversal algorithm
-		traverse_helper(this.root);
+		if(this.root != null){
+			// ensure that all edges are reset in terms of recursion depth
+			for(GraphEdge ed : this.edges) ed.recursionReset();
+			// start creating structure from the root
+			PointMass init_pm = this.root.createPointMass(null);
+			init_pm.initPosition(posx, posy);
+			this.all_points.add(init_pm);
+			// crazy traversal algorithm
+			traverse_helper(this.root);
+		} else{
+			System.err.println("Attempting to create an empty organism.. creating a single pointmass instead");
+			this.all_points.add(new PointMass(1.0));
+		}
 		Organism o = new Organism(e);
 		o.addAllPointMasses(all_points);
 		o.addAllRods(all_rods);
