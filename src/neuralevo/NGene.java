@@ -8,7 +8,7 @@ public class NGene {
 	public static final double META_WEIGHT_MUTATION_RATE = 0.01;
 	public static final double META_NEURON_MUTATION_RATE = 0.01;
 	public static final double DEFAULT_WEIGHT_MUTATION_RATE = 0.1;
-	public static final double DEFAULT_NEURON_MUTATION_RATE = 0.25;
+	public static final double DEFAULT_NEURON_MUTATION_RATE = 0.3;
 	
 	// Mutation rate variables.
 	private DoubleMatrix weightMutationRates;
@@ -101,6 +101,8 @@ public class NGene {
 	}
 	
 	private void mutateNeurons() {
+		
+		
 		// Determine the change in the number of neurons.
 		double dn = DoubleMatrix.randn(1).scalar();
 		dn *= neuronMutationRate;
@@ -114,12 +116,19 @@ public class NGene {
 		if(changeInNeurons == 0) {
 			return;
 		}
+		
 		DoubleMatrix newWeights;
+		DoubleMatrix newWeightMutationRates;
 		if(changeInNeurons > 0) {
 			// Concatenate rows and columns onto the weight matrix.
 			newWeights = DoubleMatrix.concatHorizontally(weights, DoubleMatrix.zeros(NBrain.OUTPUTS + neurons, changeInNeurons));
 			newWeights = DoubleMatrix.concatVertically(newWeights, DoubleMatrix.zeros(changeInNeurons, NBrain.INPUTS + newNeurons));
+			
+			newWeightMutationRates = DoubleMatrix.concatHorizontally(weightMutationRates, DoubleMatrix.zeros(NBrain.OUTPUTS + neurons, changeInNeurons));
+			newWeightMutationRates = DoubleMatrix.concatVertically(newWeightMutationRates, DoubleMatrix.zeros(changeInNeurons, NBrain.INPUTS + newNeurons));
+			
 			weights = newWeights;
+			weightMutationRates = newWeightMutationRates;
 			neurons = newNeurons;
 			return;
 		} else {
@@ -147,10 +156,14 @@ public class NGene {
 			// Multiply keep matrices to get a keep matrix with dimensions to match weight matrix.
 			DoubleMatrix keep = keepRows.mmul(keepCols);
 			
-			// Obtain the submatrix with the appropriate ommited rows and columns.
+			// Obtain the submatrix with the appropriate omitted rows and columns.
 			newWeights = weights.get(keep);
-
+			newWeightMutationRates = weightMutationRates.get(keep);
+			newWeights.reshape(NBrain.OUTPUTS + newNeurons, NBrain.INPUTS + newNeurons);
+			newWeightMutationRates.reshape(NBrain.OUTPUTS + newNeurons, NBrain.INPUTS + newNeurons);
+			
 			weights = newWeights;
+			weightMutationRates = newWeightMutationRates;
 			neurons = newNeurons;
 			return;
 		}
@@ -159,6 +172,35 @@ public class NGene {
 	
 	public int getNeurons() {
 		return neurons;
+	}
+	
+	// Mutation test.
+	public static void main(String[] args) {
+		NGene gene = new NGene();
+		gene.print();
+		System.out.println();
+		for(int i = 1; i <= 20; i++) {
+			System.out.println("Mutation #" + i + ":");
+			gene.mutate();
+			gene.print();
+			System.out.println();
+		}
+	}
+	
+	private void printMatrix(DoubleMatrix m) {
+		for(int i = 0; i < m.rows; i++) {
+			System.out.print("[  ");
+			for(int j = 0; j < m.columns; j++) {
+				System.out.format("%+.1f  ", m.get(i,j));
+			}
+			System.out.println("]");
+		}
+	}
+	
+	public void print() {
+		System.out.println("# of neurons: " + neurons);
+		System.out.println("Weights:");
+		printMatrix(weights);
 	}
 
 }

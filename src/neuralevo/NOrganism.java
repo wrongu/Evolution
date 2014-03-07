@@ -20,6 +20,7 @@ public class NOrganism {
 	public static final double RESISTANCE = 0.05;
 	public static final double DEFAULT_MASS = 1;
 	public static final double DEFAULT_RANGE = 10;
+	public static final double LISTEN_RANGE = 1000;
 	
 	// Food and energy constants.
 	public static final double FOOD_ON_DEATH = 10;
@@ -37,9 +38,9 @@ public class NOrganism {
 	public static final double TALK_STRENGTH = 1;
 	
 	// Sensory constants.
-	public static final double THRUST_SENSE = THRUST_STRENGTH;
-	public static final double TURN_SENSE = TURN_STRENGTH;
-	public static final double LISTEN_SENSE = TALK_STRENGTH;
+	public static final double THRUST_SENSE = 1/THRUST_STRENGTH;
+	public static final double TURN_SENSE = 1/TURN_STRENGTH;
+	public static final double LISTEN_SENSE = 1/TALK_STRENGTH;
 	public static final double ENERGY_SENSE = 1;
 	
 	// Computational constants.
@@ -166,7 +167,7 @@ public class NOrganism {
 	public double getX() { return pos.x; }
 	public double getY() { return pos.y; } 
 	
-	public void act() {
+	public void reflexiveActions() {
 		// Thrust action
 		double thrustOut = brain.output(NBrain.THRUST_OUT);
 		energy -= THRUST_COST*Math.abs(thrustOut);
@@ -177,12 +178,10 @@ public class NOrganism {
 		energy -= TURN_COST*Math.abs(turnOut);
 		addForce(TURN_STRENGTH*turnOut*dir.y, -TURN_STRENGTH*turnOut*dir.x);
 		
-		// TODO: Attack action
-		// TODO: Mate action
 		// TODO: Talk action
 	}
 	
-	public void sense() {
+	public void internalSenses() {
 		// Energy sense
 		brain.input(NBrain.ENERGY, ENERGY_SENSE*energy);
 		
@@ -191,10 +190,9 @@ public class NOrganism {
 		
 		// Turn sense
 		brain.input(NBrain.TURN_IN, TURN_SENSE*(dir.x*acc.y - dir.y*acc.x) );
-		
-		// TODO: Listen sense.
 	}
 	
+	// DEBUGGING
 	public void printStats() {
 		System.out.format("Energy: %.1f \n", energy);
 		System.out.format("Thrust: %.1f \n", brain.output(NBrain.THRUST_OUT));

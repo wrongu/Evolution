@@ -86,7 +86,7 @@ public class Environment implements IDrawable, IDrawableGL {
 		
 		// Perform actions
 		for(NOrganism o : nOrganisms) {
-			o.act();
+			o.reflexiveActions();
 			if(!o.isAlive()) {
 				deaduns.add(o);
 			}
@@ -100,7 +100,7 @@ public class Environment implements IDrawable, IDrawableGL {
 		
 		// Update senses.
 		for(NOrganism o : nOrganisms) {
-			o.sense();
+			o.internalSenses();
 		}
 		
 		// Update the organism physics.
