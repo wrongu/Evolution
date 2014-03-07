@@ -10,14 +10,10 @@ import java.util.Random;
 
 import bio.genetics.DigraphGene;
 
-import structure.Organism;
-import structure.OrganismFactory;
-
 import neuralevo.NOrganism;
 
 public class Environment implements IDrawable, IDrawableGL {
 	
-	public static final boolean COLLISIONS = true;
 	public static final double GRAVITY = 0.1;
 	public static final double MOUSE_CONSTANT = 0.2;
 	public static final double FRICTION = 0.1;
@@ -25,6 +21,7 @@ public class Environment implements IDrawable, IDrawableGL {
 
 //	public List<Organism> organisms;
 	public List<NOrganism> nOrganisms;
+	public List<NOrganism> deaduns;
 	private int width, height;
 	
 	private Random seedRand;
@@ -34,9 +31,6 @@ public class Environment implements IDrawable, IDrawableGL {
 	private int mousex, mousey;
 	private boolean spaceIsPressed;
 	
-	// TESTING
-	private DigraphGene testgene;
-	
 	public Environment(int w, int h){
 		this(w, h, 12345L);
 	}
@@ -44,24 +38,17 @@ public class Environment implements IDrawable, IDrawableGL {
 	public Environment(int w, int h, long seed){
 //		organisms = new LinkedList<Organism>();
 		nOrganisms = new LinkedList<NOrganism>();
+		deaduns = new LinkedList<NOrganism>();
 		width = w;
 		height = h;
 		seedRand = new Random(seed);
-		// DEBUGGING
-		// NOrganism tests.
-		nOrganisms.add(new NOrganism());
 		
-		// Organism tests.
-//		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
-//		organisms.add(OrganismFactory.testDummy(OrganismFactory.GENE_TEST, this));
-//		organisms.add(OrganismFactory.testDummy(OrganismFactory.DUMBELL, this));
-//		for(int i = 0; i < 20; i++)
-//			organisms.add(OrganismFactory.testDummy(OrganismFactory.POINT_MASS, this));
-//		
-		// Gene tests.		
-//		testgene = new DigraphGene();
-//		for(int i=0; i<100; i++) testgene.mutate(seedRand);
-//		organisms.add(OrganismFactory.fromGene(testgene, this));
+		// NOrganism tests.
+		for(int i = 0; i < 100; i++)
+			nOrganisms.add(new NOrganism());
+		
+		// DEBUGGING
+		//nOrganisms.get(0).printBrain();
 	}
 	
 	public Random getRandom(){
@@ -73,37 +60,56 @@ public class Environment implements IDrawable, IDrawableGL {
 		mousey = mouse_in[1];
 		
 		dt /= 100.0;
-		// Do "personal" organism physics.
 		for(NOrganism o : nOrganisms){
-//			o.contain(this);
 			
 			 if(mouse_buttons[0] != 0) {
 			 	double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
 			 	o.addForce(MOUSE_CONSTANT*(mousex - o.getX()) / dist, MOUSE_CONSTANT*(mousey - o.getY())/ dist);
 			 	//System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
 			 }
-			 
-//			 try{
-//			 if(spaceIsPressed)
-//				 o.getFirstMuscle().setStrength(-1);
-//			 else
-//				 o.getFirstMuscle().setStrength(0.2);
-//			 } catch(Exception e){}
 		}
 		
-//		// Do collisions!
-//		if(COLLISIONS) {
-//			for(int i = 0; i < organisms.size(); i++) {
-//				for(int j = i+1; j < organisms.size(); j++) {
-//					organisms.get(i).doCollisions(organisms.get(j));
-//				}
-//			}
-//		}
+		// Tick brains.
+		for(NOrganism o : nOrganisms) {
+			o.tick();
+//			o.printStats();								// DEBUGGING
+			if(!o.isAlive()) {
+				deaduns.add(o);
+			}
+		}
 		
-		// Update the organisms.
+		// Bury the dead.
+		for(NOrganism o : deaduns) {
+			nOrganisms.remove(o);
+		}
+		deaduns.clear();
+		
+		// Perform actions
+		for(NOrganism o : nOrganisms) {
+			o.act();
+			if(!o.isAlive()) {
+				deaduns.add(o);
+			}
+		}
+		
+		// Bury the dead.
+		for(NOrganism o : deaduns) {
+			nOrganisms.remove(o);
+		}
+		deaduns.clear();
+		
+		// Update senses.
+		for(NOrganism o : nOrganisms) {
+			o.sense();
+		}
+		
+		// Update the organism physics.
 		for(NOrganism o : nOrganisms) {
 			o.move(dt > 1.0 ? 1.0 : dt);
 		}
+		
+		
+		
 	}
 
 	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {
