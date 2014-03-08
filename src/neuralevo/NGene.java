@@ -86,9 +86,37 @@ public class NGene {
 		for(int i = 0; i <= dNeurons; i++) {
 			neuronsToAdd += (Math.random() < 0.5) ? 0 : 1;
 		}
+		int neuronsToRemove = dNeurons - neuronsToAdd;
+		int newNeurons = neurons + neuronsToAdd;
 		
-		// TODO: Finish this shit.
-		return null;
+		// Randomly select extra neurons to add.
+		DoubleMatrix keep = markToKeep(neurons, neuronsToRemove, dNeurons);
+		DoubleMatrix gRemovedWeights = g.weights.get(keep);
+		DoubleMatrix gRemovedWeightMut = g.weightMutationRates.get(keep);
+		gRemovedWeights.reshape(NBrain.OUTPUTS + newNeurons, NBrain.INPUTS + newNeurons);
+		gRemovedWeightMut.reshape(NBrain.OUTPUTS + newNeurons, NBrain.INPUTS + newNeurons);
+		
+		// Resize newGene.weights 'n shit.
+		newGene.weights = DoubleMatrix.concatHorizontally(newGene.weights, DoubleMatrix.zeros(NBrain.OUTPUTS + neurons,neuronsToAdd));
+		newGene.weightMutationRates = DoubleMatrix.concatHorizontally(newGene.weightMutationRates, DoubleMatrix.zeros(NBrain.OUTPUTS + neurons,neuronsToAdd));
+		newGene.weights = DoubleMatrix.concatVertically(newGene.weights, DoubleMatrix.zeros(neuronsToAdd, NBrain.INPUTS + newNeurons));
+		newGene.weightMutationRates = DoubleMatrix.concatVertically(newGene.weightMutationRates, DoubleMatrix.zeros(neuronsToAdd, NBrain.INPUTS + newNeurons));
+		newGene.neurons = newNeurons;
+		
+		// Interpolate randomly.
+		newGene.neuronMutationRate += Math.random()*(g.neuronMutationRate - neuronMutationRate);
+		// Generate interpolation matrices
+		DoubleMatrix interpolation1 = DoubleMatrix.rand(NBrain.OUTPUTS + neurons, NBrain.INPUTS + neurons);
+		DoubleMatrix interpolation2 = DoubleMatrix.rand(NBrain.OUTPUTS + neurons, NBrain.INPUTS + neurons);
+		interpolation1 = DoubleMatrix.concatHorizontally(interpolation1, DoubleMatrix.ones(NBrain.OUTPUTS + neurons, neuronsToAdd));
+		interpolation1 = DoubleMatrix.concatVertically(interpolation1, DoubleMatrix.ones(neuronsToAdd, NBrain.INPUTS + newNeurons));
+		interpolation2 = DoubleMatrix.concatHorizontally(interpolation2, DoubleMatrix.ones(NBrain.OUTPUTS + neurons, neuronsToAdd));
+		interpolation2 = DoubleMatrix.concatVertically(interpolation2, DoubleMatrix.ones(neuronsToAdd, NBrain.INPUTS + newNeurons));
+		// Interpolate between weight and mutation rate matrices.
+		newGene.weights.addi(interpolation1.mul(newGene.weights.sub(gRemovedWeights)));
+		newGene.weightMutationRates.addi(interpolation2.mul(newGene.weightMutationRates.sub(gRemovedWeightMut)));
+		
+		return newGene;
 	}
 	
 	/**
@@ -101,7 +129,6 @@ public class NGene {
 	}
 	
 	private void mutateNeurons() {
-		
 		
 		// Determine the change in the number of neurons.
 		double dn = DoubleMatrix.randn(1).scalar();
@@ -134,27 +161,27 @@ public class NGene {
 		} else {
 			changeInNeurons = -changeInNeurons;
 			
-			// Initialize 'keep' matrices.
-			DoubleMatrix keepRows = DoubleMatrix.ones(NBrain.OUTPUTS + neurons, 1);
-			DoubleMatrix keepCols = DoubleMatrix.ones(1, NBrain.INPUTS + neurons);
-			
-			// Randomly decide which neurons to delete. Record choice in keep matrices.
-			for(int i = changeInNeurons-1; i >= 0; i--) {
-				int rand = (int)(i*Math.random());
-				int place = 0;
-				int j = 0;
-				while(j <= rand) {
-					j += (keepRows.get(NBrain.OUTPUTS + place) == 0) ? 0 : 1;
-					place++;
-				}
-				place--;
-				
-				keepRows.put(NBrain.OUTPUTS + place, 0);
-				keepCols.put(NBrain.INPUTS + place, 0);
-			}
+//			// Initialize 'keep' matrices.
+//			DoubleMatrix keepRows = DoubleMatrix.ones(NBrain.OUTPUTS + neurons, 1);
+//			DoubleMatrix keepCols = DoubleMatrix.ones(1, NBrain.INPUTS + neurons);
+//			
+//			// Randomly decide which neurons to delete. Record choice in keep matrices.
+//			for(int i = changeInNeurons-1; i >= 0; i--) {
+//				int rand = (int)(i*Math.random());
+//				int place = 0;
+//				int j = 0;
+//				while(j <= rand) {
+//					j += (keepRows.get(NBrain.OUTPUTS + place) == 0) ? 0 : 1;
+//					place++;
+//				}
+//				place--;
+//				
+//				keepRows.put(NBrain.OUTPUTS + place, 0);
+//				keepCols.put(NBrain.INPUTS + place, 0);
+//			}
 			
 			// Multiply keep matrices to get a keep matrix with dimensions to match weight matrix.
-			DoubleMatrix keep = keepRows.mmul(keepCols);
+			DoubleMatrix keep = markToKeep(neurons, changeInNeurons, neurons);
 			
 			// Obtain the submatrix with the appropriate omitted rows and columns.
 			newWeights = weights.get(keep);
@@ -165,7 +192,6 @@ public class NGene {
 			weights = newWeights;
 			weightMutationRates = newWeightMutationRates;
 			neurons = newNeurons;
-			return;
 		}
 		
 	}
@@ -201,6 +227,42 @@ public class NGene {
 		System.out.println("# of neurons: " + neurons);
 		System.out.println("Weights:");
 		printMatrix(weights);
+	}
+	
+	private DoubleMatrix markToKeep(int n, int toRemove, int outOfLast) {
+		
+		if(n < 0) {
+			return null;
+		}
+		
+		if(outOfLast > n) {
+			outOfLast = n;
+		}
+		
+		if(toRemove > outOfLast) {
+			return DoubleMatrix.ones(NBrain.OUTPUTS, NBrain.INPUTS);
+		}
+		
+		DoubleMatrix keepRows = DoubleMatrix.ones(NBrain.OUTPUTS + n,1);
+		DoubleMatrix keepCols = DoubleMatrix.ones(1,NBrain.INPUTS + n);
+		
+		// Randomly decide which neurons to delete. Record choice in keep matrices.
+		for(int i = 0; i < toRemove; i--) {
+			int rand = (int)((outOfLast - i)*Math.random());
+			int place = n - outOfLast;
+			int j = 0;
+			while(j <= rand) {
+				j += (keepRows.get(NBrain.OUTPUTS + place) == 0) ? 1 : 0;
+				place++;
+			}
+			place--;
+
+			keepRows.put(NBrain.OUTPUTS + place, 0);
+			keepCols.put(NBrain.INPUTS + place, 0);
+		}
+
+		// Multiply keep matrices to get a keep matrix with dimensions to match weight matrix.
+		return keepRows.mmul(keepCols);
 	}
 
 }

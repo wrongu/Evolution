@@ -18,9 +18,11 @@ public class NOrganism {
 	
 	// Physical constants for organisms.
 	public static final double RESISTANCE = 0.05;
+	public static final double NORMAL_RESISTANCE_FACTOR = 0.5;
 	public static final double DEFAULT_MASS = 1;
-	public static final double DEFAULT_RANGE = 10;
-	public static final double LISTEN_RANGE = 1000;
+	public static final double RANGE = 10;
+	public static final double LISTEN_RANGE = 500;
+	public static final double MAX_TALK = 1;
 	
 	// Food and energy constants.
 	public static final double FOOD_ON_DEATH = 10;
@@ -28,19 +30,19 @@ public class NOrganism {
 	public static final double CONSUMPTION_CURVATURE = 1; // larger means more abrupt consumption curve.
 	public static final double ATTACK_COST = 1;
 	public static final double TALK_COST = 0.0001;
-	public static final double THRUST_COST = 0.002;
-	public static final double TURN_COST = 0.002;
+	public static final double THRUST_COST = 0.0005;
+	public static final double TURN_COST = 0.0005;
 	
 	// Action constants.
-	public static final double THRUST_STRENGTH = 0.04;
-	public static final double TURN_STRENGTH = 0.03;
+	public static final double THRUST_STRENGTH = 0.1;
+	public static final double TURN_STRENGTH = 0.1;
 	public static final double ATTACK_STRENGTH = 1;
-	public static final double TALK_STRENGTH = 1;
+	public static final double TALK_STRENGTH = 0.5;
 	
 	// Sensory constants.
 	public static final double THRUST_SENSE = 1/THRUST_STRENGTH;
 	public static final double TURN_SENSE = 1/TURN_STRENGTH;
-	public static final double LISTEN_SENSE = 1/TALK_STRENGTH;
+	public static final double LISTEN_SENSE = 0.5;
 	public static final double ENERGY_SENSE = 1;
 	
 	// Computational constants.
@@ -50,16 +52,21 @@ public class NOrganism {
 	// Physics fields.
 	private Vector2d pos;
 	private Vector2d acc;
+	private double tacc;
+	private double nacc;
+	private double turn;
 	private Vector2d vel;
 	private Vector2d dir;
 	private double spd;
 	private double mass;
-	private double range;
 	
 	// Organism fields.
 	private NGene gene;
 	private NBrain brain;
 	private double energy;
+	private double talk;
+	private double listen;
+	private double lastListen;
 	
 	/**
 	 * Constructor for NOrganism class.
@@ -70,7 +77,6 @@ public class NOrganism {
 	 * @param v Initial velocity
 	 */
 	public NOrganism(NGene g, double e, Vector2d p, Vector2d v){
-		range = DEFAULT_RANGE;
 		mass = DEFAULT_MASS;
 		
 		pos = new Vector2d(p);
@@ -93,6 +99,10 @@ public class NOrganism {
 		energy = e;
 	}
 	
+	public NOrganism(double x, double y) {
+		this(new NGene(), 1, new Vector2d(x,y), new Vector2d());
+	}
+	
 	public NOrganism() {
 		this(new NGene(), 1, new Vector2d(), new Vector2d());
 	}
@@ -103,7 +113,13 @@ public class NOrganism {
 	
 	public void move(double dt) {
 		
-		addForce(-RESISTANCE*vel.x,-RESISTANCE*vel.y);
+		tacc -= RESISTANCE*spd/mass;
+		dir.x = dir.x*Math.cos(turn*dt) - dir.y*Math.sin(turn*dt);
+		dir.y = dir.x*Math.sin(turn*dt) + dir.y*Math.cos(turn*dt);
+		spd += tacc*dt;
+		
+		vel.x = spd*dir.x;
+		vel.y = spd*dir.y;
 		
 		vel.x += acc.x*dt;
 		vel.y += acc.y*dt;
@@ -111,6 +127,9 @@ public class NOrganism {
 		pos.y += vel.y*dt;
 		acc.x = 0;
 		acc.y = 0;
+		tacc = 0;
+		nacc = 0;
+		turn = 0;
 		
 		spd = vel.length();
 		if(spd > 0) {
@@ -151,14 +170,14 @@ public class NOrganism {
 			glVertex2d(pos.x - 2*dir.y, pos.y + 2*dir.x);
 		}
 		glEnd();
-		int n = (int)(range*DRAW_SMOOTHNESS);
+		int n = (int)(RANGE*DRAW_SMOOTHNESS);
 		double t = 2*Math.PI/(double)n;
 		glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
 		glBegin(GL_LINES);
 		{
 			for(int i = 0; i < n; i++) {
-				glVertex2d(pos.x + range*Math.cos(i*t), pos.y + range*Math.sin(i*t) );
-				glVertex2d(pos.x + range*Math.cos((i+1)*t), pos.y + range*Math.sin((i+1)*t));
+				glVertex2d(pos.x + RANGE*Math.cos(i*t), pos.y + RANGE*Math.sin(i*t) );
+				glVertex2d(pos.x + RANGE*Math.cos((i+1)*t), pos.y + RANGE*Math.sin((i+1)*t));
 			}
 		}
 		glEnd();
@@ -171,14 +190,18 @@ public class NOrganism {
 		// Thrust action
 		double thrustOut = brain.output(NBrain.THRUST_OUT);
 		energy -= THRUST_COST*Math.abs(thrustOut);
-		addForce(THRUST_STRENGTH*thrustOut*dir.x, THRUST_STRENGTH*thrustOut*dir.y);
+		tacc += THRUST_STRENGTH*thrustOut;
+//		addForce(THRUST_STRENGTH*thrustOut*dir.x, THRUST_STRENGTH*thrustOut*dir.y);
 
 		// Turn action
 		double turnOut = brain.output(NBrain.TURN_OUT);
 		energy -= TURN_COST*Math.abs(turnOut);
-		addForce(TURN_STRENGTH*turnOut*dir.y, -TURN_STRENGTH*turnOut*dir.x);
+		turn = TURN_STRENGTH*turnOut;
 		
-		// TODO: Talk action
+		// Talk action
+		double talkOut = brain.output(NBrain.TALK);
+		energy -= TALK_COST*Math.abs(talkOut);
+		talk = TALK_STRENGTH*talkOut;
 	}
 	
 	public void internalSenses() {
@@ -190,6 +213,22 @@ public class NOrganism {
 		
 		// Turn sense
 		brain.input(NBrain.TURN_IN, TURN_SENSE*(dir.x*acc.y - dir.y*acc.x) );
+		
+		// Update listen
+		brain.input(NBrain.LISTEN, listen - lastListen);
+		lastListen = listen;
+		listen = 0;
+	}
+	
+	public void listenTo(NOrganism o) {
+		double dx = pos.x - o.pos.x;
+		double dy = pos.y - o.pos.y;
+		double dist = Math.hypot(dx, dy);
+		
+		if(dist > LISTEN_RANGE)
+			return;
+		
+		listen += LISTEN_SENSE*o.talk/(dist + 1/MAX_TALK);
 	}
 	
 	// DEBUGGING

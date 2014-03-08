@@ -20,8 +20,8 @@ public class NBrain {
 	public static final int LISTEN = 3;
 	
 	// Energy constants
-	public static final double NEURON_ENERGY = 0.0001; // Upkeep per neuron.
-	public static final double FIRING_ENERGY = 0.0001; // Energy to fire each neuron.
+	public static final double NEURON_ENERGY = 0.00001; // Upkeep per neuron.
+	public static final double FIRING_ENERGY = 0.00001; // Energy to fire each neuron.
 	
 	// Weight matrix and input and output vectors.
 	private int neurons;
