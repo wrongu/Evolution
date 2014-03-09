@@ -61,6 +61,12 @@ public class Environment implements IDrawable, IDrawableGL {
 		mousex = mouse_in[0];
 		mousey = mouse_in[1];
 		
+		// Add in new organisms.
+		for(NOrganism o : offspring) {
+			grid.add(o);
+		}
+		offspring.clear();
+		
 		dt /= 100.0;
 		for(Square s : grid){
 			for(NOrganism o : s) {
