@@ -42,6 +42,10 @@ public class Organism implements IDrawable, IDrawableGL {
 		theEnvironment = e;
 	}
 	
+	public void feed(double food_energy){
+		this.energy += food_energy;
+	}
+	
 	public void initStructure(){
 		brain = new Brain(senses, muscles);
 		for(int i=0; i<5; i++) {
