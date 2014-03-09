@@ -12,6 +12,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import environment.Environment;
+import environment.TestEnvironment;
 
 import javax.swing.JPanel;
 
@@ -59,8 +60,10 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 
 		public void run(){
 			while(true){
-				if(mouseIsDown) ((Environment) render).mouse_move(mx, my);
-				if(spaceIsDown) ((Environment) render).space_press(spaceIsDown);
+				if(render instanceof TestEnvironment){
+					if(mouseIsDown) ((TestEnvironment) render).mouse_move(mx, my);
+					if(spaceIsDown) ((TestEnvironment) render).space_press(spaceIsDown);
+				}
 				repaint();
 			}
 		}
@@ -95,8 +98,8 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	public void keyReleased(KeyEvent arg0) {
-		if(arg0.getKeyCode() == KeyEvent.VK_SPACE)
-			((Environment) render).space_press(false);
+		if(arg0.getKeyCode() == KeyEvent.VK_SPACE && render instanceof TestEnvironment)
+			((TestEnvironment) render).space_press(false);
 	}
 	
 	public void keyTyped(KeyEvent arg0) {}

@@ -113,20 +113,6 @@ public class Organism implements IDrawable, IDrawableGL {
 		for(Muscle m : add) muscles.add(m);
 	}
 
-	public void contain(Environment environment) {
-		double[] bounds = environment.getBounds();
-		for(PointMass pm : pointmasses){
-			if(pm.getX() < bounds[0])
-				pm.addForce(2*Environment.GRAVITY, 0);
-			if(pm.getX() > bounds[2])
-				pm.addForce(-2*Environment.GRAVITY, 0);
-			if(pm.getY() < bounds[1])
-				pm.addForce(0, 2*Environment.GRAVITY);
-			if(pm.getY() > bounds[3])
-				pm.addForce(0, -2*Environment.GRAVITY);
-		}
-	}
-
 	public List<PointMass> getPoints() {
 		return pointmasses;
 	}

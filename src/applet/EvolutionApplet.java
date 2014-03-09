@@ -3,7 +3,7 @@ import java.awt.Canvas;
 import java.awt.Dimension;
 import java.nio.FloatBuffer;
 
-import environment.Environment;
+import environment.TestEnvironment;
 import graphics.opengl.RenderGL;
 
 import javax.swing.JApplet;
@@ -23,7 +23,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	public static final int MAX_FPS = 60;
 	public static final long TICK_MS = 100;
 	
-	private Environment env;
+	private TestEnvironment env;
 	private Canvas canvas;
 	// input stuff
 	/** four booleans indicating "isDown()" state of up, down, left, and right respectively */
@@ -60,7 +60,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	
 	public void run(){
 		// initialize everything
-		env = new Environment(APPLET_WIDTH, APPLET_HEIGHT, 0);
+		env = new TestEnvironment(0L);
 		env.bindInput(mouse_buttons, mouse_move);
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
