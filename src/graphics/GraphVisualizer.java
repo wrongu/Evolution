@@ -7,7 +7,7 @@ import java.awt.Rectangle;
 
 import org.jblas.DoubleMatrix;
 
-public class Visualizer {
+public class GraphVisualizer {
 
 	public static double EASE_SPRING = 10000D; 
 	public static int point_half_width = 5;

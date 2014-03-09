@@ -33,11 +33,11 @@ public class DrawGraph implements IDrawable {
 			mat.put(i1, i2, Math.random() / 4);
 		}
 		System.out.println(mat);
-		Visualizer.PRIMARY_COLOR = Color.WHITE;
+		GraphVisualizer.PRIMARY_COLOR = Color.WHITE;
 	}
 
 	public void draw(Graphics2D g, int shiftx, int shifty, double scalex, double scaley) {
-		Visualizer.drawGraphSpring((Graphics2D) g, mat, new Rectangle(10+shiftx, 10+shifty,
+		GraphVisualizer.drawGraphSpring((Graphics2D) g, mat, new Rectangle(10+shiftx, 10+shifty,
 				(int) (300 * scalex), (int) (400 * scaley)));
 	}
 }
