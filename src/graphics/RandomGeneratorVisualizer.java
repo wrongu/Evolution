@@ -12,8 +12,8 @@ import javax.swing.JPanel;
 import environment.generators.IGenerator;
 
 public class RandomGeneratorVisualizer {
-	public static void display(IGenerator g, int size){
-		JFrame window = new JFrame("Debug Generator");
+	public static void display(IGenerator g, int size, int oct){
+		JFrame window = new JFrame("Debugging RNG with "+oct+" octaves");
 		window.setSize(size, size);
 		JPanel p = new PixelRenderPanel(g, size, size);
 		window.add(p);
@@ -38,11 +38,17 @@ public class RandomGeneratorVisualizer {
 		public void paintComponent(Graphics g){
 			super.paintComponent(g);
 			BufferedImage img = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
+			Color failcolor = Color.red;
 			for(int x=0; x<this.width; x++){
 				for(int y=0; y<this.height; y++){
 					float val = (float) this.gen.terrainValue(x, y);
-					Color c = new Color(val, val, val);
-					img.setRGB(x, y, c.getRGB());
+					try{
+						Color c = new Color(val, val, val);
+						img.setRGB(x, y, c.getRGB());
+					} catch (Exception e){
+						System.out.println("pixel "+x+","+y+" failed with color value "+val);
+						img.setRGB(x, y, failcolor.getRGB());
+					}
 				}
 			}
 			((Graphics2D) g).drawImage(img, null, null);
