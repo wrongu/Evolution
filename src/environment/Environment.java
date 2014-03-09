@@ -20,6 +20,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	public static final int LISTEN_SQUARES = (int)(NOrganism.LISTEN_RANGE/Square.SIZE) + 1;
 	
 	private Grid grid;
+	private LinkedList<NOrganism> offspring;
 	private int currentTick;
 	private int ticksPerRemoveEmpties = 60*5;
 	
@@ -38,6 +39,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	
 	public Environment(int w, int h, long seed){
 		grid = new Grid();
+		offspring = new LinkedList<NOrganism>();
 		width = w;
 		height = h;
 		seedRand = new Random(seed);
@@ -86,15 +88,70 @@ public class Environment implements IDrawable, IDrawableGL {
 		
 		// Perform actions
 		for(Square s : grid) {
-			for(Iterator<NOrganism> i = s.iterator(); i.hasNext(); ) {
-				NOrganism o = i.next();
-				o.reflexiveActions();
+			int i0 = s.getX();
+			int j0 = s.getY();
+			for(Iterator<NOrganism> iter = s.iterator(); iter.hasNext(); ) {
+				NOrganism o = iter.next();
+				o.updateActions();
 				
 				// Bury the dead.
 				if(!o.isAlive()) {
-					i.remove();
+					iter.remove();
 				}
 			}
+			
+			// Attack.
+			for(Iterator<NOrganism> iter = s.iterator(); iter.hasNext(); ) {
+				NOrganism o = iter.next();
+				Square targetSquare;
+				for(int i = -1; i <= 1; i++) {
+					for(int j = -1; j <= 1; j++) {
+						targetSquare = grid.get(i + i0, j + j0);
+						if(targetSquare == null)
+							continue;
+						for(NOrganism p : targetSquare) {
+							if(o != p)
+								o.attack(p);
+						}
+					}
+				}
+			}
+			
+			// Bury the dead.
+			for(Iterator<NOrganism> deathTrain = s.iterator(); deathTrain.hasNext(); ) {
+				NOrganism o = deathTrain.next();
+				if(!o.isAlive()) {
+					deathTrain.remove();
+				}
+			}
+			
+			// Mate
+			NOrganism child;
+			for(Iterator<NOrganism> iter = s.iterator(); iter.hasNext(); ) {
+				NOrganism o = iter.next();
+				Square targetSquare;
+				for(int i = 0; i <= 1; i++) {
+					for(int j = 0; j <= 1; j++) {
+						targetSquare = grid.get(i + i0, j + j0);
+						if(targetSquare == null)
+							continue;
+						for(NOrganism p : targetSquare) {
+							if(o == p)
+								continue;
+							child = o.mateWith(p);
+							if(child == null) 
+								continue;
+							offspring.add(child);
+						}
+					}
+				}
+				
+				// Bury the dead.
+				if(!o.isAlive()) {
+					iter.remove();
+				}
+			}
+			
 		}
 		
 		// Update senses.
@@ -114,14 +171,29 @@ public class Environment implements IDrawable, IDrawableGL {
 							continue;
 						
 						for(NOrganism p : targetSquare) {
-							o.listenTo(p);
+							if(o != p)
+								o.listenTo(p);
+						}
+					}
+				}
+				
+				// Update touch sense.
+				for(int i = -1; i <= 1; i++) {
+					for(int j = -1; j <= 1; j++) {
+						targetSquare = grid.get(i + i0, j + j0);
+						if(targetSquare == null)
+							continue;
+						
+						for(NOrganism p : targetSquare) {
+							if(o != p)
+								o.touching(p);
 						}
 					}
 				}
 			}
 			
 			for(NOrganism o : s) {
-				o.internalSenses();
+				o.updateSenses();
 			}
 		}
 		

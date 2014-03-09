@@ -83,7 +83,7 @@ public class NGene {
 		
 		// Randomly determine how many neurons to add to the new gene.
 		int neuronsToAdd = 0;
-		for(int i = 0; i <= dNeurons; i++) {
+		for(int i = 0; i < dNeurons; i++) {
 			neuronsToAdd += (Math.random() < 0.5) ? 0 : 1;
 		}
 		int neuronsToRemove = dNeurons - neuronsToAdd;
@@ -91,7 +91,10 @@ public class NGene {
 		
 		// Randomly select extra neurons to add.
 		DoubleMatrix keep = markToKeep(neurons, neuronsToRemove, dNeurons);
+//		printMatrix(keep); // DEBUGGING
 		DoubleMatrix gRemovedWeights = g.weights.get(keep);
+//		printMatrix(g.weights);
+//		printMatrix(gRemovedWeights); // DEBUGGING
 		DoubleMatrix gRemovedWeightMut = g.weightMutationRates.get(keep);
 		gRemovedWeights.reshape(NBrain.OUTPUTS + newNeurons, NBrain.INPUTS + newNeurons);
 		gRemovedWeightMut.reshape(NBrain.OUTPUTS + newNeurons, NBrain.INPUTS + newNeurons);

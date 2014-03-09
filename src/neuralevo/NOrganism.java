@@ -17,33 +17,37 @@ import javax.vecmath.Vector2d;
 public class NOrganism {
 	
 	// Physical constants for organisms.
-	public static final double RESISTANCE = 0.05;
-	public static final double NORMAL_RESISTANCE_FACTOR = 0.5;
+	public static final double RESISTANCE = 0.07;
+//	public static final double NORMAL_RESISTANCE_FACTOR = 0.5;
 	public static final double DEFAULT_MASS = 1;
 	public static final double RANGE = 10;
 	public static final double LISTEN_RANGE = 500;
 	public static final double MAX_TALK = 1;
 	
 	// Food and energy constants.
-	public static final double FOOD_ON_DEATH = 10;
+	public static final double FOOD_ON_DEATH = 2;
 	public static final double CONSUMPTION_ROOT = 2; // 2 -> sqrt curve, 3 -> 3rd root curve, so on.
 	public static final double CONSUMPTION_CURVATURE = 1; // larger means more abrupt consumption curve.
-	public static final double ATTACK_COST = 1;
+	public static final double ATTACK_COST = 0.07;
 	public static final double TALK_COST = 0.0001;
 	public static final double THRUST_COST = 0.0005;
 	public static final double TURN_COST = 0.0005;
+	public static final double MATING_ENERGY_MULTIPLIER = 0.75; // Parents give this proportion of energy to offspring.
+	public static final double MATING_COST = 0.5; // Take this proportion from parents to mate (after birth).
 	
 	// Action constants.
-	public static final double THRUST_STRENGTH = 0.1;
+	public static final double THRUST_STRENGTH = 0.05;
 	public static final double TURN_STRENGTH = 0.1;
-	public static final double ATTACK_STRENGTH = 1;
+	public static final double ATTACK_STRENGTH = 0.2;
 	public static final double TALK_STRENGTH = 0.5;
+	public static final double MATING_RATE = 0.1;
 	
 	// Sensory constants.
 	public static final double THRUST_SENSE = 1/THRUST_STRENGTH;
 	public static final double TURN_SENSE = 1/TURN_STRENGTH;
 	public static final double LISTEN_SENSE = 0.5;
 	public static final double ENERGY_SENSE = 1;
+	public static final double TOUCH_SENSE = 0.5;
 	
 	// Computational constants.
 	public static final double EATING_STEP = 0.01; // Smaller = finer, larger = rougher.
@@ -67,6 +71,9 @@ public class NOrganism {
 	private double talk;
 	private double listen;
 	private double lastListen;
+	private double mate;
+	private double touch;
+	private double attack;
 	
 	/**
 	 * Constructor for NOrganism class.
@@ -96,7 +103,7 @@ public class NOrganism {
 		gene = g;
 		brain = new NBrain(g);
 		
-		energy = e;
+		eat(e);
 	}
 	
 	public NOrganism(double x, double y) {
@@ -186,12 +193,11 @@ public class NOrganism {
 	public double getX() { return pos.x; }
 	public double getY() { return pos.y; } 
 	
-	public void reflexiveActions() {
+	public void updateActions() {
 		// Thrust action
 		double thrustOut = brain.output(NBrain.THRUST_OUT);
 		energy -= THRUST_COST*Math.abs(thrustOut);
 		tacc += THRUST_STRENGTH*thrustOut;
-//		addForce(THRUST_STRENGTH*thrustOut*dir.x, THRUST_STRENGTH*thrustOut*dir.y);
 
 		// Turn action
 		double turnOut = brain.output(NBrain.TURN_OUT);
@@ -202,9 +208,18 @@ public class NOrganism {
 		double talkOut = brain.output(NBrain.TALK);
 		energy -= TALK_COST*Math.abs(talkOut);
 		talk = TALK_STRENGTH*talkOut;
+		
+		// Set attack value.
+		attack = brain.output(NBrain.ATTACK);
+		attack = attack > 0 ? attack : 0;
+		attack *= ATTACK_STRENGTH;
+		
+		// Set mate value.
+		mate = brain.output(NBrain.MATE);
+		mate = mate < 0 ? 0 : (mate > 1 ? 1 : mate); // Probability cutoff.
 	}
 	
-	public void internalSenses() {
+	public void updateSenses() {
 		// Energy sense
 		brain.input(NBrain.ENERGY, ENERGY_SENSE*energy);
 		
@@ -218,6 +233,38 @@ public class NOrganism {
 		brain.input(NBrain.LISTEN, listen - lastListen);
 		lastListen = listen;
 		listen = 0;
+		
+		// Update touch.
+		brain.input(NBrain.TOUCH, TOUCH_SENSE*touch);
+		touch = 0;
+		
+	}
+	
+	public void touching(NOrganism o) {
+		double dx = pos.x - o.pos.x;
+		double dy = pos.y - o.pos.y;
+		double dist = Math.hypot(dx, dy);
+		
+		if(dist <= RANGE) 
+			touch++;
+	}
+	
+	public void attack(NOrganism o) {
+		// Determine if in range.
+		double dx = pos.x - o.pos.x;
+		double dy = pos.y - o.pos.y;
+		double dist = Math.hypot(dx, dy);
+		
+		if(dist > RANGE) 
+			return;
+		
+		// Attack o.
+		if(o.isAlive()) {
+			o.energy -= attack;
+			if(!o.isAlive()) {
+				eat(FOOD_ON_DEATH);
+			}
+		}
 	}
 	
 	public void listenTo(NOrganism o) {
@@ -229,6 +276,44 @@ public class NOrganism {
 			return;
 		
 		listen += LISTEN_SENSE*o.talk/(dist + 1/MAX_TALK);
+	}
+	
+	public NOrganism mateWith(NOrganism o) {
+		// In range?
+		double dx = pos.x - o.pos.x;
+		double dy = pos.y - o.pos.y;
+		double dist = Math.hypot(dx, dy);
+		
+		if(dist > RANGE)
+			return null;
+		
+		// Mating probability? Does it occur?
+		double prob = MATING_RATE*mate*o.mate;
+		if(Math.random() >= prob) {
+			return null;
+		}
+		
+		// So mating has commenced. Time to charge the mating tax and determine energies.
+		energy -= MATING_COST;
+		o.energy -= MATING_COST;
+		double offspringEnergy = (energy + o.energy)*(1-MATING_ENERGY_MULTIPLIER);
+		energy *= (MATING_ENERGY_MULTIPLIER);
+		o.energy *= (MATING_ENERGY_MULTIPLIER);
+		
+		// Time to create some life.
+		NGene offspringGene = gene.cross(o.gene);
+		offspringGene.mutate();
+		// Initial position.
+		Vector2d initPos = new Vector2d(pos);
+		initPos.add(o.pos);
+		initPos.scale(0.5);
+		// Initial velocity.
+		Vector2d initVel = new Vector2d(vel);
+		initVel.add(o.vel);
+		initVel.scale(0.5);
+		NOrganism offspring = new NOrganism(offspringGene, offspringEnergy,initPos, initVel);
+		
+		return offspring;
 	}
 	
 	// DEBUGGING

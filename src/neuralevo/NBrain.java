@@ -13,11 +13,12 @@ public class NBrain {
 	public static final int TALK = 4;
 	
 	// Inputs indices
-	public static final int INPUTS = 4;
+	public static final int INPUTS = 5;
 	public static final int THRUST_IN = 0;
 	public static final int TURN_IN = 1;
 	public static final int ENERGY = 2;
 	public static final int LISTEN = 3;
+	public static final int TOUCH = 4;
 	
 	// Energy constants
 	public static final double NEURON_ENERGY = 0.00001; // Upkeep per neuron.
