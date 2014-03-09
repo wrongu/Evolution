@@ -46,7 +46,7 @@ public class Environment implements IDrawable, IDrawableGL {
 		
 		// NOrganism tests.
 		for(int i = 0; i < 200; i++)
-			grid.add(new NOrganism(2*(Math.random() - 0.5)*width, 2*(Math.random()-0.5)*height));
+			grid.add(new NOrganism((Math.random() - 0.5)*width, (Math.random()-0.5)*height));
 			//grid.add(new NOrganism());
 		
 		// DEBUGGING
@@ -68,15 +68,15 @@ public class Environment implements IDrawable, IDrawableGL {
 		offspring.clear();
 		
 		dt /= 100.0;
-		for(Square s : grid){
-			for(NOrganism o : s) {
-				if(mouse_buttons[0] != 0) {
-					double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
-					o.addForce(MOUSE_CONSTANT*(mousex - o.getX()) / dist, MOUSE_CONSTANT*(mousey - o.getY())/ dist);
-					//System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
-				}
-			}
-		}
+//		for(Square s : grid){
+//			for(NOrganism o : s) {
+//				if(mouse_buttons[0] != 0) {
+//					double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
+//					o.addForce(MOUSE_CONSTANT*(mousex - o.getX()) / dist, MOUSE_CONSTANT*(mousey - o.getY())/ dist);
+//					//System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
+//				}
+//			}
+//		}
 		
 		// Tick brains.
 		for(Square s : grid) {

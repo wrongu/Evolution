@@ -23,9 +23,11 @@ public class NOrganism {
 	public static final double RANGE = 10;
 	public static final double LISTEN_RANGE = 500;
 	public static final double MAX_TALK = 1;
+	public static final double MAX_SPEED = 10;
+	public static final double MAX_TURN = 5;
 	
 	// Food and energy constants.
-	public static final double FOOD_ON_DEATH = 2;
+	public static final double FOOD_ON_DEATH = 0.7;
 	public static final double CONSUMPTION_ROOT = 2; // 2 -> sqrt curve, 3 -> 3rd root curve, so on.
 	public static final double CONSUMPTION_CURVATURE = 1; // larger means more abrupt consumption curve.
 	public static final double ATTACK_COST = 0.07;
@@ -33,7 +35,7 @@ public class NOrganism {
 	public static final double THRUST_COST = 0.0005;
 	public static final double TURN_COST = 0.0005;
 	public static final double MATING_ENERGY_MULTIPLIER = 0.75; // Parents give this proportion of energy to offspring.
-	public static final double MATING_COST = 0.5; // Take this proportion from parents to mate (after birth).
+	public static final double MATING_COST = 0.5; // Take this amount of energy from parents to mate.
 	
 	// Action constants.
 	public static final double THRUST_STRENGTH = 0.05;
@@ -43,9 +45,9 @@ public class NOrganism {
 	public static final double MATING_RATE = 0.1;
 	
 	// Sensory constants.
-	public static final double THRUST_SENSE = 1/THRUST_STRENGTH;
-	public static final double TURN_SENSE = 1/TURN_STRENGTH;
-	public static final double LISTEN_SENSE = 0.5;
+	public static final double THRUST_SENSE = 1;
+	public static final double TURN_SENSE = 1;
+	public static final double LISTEN_SENSE = 1;
 	public static final double ENERGY_SENSE = 1;
 	public static final double TOUCH_SENSE = 0.5;
 	
@@ -57,7 +59,7 @@ public class NOrganism {
 	private Vector2d pos;
 	private Vector2d acc;
 	private double tacc;
-	private double nacc;
+//	private double nacc;
 	private double turn;
 	private Vector2d vel;
 	private Vector2d dir;
@@ -74,6 +76,10 @@ public class NOrganism {
 	private double mate;
 	private double touch;
 	private double attack;
+	
+	// Debugging fields.
+	private double debugListen;
+	private double debugTouch;
 	
 	/**
 	 * Constructor for NOrganism class.
@@ -121,6 +127,8 @@ public class NOrganism {
 	public void move(double dt) {
 		
 		tacc -= RESISTANCE*spd/mass;
+		turn = turn > MAX_TURN ? MAX_TURN : turn;
+		turn = turn < -MAX_TURN ? -MAX_TURN : turn;
 		dir.x = dir.x*Math.cos(turn*dt) - dir.y*Math.sin(turn*dt);
 		dir.y = dir.x*Math.sin(turn*dt) + dir.y*Math.cos(turn*dt);
 		spd += tacc*dt;
@@ -128,21 +136,31 @@ public class NOrganism {
 		vel.x = spd*dir.x;
 		vel.y = spd*dir.y;
 		
-		vel.x += acc.x*dt;
-		vel.y += acc.y*dt;
-		pos.x += vel.x*dt;
-		pos.y += vel.y*dt;
-		acc.x = 0;
-		acc.y = 0;
-		tacc = 0;
-		nacc = 0;
-		turn = 0;
+//		vel.x += acc.x*dt;
+//		vel.y += acc.y*dt;
 		
 		spd = vel.length();
 		if(spd > 0) {
 			dir.x = vel.x/spd;
 			dir.y = vel.y/spd;
 		}
+		
+		if(spd > MAX_SPEED) {
+			vel.x = MAX_SPEED*dir.x;
+			vel.y = MAX_SPEED*dir.y;
+		}
+		
+//		if(spd > 10*MAX_SPEED) { // DEBUGGING
+//			printStats();
+//		}
+		
+		pos.x += vel.x*dt;
+		pos.y += vel.y*dt;
+//		acc.x = 0;
+//		acc.y = 0;
+		tacc = 0;
+//		nacc = 0;
+		turn = 0;
 	}
 	
 	public void addForce(double x, double y) {
@@ -224,18 +242,20 @@ public class NOrganism {
 		brain.input(NBrain.ENERGY, ENERGY_SENSE*energy);
 		
 		// Thrust sense
-		brain.input(NBrain.THRUST_IN, THRUST_SENSE*acc.dot(dir));
+		brain.input(NBrain.THRUST_IN, THRUST_SENSE*tacc);
 		
 		// Turn sense
-		brain.input(NBrain.TURN_IN, TURN_SENSE*(dir.x*acc.y - dir.y*acc.x) );
+		brain.input(NBrain.TURN_IN, TURN_SENSE*turn);
 		
 		// Update listen
 		brain.input(NBrain.LISTEN, listen - lastListen);
+		debugListen = listen - lastListen;
 		lastListen = listen;
 		listen = 0;
 		
 		// Update touch.
 		brain.input(NBrain.TOUCH, TOUCH_SENSE*touch);
+		debugTouch = touch;
 		touch = 0;
 		
 	}
@@ -296,7 +316,13 @@ public class NOrganism {
 		// So mating has commenced. Time to charge the mating tax and determine energies.
 		energy -= MATING_COST;
 		o.energy -= MATING_COST;
-		double offspringEnergy = (energy + o.energy)*(1-MATING_ENERGY_MULTIPLIER);
+		if(energy < 0 || o.energy < 0) {
+			return null;
+		}
+		double offspringEnergy = (energy + o.energy)*(1-MATING_ENERGY_MULTIPLIER) - FOOD_ON_DEATH;
+		if(offspringEnergy <= 0){
+			return null;
+		}
 		energy *= (MATING_ENERGY_MULTIPLIER);
 		o.energy *= (MATING_ENERGY_MULTIPLIER);
 		
@@ -321,9 +347,13 @@ public class NOrganism {
 		System.out.format("Energy: %.1f \n", energy);
 		System.out.format("Thrust: %.1f \n", brain.output(NBrain.THRUST_OUT));
 		System.out.format("Turn:   %.1f \n", brain.output(NBrain.TURN_OUT));
+		System.out.format("Attack: %.1f \n", brain.output(NBrain.ATTACK));
+		System.out.format("Touch:  %.1f \n", debugTouch);
+		System.out.format("Listen: %.1f \n", debugListen);
 	}
 	
 	public void printBrain() {
 		brain.print();
 	}
+	
 }
