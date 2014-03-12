@@ -4,8 +4,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>evolution-sim</groupId>
 	<artifactId>Evolution</artifactId>
-	<version>0.0.1</version>
+	<version>0.1.0</version>
 	<packaging>jar</packaging>
+	<properties>
+		<finalName>${project.artifactId}-${project.version}.jar</finalName>
+		<main.class>applet.EvolutionApplet</main.class>
+		<natives>${basedir}/target/natives/</natives>
+		<release.natives>natives/</release.natives>
+	</properties>
 
 	<dependencies>
 		<dependency>
