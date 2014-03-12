@@ -143,12 +143,14 @@ public class MatrixNeuralNet {
 			if(n < i){
 				if(A.get(n) > threshold){
 					I.put(n, action_potential);
+					A.put(n, depolarize);
 				}
 			}
 			// output neurons 'i+1:end' are stored in O
 			else{
 				if(A.get(n) > threshold){
 					O.put(n-i, action_potential);
+					A.put(n, depolarize);
 				}
 			}
 		}
