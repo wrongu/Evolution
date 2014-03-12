@@ -9,15 +9,14 @@ import bio.organisms.brain.Brain;
 
 public abstract class AbstractOrganism {
 
-	protected Gene<AbstractOrganism> gene;
+	protected Gene<? extends AbstractOrganism> gene;
 	protected Brain brain;
 	protected double energy;
 	protected double pos_x;
 	protected double pos_y;
 	protected Environment env;
 	
-	public AbstractOrganism(Environment e, Gene<AbstractOrganism> gene, double init_energy, double x, double y){
-		assert(gene != null);
+	public AbstractOrganism(Environment e, Gene<? extends AbstractOrganism> gene, double init_energy, double x, double y){
 		this.energy = init_energy;
 		this.pos_x = x;
 		this.pos_y = y;

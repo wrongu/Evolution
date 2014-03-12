@@ -38,7 +38,7 @@ public class OrganismFactory {
 		double cx = (bounds[2] + bounds[0]) / 2.0;
 		double cy = (bounds[3] + bounds[1]) / 2.0;
 		
-		PointRodOrganism o = new PointRodOrganism(e);
+		PointRodOrganism o = new PointRodOrganism(e, null);
 		
 		int n;
 

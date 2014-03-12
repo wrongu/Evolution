@@ -1,6 +1,8 @@
 package environment;
 
 import bio.genetics.DigraphGene;
+import bio.genetics.Gene;
+import bio.organisms.AbstractOrganism;
 import bio.organisms.OrganismFactory;
 import bio.organisms.PointRodOrganism;
 
@@ -16,7 +18,7 @@ public class TestEnvironment extends Environment {
 	private boolean spaceIsPressed;
 	
 	// TESTING
-	private DigraphGene testgene;
+	private Gene<PointRodOrganism> testgene;
 	
 	public TestEnvironment(long seed){
 		super(SIZE, SIZE, Topology.TORUS, seed);

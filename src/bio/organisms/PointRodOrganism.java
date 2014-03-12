@@ -12,6 +12,7 @@ import java.awt.Graphics2D;
 import java.util.LinkedList;
 import java.util.List;
 
+import bio.genetics.Gene;
 import bio.organisms.brain.Brain;
 import bio.organisms.brain.ISense;
 
@@ -26,8 +27,8 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 
 	private double radius;
 	
-	public PointRodOrganism(Environment e){
-		super(e, null, 20.0, 0.0, 0.0);
+	public PointRodOrganism(Environment e, Gene<? extends AbstractOrganism> gene){
+		super(e, gene, 20.0, 0.0, 0.0);
 		rods = new LinkedList<Rod>();
 		joints = new LinkedList<Joint>();
 		pointmasses = new LinkedList<PointMass>();

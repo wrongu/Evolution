@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import bio.organisms.AbstractOrganism;
 import bio.organisms.Muscle;
 import bio.organisms.PointRodOrganism;
 
@@ -24,7 +25,7 @@ import environment.physics.Rod;
 import static applet.Util.clamp_radians;
 
 /**
- * A gene for creating organisms by traversing a directed graph. Nodes in the graph correspond to joints in structure,
+ * A gene for creating PointRodOrganisms by traversing a directed graph. Nodes in the graph correspond to joints in structure,
  * and edges correspond to limbs. Edges may be recursively followed to make substructures.
  * 
  * TODO tests (serialization, mutation, f(g) properties)
@@ -351,7 +352,7 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	 */
 	@Override
 	public PointRodOrganism create(double posx, double posy, Environment e) {
-		PointRodOrganism o = new PointRodOrganism(e);
+		PointRodOrganism o = new PointRodOrganism(e, this);
 		// initialize arrays (effectively clearing them)
 		this.all_points = new ArrayList<PointMass>();
 		this.all_rods = new ArrayList<Rod>();
