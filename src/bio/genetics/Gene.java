@@ -3,15 +3,12 @@ package bio.genetics;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Random;
 
 import environment.Environment;
 
-// TODO metadata (for example, let the gene specify its own mutation rate)
 public abstract class Gene<T> {
 	
 	/** The maximum rate of change for mutation rates (+/-) */
@@ -56,8 +53,7 @@ public abstract class Gene<T> {
 	
 	public abstract T create(double posx, double posy, Environment e);
 	
-	public void serialize(OutputStream s) throws IOException {
-		DataOutputStream dest = new DataOutputStream(s);
+	public final void serialize(DataOutputStream dest) throws IOException {
 		// write mutation rates
 		dest.writeInt(this.mutation_rates.size());
 		for(Entry<String, Double> pair : this.mutation_rates.entrySet()){
@@ -67,10 +63,12 @@ public abstract class Gene<T> {
 				dest.writeChar(key.charAt(i));
 			dest.writeDouble(pair.getValue());
 		}
+		this.sub_serialize(dest);
 	}
 	
-	public void deserialize(InputStream in) throws IOException{
-		DataInputStream src = new DataInputStream(in);
+	protected abstract void sub_serialize(DataOutputStream s) throws IOException;
+	
+	public final void deserialize(DataInputStream src) throws IOException{
 		// read mutation rates
 		int n_values = src.readInt();
 		for(int i=0; i<n_values; i++){
@@ -81,5 +79,7 @@ public abstract class Gene<T> {
 			double val = src.readDouble();
 			this.mutation_rates.put(key.toString(), val);
 		}
+		this.sub_deserialize(src);
 	}
+	protected abstract void sub_deserialize(DataInputStream s) throws IOException;
 }

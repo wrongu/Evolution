@@ -472,9 +472,7 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	}
 	
 	@Override
-	public void serialize(OutputStream s) throws IOException {
-		super.serialize(s);
-		DataOutputStream dest = new DataOutputStream(s);
+	public void sub_serialize(DataOutputStream dest) throws IOException {
 		// NOTE that local_uid is never mutated but only used for convenience when
 		// serializing and deserializing.
 		//
@@ -513,9 +511,7 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	}
 	
 	@Override
-	public void deserialize(InputStream in) throws IOException {
-		super.deserialize(in);
-		DataInputStream source = new DataInputStream(in);
+	public void sub_deserialize(DataInputStream source) throws IOException {
 		// parse nodes
 		GraphNode n;
 		int n_nodes = source.readInt();
@@ -597,7 +593,7 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 			dest.createNewFile();
 			FileOutputStream out = new FileOutputStream(dest);
 			System.out.println("-writing gene-");
-			g.serialize(out);
+			g.serialize(new DataOutputStream(out));
 			out.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
