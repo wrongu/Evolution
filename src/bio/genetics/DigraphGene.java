@@ -12,13 +12,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-import physics.Joint;
-import physics.PointMass;
-import physics.Rod;
+import bio.organisms.Muscle;
+import bio.organisms.PointRodOrganism;
+
 
 import environment.Environment;
-import structure.Muscle;
-import structure.Organism;
+import environment.physics.Joint;
+import environment.physics.PointMass;
+import environment.physics.Rod;
 
 import static applet.Util.clamp_radians;
 
@@ -28,7 +29,7 @@ import static applet.Util.clamp_radians;
  * 
  * TODO tests (serialization, mutation, f(g) properties)
  */
-public class DigraphGene extends Gene<Organism> {
+public class DigraphGene extends Gene<PointRodOrganism> {
 	
 	/**
 	 * graph traversal always starts from the same root node (the first node in serialization)
@@ -349,7 +350,8 @@ public class DigraphGene extends Gene<Organism> {
 	 * @param e the environment into which this organism should be added
 	 */
 	@Override
-	public Organism create(double posx, double posy, Environment e) {
+	public PointRodOrganism create(double posx, double posy, Environment e) {
+		PointRodOrganism o = new PointRodOrganism(e);
 		// initialize arrays (effectively clearing them)
 		this.all_points = new ArrayList<PointMass>();
 		this.all_rods = new ArrayList<Rod>();
@@ -363,12 +365,11 @@ public class DigraphGene extends Gene<Organism> {
 			init_pm.initPosition(posx, posy);
 			this.all_points.add(init_pm);
 			// crazy traversal algorithm
-			traverse_helper(this.root);
+			traverse_helper(o, this.root);
 		} else{
 			System.err.println("Attempting to create an empty organism.. creating a single pointmass instead");
 			this.all_points.add(new PointMass(1.0));
 		}
-		Organism o = new Organism(e);
 		o.addAllPointMasses(all_points);
 		o.addAllRods(all_rods);
 		o.addAllJoints(all_joints);
@@ -381,7 +382,7 @@ public class DigraphGene extends Gene<Organism> {
 	 * @param e
 	 * @param parent
 	 */
-	private void instantiateGraphEdge(GraphEdge e, GraphNode parent){
+	private void instantiateGraphEdge(PointRodOrganism o, GraphEdge e, GraphNode parent){
 		// create a rod for this edge with it's first point equal to
 		// where we are coming from
 		Rod r = new Rod(e.rest_low, e.rest_high);
@@ -422,19 +423,19 @@ public class DigraphGene extends Gene<Organism> {
 			this.all_joints.add(j);
 			// if parent is a driven joint, add the muscle
 			if(parent.is_muscle){
-				Muscle m = new Muscle(j, parent.muscle_strength);
+				Muscle m = new Muscle(o, j, parent.muscle_strength);
 				this.all_muscles.add(m);
 			}
 		}
 		
 		// create muscle for this rod if specified
 		if(e.is_muscle){
-			Muscle m = new Muscle(r, e.muscle_strength);
+			Muscle m = new Muscle(o, r, e.muscle_strength);
 			this.all_muscles.add(m);
 		}
 	}
 	
-	private void traverse_helper(GraphNode root){
+	private void traverse_helper(PointRodOrganism o, GraphNode root){
 		boolean recursion_taken = false;
 		// handle non-terminal edges
 		for(GraphEdge e : root.edges_out){
@@ -443,9 +444,9 @@ public class DigraphGene extends Gene<Organism> {
 				// mark another step of dfs traversal
 				e.current_recurse += 1;
 				// create structures
-				this.instantiateGraphEdge(e, root);
+				this.instantiateGraphEdge(o, e, root);
 				// recurse (DFS)
-				this.traverse_helper(e.to);
+				this.traverse_helper(o, e.to);
 				// when traversal is done (i.e. when the above line is finished),
 				// set recursive depth back to 0
 				e.recursionReset();
@@ -458,9 +459,9 @@ public class DigraphGene extends Gene<Organism> {
 					// mark another step of dfs traversal
 					e.current_recurse += 1;
 					// create structures
-					this.instantiateGraphEdge(e, root);
+					this.instantiateGraphEdge(o, e, root);
 					// recurse (DFS)
-					this.traverse_helper(e.to);
+					this.traverse_helper(o, e.to);
 					// when traversal is done (i.e. when the above line is finished),
 					// set recursive depth back to 0
 					e.recursionReset();

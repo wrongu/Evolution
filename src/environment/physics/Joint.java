@@ -1,4 +1,4 @@
-package physics;
+package environment.physics;
 
 import java.awt.Graphics2D;
 

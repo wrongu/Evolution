@@ -1,4 +1,4 @@
-package physics;
+package environment.physics;
 
 import static org.lwjgl.opengl.GL11.GL_LINES;
 import static org.lwjgl.opengl.GL11.glBegin;

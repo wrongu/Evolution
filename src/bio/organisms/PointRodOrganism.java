@@ -1,6 +1,9 @@
-package structure;
+package bio.organisms;
 
 import environment.Environment;
+import environment.physics.Joint;
+import environment.physics.PointMass;
+import environment.physics.Rod;
 import graphics.IDrawable;
 import graphics.RenderPanel;
 import graphics.opengl.IDrawableGL;
@@ -9,39 +12,30 @@ import java.awt.Graphics2D;
 import java.util.LinkedList;
 import java.util.List;
 
-import bio.ann.ISense;
+import bio.organisms.brain.Brain;
+import bio.organisms.brain.ISense;
 
-import physics.Joint;
-import physics.PointMass;
-import physics.Rod;
 
-public class Organism implements IDrawable, IDrawableGL {
+public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDrawableGL {
 	
-	private Brain brain;
 	private List<PointMass> pointmasses;
 	private List<Rod> rods;
 	private List<Joint> joints;
 	private List<Muscle> muscles;
 	private List<ISense> senses;
-	private Environment theEnvironment;
-	
-	private double energy;
-	
-	private double x;
-	private double y;
+
 	private double radius;
 	
-	public Organism(Environment e){
-		energy = 20.0;
+	public PointRodOrganism(Environment e){
+		super(e, null, 20.0, 0.0, 0.0);
 		rods = new LinkedList<Rod>();
 		joints = new LinkedList<Joint>();
 		pointmasses = new LinkedList<PointMass>();
 		muscles = new LinkedList<Muscle>();
 		senses = new LinkedList<ISense>();
-		// brain = new Brain(senses, muscles);
-		theEnvironment = e;
 	}
 	
+	@Override
 	public void feed(double food_energy){
 		this.energy += food_energy;
 	}
@@ -49,32 +43,27 @@ public class Organism implements IDrawable, IDrawableGL {
 	public void initStructure(){
 		brain = new Brain(senses, muscles);
 		for(int i=0; i<5; i++) {
-			physicsUpdate();
+			preUpdatePhysics();
+			updatePhysics(0.1);
 			for( PointMass pm : pointmasses ) {
-				pm.move(theEnvironment,1.0);
+				pm.move(env,1.0);
 			}
 		}
 		for(PointMass pm : pointmasses) pm.clearPhysics();
 	}
 	
-	public void physicsUpdate(){
-		//brain.update();
-		// distribute energy between muscles
-		for(Muscle m : muscles)
-			// TODO this is backwards. muscles should requestEnergy() _before_ the simulation resolves forces
-			energy -= m.act();
-		for(Joint j : joints)
-			j.physicsUpdate(theEnvironment);
-		for(Rod r : rods)
-			r.physicsUpdate(theEnvironment);
+	@Override
+	public void preUpdatePhysics(){
+		for(Muscle m : muscles) m.act(1.0);
+		for(Joint j : joints) j.physicsUpdate(env);
+		for(Rod r : rods) r.physicsUpdate(env);
 	}
 	
-	public void move(double dt) {
+	@Override
+	public void updatePhysics(double dt){
 		// move point-mass-joints, update center-x and center-y coordinates, and average velocity.
-		for(PointMass j : pointmasses){
-			j.move(theEnvironment, dt);
-		}
-		
+		for(PointMass p : pointmasses)
+			p.move(env, dt);
 		updateXYRad();
 	}
 	
@@ -82,7 +71,8 @@ public class Organism implements IDrawable, IDrawableGL {
 		for(PointMass pm : pointmasses)
 			pm.addAcc(fx, fy);
 	}
-
+	
+	@Override
 	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {
 		// TODO - draw brain with size according to brain.estimateSize()?/
 		g.setColor(RenderPanel.ORGANISM_COLOR);
@@ -90,15 +80,10 @@ public class Organism implements IDrawable, IDrawableGL {
 			r.draw(g, sx, sy, scx, scy);
 	}
 
+	@Override
 	public void glDraw() {
 		for(Rod r : rods) r.glDraw();
 		for(PointMass p : pointmasses) p.glDraw();
-	}
-
-	public double requestEnergy(double d) {
-		double e = Math.min(energy, d);
-		energy -= e;
-		return e;
 	}
 	
 	public void addAllPointMasses(List<PointMass> add){
@@ -133,11 +118,13 @@ public class Organism implements IDrawable, IDrawableGL {
 		return this.pointmasses.get(0).getY();
 	}
 
-	public void doCollisions(Organism o) {
+	public void collide(AbstractOrganism other) {
+		if(!(other instanceof PointRodOrganism)) return;
+		PointRodOrganism o = (PointRodOrganism) other;
 
 		// Detect whether or not the organisms are too far apart to collide. Return if yes.
-		double dx = x - o.x;
-		double dy = y - o.y;
+		double dx = pos_x - o.pos_x;
+		double dy = pos_y - o.pos_y;
 		double mindist = radius + o.radius;
 		
 		// d619b346d5f85b6c3c5a71623e9b39d4491f8d86
@@ -168,8 +155,8 @@ public class Organism implements IDrawable, IDrawableGL {
 	}
 	
 	private void updateXYRad() {
-		x = 0;
-		y = 0;
+		double x = 0;
+		double y = 0;
 		radius = 0;
 		for(PointMass pm : pointmasses) {
 			x += pm.getX();

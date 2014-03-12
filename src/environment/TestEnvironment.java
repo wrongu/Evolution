@@ -1,8 +1,8 @@
 package environment;
 
-import structure.Organism;
-import structure.OrganismFactory;
 import bio.genetics.DigraphGene;
+import bio.organisms.OrganismFactory;
+import bio.organisms.PointRodOrganism;
 
 public class TestEnvironment extends Environment {
 	
@@ -34,7 +34,7 @@ public class TestEnvironment extends Environment {
 	public void update(double dt){
 		super.update(dt);
 		
-		for(Organism o : organisms){			
+		for(PointRodOrganism o : organisms){			
 			 if(mouse_buttons[0] != 0) {
 			 	double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
 //			 	o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
@@ -44,9 +44,9 @@ public class TestEnvironment extends Environment {
 			 
 			 try{
 			 if(spaceIsPressed)
-				 o.getFirstMuscle().setStrength(-1);
+				 o.getFirstMuscle().act(0.2);
 			 else
-				 o.getFirstMuscle().setStrength(0.2);
+				 o.getFirstMuscle().act(0.0);
 			 } catch(Exception e){}
 		}
 	}
@@ -69,8 +69,8 @@ public class TestEnvironment extends Environment {
 	// TESTING ONLY
 	public void mutateTestGene(){
 		testgene.mutate(seedRand);
-		Organism cur = this.organisms.get(0);
-		Organism evolved = testgene.create(cur.getX(), cur.getY(), this);
+		PointRodOrganism cur = this.organisms.get(0);
+		PointRodOrganism evolved = testgene.create(cur.getX(), cur.getY(), this);
 		this.organisms.clear();
 		this.organisms.add(evolved);
 		System.out.println("=======================");

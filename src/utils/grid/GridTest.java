@@ -1,7 +1,7 @@
 package utils.grid;
 
 import java.util.HashMap;
-
+// TODO refactor into maven tests directory
 public class GridTest {
 	
 	public static void main(String[] args) {

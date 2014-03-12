@@ -1,4 +1,4 @@
-package physics;
+package environment.physics;
 
 import environment.Environment;
 import graphics.IDrawable;

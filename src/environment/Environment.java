@@ -8,17 +8,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import bio.genetics.DigraphGene;
-
-import structure.Organism;
-import structure.OrganismFactory;
-import sun.awt.SunToolkit.InfiniteLoop;
+import bio.organisms.AbstractOrganism;
+import bio.organisms.PointRodOrganism;
 
 public class Environment implements IDrawable, IDrawableGL {
 
 	public static enum Topology {INFINITE, TORUS, SPHERE};
+	public static final double TIME_STEP = 0.1;
 
-	public List<Organism> organisms;
+	public List<PointRodOrganism> organisms;
 
 	protected Topology topology;
 	protected double width, height;
@@ -34,7 +32,7 @@ public class Environment implements IDrawable, IDrawableGL {
 
 	public Environment(double w, double h, Topology t, long seed){
 		// LinkedList because we only ever loop over them as a group, and we want fast insertion and removal
-		organisms = new LinkedList<Organism>();
+		organisms = new LinkedList<PointRodOrganism>();
 		width = w;
 		height = h;
 		seedRand = new Random(seed);		
@@ -45,30 +43,40 @@ public class Environment implements IDrawable, IDrawableGL {
 	}
 
 	public void update(double dt){
-		for(Organism o : organisms){
-			o.physicsUpdate();
-		}
+		// TODO remove dt entirely?
+		// The environment is no longer pseudo-randomly deterministic if we let dt
+		// depend on computer speeds.
+		dt = TIME_STEP;
+		
+		// first, process inputs and prepare outputs
+		for(AbstractOrganism o : organisms)
+			o.thinkAndAct();
 
-		// TODO faster than o^2 collision checks
+		// second (before real physics update), check for collisions
+		// TODO faster than O(o^2) collision checks
 		for(int i = 0; i < organisms.size(); i++) {
 			for(int j = i+1; j < organisms.size(); j++) {
-				organisms.get(i).doCollisions(organisms.get(j));
+				organisms.get(i).collide(organisms.get(j));
 			}
 		}
-
-		for(Organism o : organisms) {
-			o.move(dt > 1.0 ? 1.0 : dt);
-		}
+		
+		// next, prepare physics updates
+		for(AbstractOrganism o : organisms)
+			o.preUpdatePhysics();
+		
+		// finally, update the physics engine
+		for(AbstractOrganism o : organisms)
+			o.updatePhysics(dt);
 	}
 
 	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {
-		for(Organism o : organisms)
+		for(PointRodOrganism o : organisms)
 			o.draw(g, sx, sy, scx, scy);
 	}
 
 	public void glDraw() {
 		// TODO - draw some sort of background?
-		for(Organism o : organisms)
+		for(PointRodOrganism o : organisms)
 			o.glDraw();
 	}
 

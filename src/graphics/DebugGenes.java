@@ -12,12 +12,13 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
-import physics.PointMass;
+import bio.organisms.OrganismFactory;
+import bio.organisms.PointRodOrganism;
+
 
 import environment.Environment;
+import environment.physics.PointMass;
 
-import structure.Organism;
-import structure.OrganismFactory;
 
 public class DebugGenes extends JPanel {
 
@@ -26,7 +27,7 @@ public class DebugGenes extends JPanel {
 	private OrganismDisplayPanel leftPanel, rightPanel;
 	private ArrayList<OrganismDisplayPanel> childPanels;
 	private Environment dummyEnv;
-	private Organism leftOrg, rightOrg;
+	private PointRodOrganism leftOrg, rightOrg;
 
 	public DebugGenes(){
 		setPreferredSize(new Dimension(800,600));
@@ -45,12 +46,12 @@ public class DebugGenes extends JPanel {
 		
 		add(leftPanel, BorderLayout.WEST);
 		add(rightPanel, BorderLayout.EAST);
-		setChildrenPanel(new ArrayList<Organism>());
+		setChildrenPanel(new ArrayList<PointRodOrganism>());
 	}
 	
-	private void setChildrenPanel(ArrayList<Organism> children){
+	private void setChildrenPanel(ArrayList<PointRodOrganism> children){
 		JPanel southPanel = new JPanel();
-		for(Organism o : children){
+		for(PointRodOrganism o : children){
 			OrganismDisplayPanel odp = new OrganismDisplayPanel(100, 100).setOrganism(o);
 			childPanels.add(odp);
 			southPanel.add(odp);
@@ -62,7 +63,7 @@ public class DebugGenes extends JPanel {
 
 		private static final long serialVersionUID = 1L;
 
-		private Organism o;
+		private PointRodOrganism o;
 		private boolean selected;
 
 		public OrganismDisplayPanel(int w, int h){
@@ -75,7 +76,7 @@ public class DebugGenes extends JPanel {
 			return this;
 		}
 
-		public OrganismDisplayPanel setOrganism(Organism org){
+		public OrganismDisplayPanel setOrganism(PointRodOrganism org){
 			o = org;
 			return this;
 		}

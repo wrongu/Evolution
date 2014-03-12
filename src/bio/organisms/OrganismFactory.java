@@ -1,13 +1,13 @@
-package structure;
+package bio.organisms;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import physics.Joint;
-import physics.PointMass;
-import physics.Rod;
 import bio.genetics.Gene;
 import environment.Environment;
+import environment.physics.Joint;
+import environment.physics.PointMass;
+import environment.physics.Rod;
 
 public class OrganismFactory {
 	
@@ -20,7 +20,7 @@ public class OrganismFactory {
 	public static final int POINT_MASS = 6;
 	public static final int DUMBELL = 7;
 	
-	public static Organism fromGene(Gene<Organism> g, Environment e){
+	public static PointRodOrganism fromGene(Gene<PointRodOrganism> g, Environment e){
 		double[] bounds = e.getBounds();
 		int posx = (int) (e.getRandom().nextDouble()*(bounds[2]-bounds[0]) + bounds[0]);
 		int posy = (int) (e.getRandom().nextDouble()*(bounds[3]-bounds[1]) + bounds[1]);
@@ -28,7 +28,7 @@ public class OrganismFactory {
 	}
 	
 	
-	public static Organism testDummy(int creature, Environment e){
+	public static PointRodOrganism testDummy(int creature, Environment e){
 		double[] bounds = e.getBounds();
 		List<PointMass> pmlist = new LinkedList<PointMass>();
 		List<Rod> rodlist = new LinkedList<Rod>();
@@ -38,7 +38,7 @@ public class OrganismFactory {
 		double cx = (bounds[2] + bounds[0]) / 2.0;
 		double cy = (bounds[3] + bounds[1]) / 2.0;
 		
-		Organism o = new Organism(e);
+		PointRodOrganism o = new PointRodOrganism(e);
 		
 		int n;
 
@@ -101,7 +101,7 @@ public class OrganismFactory {
 			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(1)));
 			rodlist.add(new Rod(50,50, pmlist.get(0), pmlist.get(2)));
 			rodlist.add(new Rod(30,70, pmlist.get(1), pmlist.get(2)));
-			musclelist.add(new Muscle(rodlist.get(2), 2));
+			musclelist.add(new Muscle(o, rodlist.get(2), 1.0));
 			break;
 			
 		case SNAKE_WITH_JOINTS:
@@ -127,7 +127,7 @@ public class OrganismFactory {
 			rodlist.add(new Rod(50, 50, pmlist.get(1), pmlist.get(0)));
 			rodlist.add(new Rod(50, 50, pmlist.get(2), pmlist.get(0)));
 			jointlist.add(new Joint(0.15*Math.PI, 0.9*Math.PI, pmlist.get(0), rodlist.get(0), rodlist.get(1) ));
-			musclelist.add(new Muscle(jointlist.get(0),2));
+			musclelist.add(new Muscle(o, jointlist.get(0), 1.0));
 			break;
 			
 		case POINT_MASS:

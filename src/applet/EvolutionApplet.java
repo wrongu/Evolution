@@ -113,14 +113,6 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		// TESTING - 'M' for mutate
 		if(Keyboard.isKeyDown(Keyboard.KEY_M)) env.mutateTestGene();
 		
-		// DELETE this after we are done moving the jellyfish with the spacebar.
-		try {
-			if(Keyboard.isKeyDown(Keyboard.KEY_SPACE))
-				env.organisms.get(0).getFirstMuscle().setStrength(-2);
-			else
-				env.organisms.get(0).getFirstMuscle().setStrength(1);
-		} catch (Exception e) { }
-		
 		// mouse movement
 		FloatBuffer mouseCoords = renderer.screenToWorldCoordinates(Mouse.getX(), Mouse.getY());
 		mouse_move[0] = (int) mouseCoords.get();

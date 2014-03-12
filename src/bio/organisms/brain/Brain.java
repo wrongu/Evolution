@@ -1,9 +1,9 @@
-package structure;
+package bio.organisms.brain;
 
 import java.util.List;
 
 import bio.ann.ANN;
-import bio.ann.ISense;
+import bio.organisms.Muscle;
 
 
 public class Brain {
@@ -16,13 +16,17 @@ public class Brain {
 		inputs = senses;
 		outputs = muscles;
 	}
-	
-	public void update(){
-		// TODO - read senses, process data, output to muscles
-	}
 
-	public double estimateSize(){
-		// TODO - get a size estimate based on size of neural network?
-		return 10.0;
+	public void tick() {
+		// TODO Auto-generated method stub
+	}
+	
+	public void setInput(int id, double val){
+		// TODO
+	}
+	
+	public double getOutput(int id){
+		// TODO
+		return 0.0;
 	}
 }
