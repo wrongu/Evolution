@@ -2,11 +2,11 @@ package bio.organisms.brain;
 
 import java.util.List;
 
-import bio.ann.MatrixNeuralNet;
+import bio.ann.DumbBrain;
 
 public class Brain {
 	
-	private MatrixNeuralNet network;
+	private DumbBrain network;
 	private List<? extends ISense> inputs;
 	private List<? extends IOutput> actions;
 

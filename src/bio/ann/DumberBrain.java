@@ -16,7 +16,7 @@ import bio.organisms.AbstractOrganism;
 /**
  * @author ewy-man and wrongu
  */
-public class MatrixNeuralNet {
+public class DumberBrain {
 	
 	// Energy constants
 	public static final double NEURON_ENERGY = 0.00001; // Upkeep per neuron.
@@ -31,20 +31,20 @@ public class MatrixNeuralNet {
 	private double threshold, action_potential, depolarize, decay;
 	
 	// A gene for evolution
-	private Gene<MatrixNeuralNet> gene;
+	private Gene<DumberBrain> gene;
 	// The organism who provides us energy
 	private AbstractOrganism meatCase;
 	
-	public static MatrixNeuralNet fromGene(Gene<MatrixNeuralNet> g, AbstractOrganism org){
+	public static DumberBrain fromGene(Gene<DumberBrain> g, AbstractOrganism org){
 		// TODO not all genes interact with the environment.. get rid of args to create()
-		MatrixNeuralNet net = g.create(0, 0, null);
+		DumberBrain net = g.create(0, 0, null);
 		net.gene = g;
 		net.meatCase = org;
 		return net;
 	}
 	
-	public static MatrixNeuralNet newEmpty(int s, int o, AbstractOrganism org){
-		MatrixNeuralNet mnn = new MatrixNeuralNet(0, s, o, 0.1, 1.0, -0.1, 0.5);
+	public static DumberBrain newEmpty(int s, int o, AbstractOrganism org){
+		DumberBrain mnn = new DumberBrain(0, s, o, 0.1, 1.0, -0.1, 0.5);
 		mnn.gene = mnn.new BrainGene();
 		mnn.meatCase = org;
 		return mnn;
@@ -59,7 +59,7 @@ public class MatrixNeuralNet {
 	 * @param ap value of action potential
 	 * @param de value of depolarization
 	 */
-	private MatrixNeuralNet(int i, int s, int o, double th, double ap, double dp, double dc){
+	private DumberBrain(int i, int s, int o, double th, double ap, double dp, double dc){
 		this.i = i;
 		this.o = o;
 		this.s = s;
@@ -167,7 +167,7 @@ public class MatrixNeuralNet {
 		System.out.println(W.toString("%.1f"));
 	}
 	
-	private class BrainGene extends Gene<MatrixNeuralNet>{
+	private class BrainGene extends Gene<DumberBrain>{
 		
 		private static final String ADD_NEURON = "add";
 		private static final String DEL_NEURON = "del";
@@ -186,13 +186,13 @@ public class MatrixNeuralNet {
 		}
 		
 		@Override
-		public Gene<MatrixNeuralNet> mutate(Random r) {
+		public Gene<DumberBrain> mutate(Random r) {
 			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
-		public MatrixNeuralNet create(double posx, double posy, Environment e) {
+		public DumberBrain create(double posx, double posy, Environment e) {
 			// TODO Auto-generated method stub
 			return null;
 		}
