@@ -8,13 +8,13 @@ public class PerlinGenerator implements IGenerator {
 	private long seed;
 	/** layers of generation, each half resolution of the last */
 	private int octaves;
-	/** how large 1 unit of noise is in world-coordinates (i.e. size of grid) */
+	/** how large the largest grid unit is. The 2nd octave is half as large, 3rd is 1/4 as large, etc.. */
 	private double scale;
 
 	/**
 	 * 
 	 * @param octaves layers of generation, each half resolution of the last
-	 * @param scale how large 1 unit of noise is in world-coordinates (i.e. size of grid)
+	 * @param scale how large the largest grid unit is. The 2nd octave is half as large, 3rd is 1/4 as large, etc..
 	 * @param s the seed used for random number generation
 	 */
 	public PerlinGenerator(int octaves, double scale, long s){
@@ -55,7 +55,8 @@ public class PerlinGenerator implements IGenerator {
 			double amplitude = 1. / ((double) octave_factor);
 			max += amplitude;
 			// convert coordinates to the worldspace of the RNG
-			double cell_width = this.scale * octave_factor;
+			// (scale gets finer as octaves go up)
+			double cell_width = this.scale / octave_factor;
 			// get nearest (floor) x and y grid positions.
 			// note that the modular division makes the topology toroidal (repeats in both x and y)
 			int xlo = ((int) Math.floor(x / cell_width));
@@ -82,7 +83,7 @@ public class PerlinGenerator implements IGenerator {
 
 	public static void main(String[] args){
 		// TESTING / VISUALIZING
-		int oct = 20;
+		int oct = 8;
 		PerlinGenerator gen = new PerlinGenerator(oct, 30., 0L);
 		RandomGeneratorVisualizer.display(gen, 300, oct);
 	}
