@@ -12,7 +12,6 @@ public class Muscle extends IOutput{
 	
 	/** each muscle acts to drive a structural element (A Rod or a Joint) */
 	private Structure struct;
-	private double multiplier;
 //	private Structure[] dependents;
 	
 	public Muscle(AbstractOrganism o, Structure s, double strength){

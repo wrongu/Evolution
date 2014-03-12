@@ -55,7 +55,11 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 	
 	@Override
 	public void preUpdatePhysics(){
-		for(Muscle m : muscles) m.act(1.0);
+		// muscles act
+		for(int i=0; i < muscles.size(); i++){
+			if(brain != null)
+				muscles.get(i).act(brain.getOutput(i));
+		}
 		for(Joint j : joints) j.physicsUpdate(env);
 		for(Rod r : rods) r.physicsUpdate(env);
 	}

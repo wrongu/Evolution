@@ -33,7 +33,8 @@ public abstract class AbstractOrganism {
 	 * 
 	 */
 	public final void thinkAndAct(){
-		this.brain.tick();
+		if(this.brain != null)
+			this.brain.tick();
 	}
 	
 	/**
