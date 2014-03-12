@@ -6,13 +6,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-import bio.organisms.AbstractOrganism;
 import bio.organisms.Muscle;
 import bio.organisms.PointRodOrganism;
 
@@ -29,6 +26,7 @@ import static applet.Util.clamp_radians;
  * and edges correspond to limbs. Edges may be recursively followed to make substructures.
  * 
  * TODO tests (serialization, mutation, f(g) properties)
+ * TODO move this to a private class within PointRodOrganism
  */
 public class DigraphGene extends Gene<PointRodOrganism> {
 	
@@ -82,12 +80,12 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 		nodes = new HashMap<Integer, GraphNode>();
 		edges = new ArrayList<GraphEdge>();
 		this.initMutables(
-				new String[] {MUT_MASS, MUT_LEN, MUT_ANGLE, 
+				MUT_MASS, MUT_LEN, MUT_ANGLE, 
 				MUT_ADD_JOINT, MUT_REM_JOINT, 
 				MUT_ADD_JOINT_MUSCLE, MUT_REM_JOINT_MUSCLE,
 				MUT_ADD_ROD_MUSCLE, MUT_REM_ROD_MUSCLE, 
 				MUT_ADD_NODE, MUT_REM_NODE, 
-				MUT_ADD_EDGE, MUT_REM_EDGE});
+				MUT_ADD_EDGE, MUT_REM_EDGE);
 	}
 
 	/**
