@@ -45,7 +45,7 @@ public class DumbBrain {
 	
 	public static DumbBrain newEmpty(int s, int o, AbstractOrganism org){
 		DumbBrain mnn = new DumbBrain(0, s, o, 0.1, 1.0, -0.1, 0.5);
-		mnn.gene = mnn.new BrainGene();
+		mnn.gene = new BrainGene();
 		mnn.meatCase = org;
 		return mnn;
 	}
@@ -167,7 +167,7 @@ public class DumbBrain {
 		System.out.println(W.toString("%.1f"));
 	}
 	
-	private class BrainGene extends Gene<DumbBrain>{
+	private static class BrainGene extends Gene<DumbBrain>{
 		
 		private static final String ADD_NEURON = "add";
 		private static final String DEL_NEURON = "del";
@@ -179,10 +179,9 @@ public class DumbBrain {
 		public BrainGene(){
 			// registering metamutation parameters means that all their updates and serialization come
 			// for free, courtesy of Gene<T>
-			this.initMutables(
-					ADD_NEURON, DEL_NEURON,
-					ALTER_THRESHOLD, ALTER_POTENTIAL,
-					ALTER_DEPOLARIZE, ALTER_DECAY);
+			super(ADD_NEURON, DEL_NEURON,
+				ALTER_THRESHOLD, ALTER_POTENTIAL,
+				ALTER_DEPOLARIZE, ALTER_DECAY);
 		}
 		
 		@Override
@@ -207,6 +206,18 @@ public class DumbBrain {
 		protected void sub_deserialize(DataInputStream s) throws IOException {
 			// TODO Auto-generated method stub
 			
+		}
+
+		@Override
+		protected Gene<DumbBrain> sub_clone() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		protected Gene<DumbBrain> sub_mutate(Random r) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 		
 	}

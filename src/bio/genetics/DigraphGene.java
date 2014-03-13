@@ -77,15 +77,14 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	private ArrayList<Muscle> all_muscles;
 	
 	public DigraphGene(){
-		nodes = new HashMap<Integer, GraphNode>();
-		edges = new ArrayList<GraphEdge>();
-		this.initMutables(
-				MUT_MASS, MUT_LEN, MUT_ANGLE, 
+		super(MUT_MASS, MUT_LEN, MUT_ANGLE, 
 				MUT_ADD_JOINT, MUT_REM_JOINT, 
 				MUT_ADD_JOINT_MUSCLE, MUT_REM_JOINT_MUSCLE,
 				MUT_ADD_ROD_MUSCLE, MUT_REM_ROD_MUSCLE, 
 				MUT_ADD_NODE, MUT_REM_NODE, 
 				MUT_ADD_EDGE, MUT_REM_EDGE);
+		nodes = new HashMap<Integer, GraphNode>();
+		edges = new ArrayList<GraphEdge>();
 	}
 
 	/**
@@ -227,7 +226,7 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	}
 	
 	@Override
-	public Gene<PointRodOrganism> clone(){
+	public Gene<PointRodOrganism> sub_clone(){
 		// TODO
 		return null;
 	}
