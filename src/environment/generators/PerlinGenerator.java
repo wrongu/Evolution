@@ -10,6 +10,8 @@ public class PerlinGenerator implements IGenerator {
 	private int octaves;
 	/** how large the largest grid unit is. The 2nd octave is half as large, 3rd is 1/4 as large, etc.. */
 	private double scale;
+	/** a function to be applied to the output */
+	private Filter filter;
 
 	/**
 	 * 
@@ -18,16 +20,29 @@ public class PerlinGenerator implements IGenerator {
 	 * @param s the seed used for random number generation
 	 */
 	public PerlinGenerator(int octaves, double scale, long s){
+		this(octaves, scale, s, null);
+	}
+
+	/**
+	 * 
+	 * @param octaves layers of generation, each half resolution of the last
+	 * @param scale how large the largest grid unit is. The 2nd octave is half as large, 3rd is 1/4 as large, etc..
+	 * @param s the seed used for random number generation
+	 * @param filter a filter function applied to the output
+	 */
+	public PerlinGenerator(int octaves, double scale, long s, Filter f){
 		this.octaves = octaves;
 		this.scale = scale;
 		this.seed = s;
+		this.filter = f;
 	}
 
+	
 	public void setSeed(long s) {
 		this.seed = s;
 	}
 
-	private double interp(double a, double b, double bias){
+	private static double interp(double a, double b, double bias){
 		// values are combined with smoothing function 3x^2-2x^3
 		double smooth = bias*bias*(3 - 2*bias);
 		return a + smooth * (b - a);
@@ -78,14 +93,28 @@ public class PerlinGenerator implements IGenerator {
 			value += amplitude * interpolated;
 		}
 		// map from [-max, max] to [0,1]
-		return (value + max) / (2*max);
+		double zero_to_one = (value + max) / (2*max);
+		if(this.filter != null)
+			return this.filter.applyFilter(zero_to_one);
+		else
+			return zero_to_one;
 	}
 
 	public static void main(String[] args){
 		// TESTING / VISUALIZING
 		int oct = 8;
-		PerlinGenerator gen = new PerlinGenerator(oct, 30., 0L);
+		PerlinGenerator gen = new PerlinGenerator(oct, 30., 0L, new Filter(){
+			@Override
+			public double applyFilter(double val) {
+//				return val;
+				return PerlinGenerator.interp(0,1,val);
+			}
+		});
 		RandomGeneratorVisualizer.display(gen, 300, oct);
 	}
-
+	
+	public static abstract class Filter{
+		/** given a value in [0, 1], return a value between [0,1] (presumably with some transformation applied) */
+		public abstract double applyFilter(double val);
+	}
 }
