@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
@@ -18,19 +19,22 @@ public abstract class Gene<T> {
 	 * the meta mutation-rate */
 	private HashMap<String, Double> mutation_rates;
 	
-	protected Gene(){
+	protected Gene(String ... keys){
 		this.mutation_rates = new HashMap<String, Double>();
-	}
-	
-	protected final void initMutable(String k){
-		this.mutation_rates.put(k,  0.0);
-	}
-	
-	protected final void initMutables(String ... keys){
 		for(String k: keys){
-			this.initMutable(k);
+			this.mutation_rates.put(k, 0.0);
 		}
 	}
+	
+	public final Gene<T> clone(){
+		Gene<T> sub_clone = this.sub_clone();
+		for(Map.Entry<String, Double> e : this.mutation_rates.entrySet()){
+			sub_clone.mutation_rates.put(e.getKey(), e.getValue());
+		}
+		return sub_clone;
+	}
+	
+	protected abstract Gene<T> sub_clone();
 	
 	protected final double mutationRate(String k){
 		if(this.mutation_rates.containsKey(k))
@@ -38,7 +42,7 @@ public abstract class Gene<T> {
 		else return 0.0;
 	}
 	
-	protected final void metaMutate(Random r){
+	private final void metaMutate(Random r){
 		for(Entry<String, Double> pair : mutation_rates.entrySet()){
 			double val = pair.getValue();
 			val += (r.nextDouble() * 2.0 - 1.0) * META_MUTATION;
@@ -47,10 +51,20 @@ public abstract class Gene<T> {
 		}
 	}
 	
+	/**
+	 * Mutates and returns a *copy* of this gene
+	 */
+	public Gene<T> mutate(Random r){
+		Gene<T> child = this.clone();
+		child.metaMutate(r);
+		child.sub_mutate(r);
+		return child;
+	}
+	
 	/** make a copy and alter its parameters randomly
 	 * subclasses should call super.metaMutate() */
 	// TODO the abstract/final trick so that subclasses aren't responsible for super.metaMutate()
-	public abstract Gene<T> mutate(Random r);
+	protected abstract Gene<T> sub_mutate(Random r);
 	
 	public abstract T create(double posx, double posy, Environment e);
 	

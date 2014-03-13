@@ -227,8 +227,13 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	}
 	
 	@Override
-	public DigraphGene mutate(Random r) {
-		super.metaMutate(r);
+	public Gene<PointRodOrganism> clone(){
+		// TODO
+		return null;
+	}
+	
+	@Override
+	public DigraphGene sub_mutate(Random r) {
 		// (maybe) alter existing graph elements
 		for(GraphNode n: this.nodes.values()){
 			if(r.nextDouble() < mutationRate(MUT_MASS)){
@@ -584,7 +589,6 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 		Random r = new Random(12345);
 		System.out.println("-creating empty gene-");
 		DigraphGene g = new DigraphGene();
-		for(int i=0; i<100; i++) g.metaMutate(r);
 		for(int i=0; i<100; i++) g.mutate(r);
 		File dest = new File(System.getProperty("user.home") + File.separator + ".evolutionapp"  + File.separator + "digraphtest.gene");
 		try {
