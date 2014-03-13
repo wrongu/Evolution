@@ -232,7 +232,7 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	}
 	
 	@Override
-	public DigraphGene sub_mutate(Random r) {
+	protected void sub_mutate(Random r) {
 		// (maybe) alter existing graph elements
 		for(GraphNode n: this.nodes.values()){
 			if(r.nextDouble() < mutationRate(MUT_MASS)){
@@ -341,7 +341,6 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 				this.edges.remove(r.nextInt(this.edges.size()));
 			}
 		}
-		return this; // TODO clone
 	}
 	
 	/**

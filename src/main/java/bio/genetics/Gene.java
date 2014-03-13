@@ -64,7 +64,7 @@ public abstract class Gene<T> {
 	/** make a copy and alter its parameters randomly
 	 * subclasses should call super.metaMutate() */
 	// TODO the abstract/final trick so that subclasses aren't responsible for super.metaMutate()
-	protected abstract Gene<T> sub_mutate(Random r);
+	protected abstract void sub_mutate(Random r);
 	
 	public abstract T create(double posx, double posy, Environment e);
 	

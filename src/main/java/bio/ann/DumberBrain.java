@@ -11,12 +11,14 @@ import org.jblas.ranges.RangeUtils;
 import environment.Environment;
 
 import bio.genetics.Gene;
+import bio.genetics.IGeneCarrier;
 import bio.organisms.AbstractOrganism;
 
 /**
  * @author ewy-man and wrongu
+ * TODO currently this is just a duplicate of DumbBrain. simplify it!!
  */
-public class DumberBrain {
+public class DumberBrain implements IGeneCarrier<DumberBrain>{
 	
 	// Energy constants
 	public static final double NEURON_ENERGY = 0.00001; // Upkeep per neuron.
@@ -37,17 +39,14 @@ public class DumberBrain {
 	
 	public static DumberBrain fromGene(Gene<DumberBrain> g, AbstractOrganism org){
 		// TODO not all genes interact with the environment.. get rid of args to create()
-		DumberBrain net = g.create(0, 0, null);
-		net.gene = g;
-		net.meatCase = org;
-		return net;
+		DumberBrain brain = g.create(0, 0, null);
+		brain.gene = g;
+		brain.meatCase = org;
+		return brain;
 	}
 	
 	public static DumberBrain newEmpty(int s, int o, AbstractOrganism org){
-		DumberBrain mnn = new DumberBrain(0, s, o, 0.1, 1.0, -0.1, 0.5);
-		mnn.gene = new BrainGene();
-		mnn.meatCase = org;
-		return mnn;
+		return fromGene(new BrainGene(s, o), org);
 	}
 	
 	/**
@@ -163,6 +162,10 @@ public class DumberBrain {
 		this.meatCase.useEnergy(energy);
 	}
 
+	public DumberBrain beget(Environment e) {
+		return this.gene.mutate(e.getRandom()).create(0, 0, e);
+	}
+
 	public void print() {
 		System.out.println(W.toString("%.1f"));
 	}
@@ -171,53 +174,156 @@ public class DumberBrain {
 		
 		private static final String ADD_NEURON = "add";
 		private static final String DEL_NEURON = "del";
+		private static final String ALTER_CONNECTION = "conn";
 		private static final String ALTER_THRESHOLD = "thresh";
 		private static final String ALTER_POTENTIAL = "pot";
 		private static final String ALTER_DEPOLARIZE = "dep";
 		private static final String ALTER_DECAY = "dec";
-				
-		public BrainGene(){
-			// registering metamutation parameters means that all their updates and serialization come
+
+		// copy of relevant (mutable) values in the DumberBrain
+		private DoubleMatrix W;
+		int i, s, o;
+		private double threshold, action_potential, depolarize, decay;
+		
+		public BrainGene(int s, int o){
+			// registering meta-mutation parameters means that all their updates and serialization come
 			// for free, courtesy of Gene<T>
-			super(ADD_NEURON, DEL_NEURON,
+			super(ADD_NEURON, DEL_NEURON, ALTER_CONNECTION,
 				ALTER_THRESHOLD, ALTER_POTENTIAL,
 				ALTER_DEPOLARIZE, ALTER_DECAY);
+			W = new DoubleMatrix(o, s);
+			this.i = 0;
+			this.s = s;
+			this.o = o;
+			this.action_potential = 1.0;
+			this.depolarize = -0.1;
+			this.decay = 0.6;
+			this.threshold = 0.7;
 		}
 		
-		@Override
-		public Gene<DumberBrain> mutate(Random r) {
-			// TODO Auto-generated method stub
-			return null;
+		private void addNeuron(){
+			this.i++;
+			// create a new matrix that is 1 row and 1 column larger
+			DoubleMatrix expanded = new DoubleMatrix(i+o, i+s);
+			// copy the old matrix into the [1:end] range (leave zeros in the 0th row and column)
+			expanded.put(RangeUtils.interval(1, i+o), RangeUtils.interval(1,i+s), this.W);
+			this.W = expanded;
+		}
+		
+		private void delNeuron(int which){
+			i--;
+			// Make a new matrix to hold the data
+			DoubleMatrix shrink = new DoubleMatrix(i+o, i+s);
+			// Copy in 4 quadrants of data that are split by del_ind
+			shrink.put(
+					RangeUtils.interval(0, which-1),
+					RangeUtils.interval(0, which-1),
+					W.getRange(0, which-1, 0, which-1));
+			shrink.put(
+					RangeUtils.interval(which+1, i+o),
+					RangeUtils.interval(0, which-1),
+					W.getRange(which+1, i+o, 0, which-1));
+			shrink.put(
+					RangeUtils.interval(0, which-1),
+					RangeUtils.interval(which+1, i+s),
+					W.getRange(0, which-1, which+1, i+s));
+			shrink.put(
+					RangeUtils.interval(which+1, i+o),
+					RangeUtils.interval(which+1, i+s),
+					W.getRange(which+1, i+o, which+1, i+s));
+		}
+		
+		private void alterConnection(int fro, int to, double val){
+			W.put(to, fro, val);
 		}
 
 		@Override
 		public DumberBrain create(double posx, double posy, Environment e) {
-			// TODO Auto-generated method stub
-			return null;
+			DumberBrain brain = new DumberBrain(i, s, o, threshold, action_potential, depolarize, decay);
+			brain.W = this.W.dup();
+			return brain;
 		}
 
 		@Override
-		protected void sub_serialize(DataOutputStream s) throws IOException {
-			// TODO Auto-generated method stub
-			
+		protected void sub_serialize(DataOutputStream dest) throws IOException {
+			dest.writeInt(i);
+			dest.writeInt(s);
+			dest.writeInt(o);
+			for(int n = 0; n < W.length; n++)
+				dest.writeDouble(W.get(n));
+			dest.writeDouble(action_potential);
+			dest.writeDouble(threshold);
+			dest.writeDouble(decay);
+			dest.writeDouble(depolarize);
 		}
 
 		@Override
-		protected void sub_deserialize(DataInputStream s) throws IOException {
-			// TODO Auto-generated method stub
-			
+		protected void sub_deserialize(DataInputStream src) throws IOException {
+			i = src.readInt();
+			s = src.readInt();
+			o = src.readInt();
+			W = new DoubleMatrix(i+o, i+s);
+			for(int n = 0; n < W.length; i++)
+				W.put(n, src.readDouble());
+			action_potential = src.readDouble();
+			threshold = src.readDouble();
+			decay = src.readDouble();
+			depolarize = src.readDouble();
 		}
 
 		@Override
 		protected Gene<DumberBrain> sub_clone() {
-			// TODO Auto-generated method stub
-			return null;
+			BrainGene g = new BrainGene(s, o);
+			g.i = this.i;
+			g.W = this.W.dup();
+			g.threshold = this.threshold;
+			g.action_potential = this.action_potential;
+			g.decay = this.decay;
+			g.depolarize = this.depolarize;
+			return g;
 		}
 
 		@Override
-		protected Gene<DumberBrain> sub_mutate(Random r) {
-			// TODO Auto-generated method stub
-			return null;
+		protected void sub_mutate(Random r) {
+			// ADD 0 OR MORE
+			int safe_limit = 0; // it's possible for mutation rates to get up to 1.0.. just in case, don't make an infinite loop!
+			while(r.nextDouble() < mutationRate(ADD_NEURON) && (safe_limit++) < 100){
+				addNeuron();
+			}
+			// REMOVE 0 OR MORE
+			if(r.nextDouble() < mutationRate(DEL_NEURON) && i > 0){
+				// choose a random index to remove, then decrement i
+				int del_ind = r.nextInt(i);
+				delNeuron(del_ind);
+			}
+			// CHANGE CONNECTION
+			for(int fro = 0; fro < i+s; fro++){
+				for(int to = 0; to < i+o; to++){
+					if(r.nextDouble() < mutationRate(ALTER_CONNECTION)){
+						alterConnection(fro, to, r.nextDouble()-r.nextDouble());
+					}
+				}
+			}
+			// CHANGE THRESHOLD
+			if(r.nextDouble() < mutationRate(ALTER_THRESHOLD)){
+				// up to 10% change in either direction
+				threshold *= (1 + (r.nextDouble() - r.nextDouble())*0.1);
+			}
+			// CHANGE DEPOLARIZATION
+			if(r.nextDouble() < mutationRate(ALTER_DEPOLARIZE)){
+				// up to 10% change in either direction
+				depolarize *= (1 + (r.nextDouble() - r.nextDouble())*0.1);
+			}
+			// CHANGE ACTION POTENTIAL
+			if(r.nextDouble() < mutationRate(ALTER_POTENTIAL)){
+				// up to 10% change in either direction
+				action_potential *= (1 + (r.nextDouble() - r.nextDouble())*0.1);
+			}
+			// CHANGE DECAY RATE
+			if(r.nextDouble() < mutationRate(ALTER_DECAY)){
+				// up to 10% change in either direction
+				decay *= (1 + (r.nextDouble() - r.nextDouble())*0.1);
+			}
 		}
 		
 	}

@@ -183,5 +183,9 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 		}
 		radius += 10;
 	}
+
+	public AbstractOrganism beget(Environment e) {
+		return this.gene.mutate(e.getRandom()).create(pos_x, pos_y, e);
+	}
 	
 }

@@ -5,9 +5,10 @@ import java.awt.Graphics2D;
 import environment.Environment;
 
 import bio.genetics.Gene;
+import bio.genetics.IGeneCarrier;
 import bio.organisms.brain.Brain;
 
-public abstract class AbstractOrganism {
+public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>{
 
 	protected Gene<? extends AbstractOrganism> gene;
 	protected Brain brain;
