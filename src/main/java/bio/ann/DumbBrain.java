@@ -11,13 +11,13 @@ import org.jblas.ranges.RangeUtils;
 import environment.Environment;
 
 import bio.genetics.Gene;
-import bio.genetics.IGeneCarrier;
 import bio.organisms.AbstractOrganism;
+import bio.organisms.brain.IBrain;
 
 /**
  * @author ewy-man and wrongu
  */
-public class DumbBrain implements IGeneCarrier<DumbBrain>{
+public class DumbBrain implements IBrain {
 	
 	// Energy constants
 	public static final double NEURON_ENERGY = 0.00001; // Upkeep per neuron.
@@ -161,8 +161,12 @@ public class DumbBrain implements IGeneCarrier<DumbBrain>{
 		this.meatCase.useEnergy(energy);
 	}
 
-	public DumbBrain beget(Environment e) {
+	public IBrain beget(Environment e) {
 		return this.gene.mutate(e.getRandom()).create(0, 0, e);
+	}
+
+	public Gene<? extends IBrain> getGene() {
+		return gene;
 	}
 
 	public void print() {

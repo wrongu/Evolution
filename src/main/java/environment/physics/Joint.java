@@ -117,7 +117,7 @@ public class Joint extends Structure {
 		return new double[]{B.getX() - A.getX(), B.getY() - A.getY()};
 	}
 
-	public void draw(Graphics2D g, int shift, int shifty, double scalex, double scaley) {
+	public void draw(Graphics2D g, float shift, float shifty, float scalex, float scaley) {
 		// currently, joints are not rendered as anything
 	}
 	

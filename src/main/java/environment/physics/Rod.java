@@ -39,7 +39,7 @@ public class Rod extends Structure {
 		points = new PointMass[]{pm0, pm1};
 	}
 
-	public void draw(Graphics2D g, int shiftx, int shifty, double scalex, double scaley) {
+	public void draw(Graphics2D g, float shiftx, float shifty, float scalex, float scaley) {
 		PointMass j1 = points[0];
 		PointMass j2 = points[1];
 		if(!(j1 == null | j2 == null)){

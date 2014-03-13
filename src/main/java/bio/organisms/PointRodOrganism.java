@@ -4,26 +4,20 @@ import environment.Environment;
 import environment.physics.Joint;
 import environment.physics.PointMass;
 import environment.physics.Rod;
-import graphics.IDrawable;
 import graphics.RenderPanel;
-import graphics.opengl.IDrawableGL;
 
 import java.awt.Graphics2D;
 import java.util.LinkedList;
 import java.util.List;
 
 import bio.genetics.Gene;
-import bio.organisms.brain.Brain;
-import bio.organisms.brain.ISense;
+import bio.ann.DumbBrain;
 
-
-public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDrawableGL {
+public class PointRodOrganism extends AbstractOrganism {
 	
 	private List<PointMass> pointmasses;
 	private List<Rod> rods;
 	private List<Joint> joints;
-	private List<Muscle> muscles;
-	private List<ISense> senses;
 
 	private double radius;
 	
@@ -32,8 +26,8 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 		rods = new LinkedList<Rod>();
 		joints = new LinkedList<Joint>();
 		pointmasses = new LinkedList<PointMass>();
-		muscles = new LinkedList<Muscle>();
-		senses = new LinkedList<ISense>();
+		// TODO brain should know about # muscles... but muscles aren't added until later?
+		brain = DumbBrain.newEmpty(senses.size(), outputs.size(), this);
 	}
 	
 	@Override
@@ -42,7 +36,6 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 	}
 	
 	public void initStructure(){
-		brain = new Brain(senses, muscles);
 		for(int i=0; i<5; i++) {
 			preUpdatePhysics();
 			updatePhysics(0.1);
@@ -56,9 +49,9 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 	@Override
 	public void preUpdatePhysics(){
 		// muscles act
-		for(int i=0; i < muscles.size(); i++){
+		for(int i=0; i < outputs.size(); i++){
 			if(brain != null)
-				muscles.get(i).act(brain.getOutput(i));
+				outputs.get(i).act(brain.getOutput(i));
 		}
 		for(Joint j : joints) j.physicsUpdate(env);
 		for(Rod r : rods) r.physicsUpdate(env);
@@ -78,8 +71,8 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 	}
 	
 	@Override
-	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {
-		// TODO - draw brain with size according to brain.estimateSize()?/
+	public void draw(Graphics2D g, float sx, float sy, float scx, float scy) {
+		// TODO - draw brain ?
 		g.setColor(RenderPanel.ORGANISM_COLOR);
 		for(Rod r : rods)
 			r.draw(g, sx, sy, scx, scy);
@@ -104,7 +97,7 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 	}
 	
 	public void addAllMuscles(List<Muscle> add){
-		for(Muscle m : add) muscles.add(m);
+		for(Muscle m : add) outputs.add(m);
 	}
 
 	public List<PointMass> getPoints() {
@@ -113,7 +106,7 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 	
 	// This method for DEBUGGING PURPOSES ONLY!
 	public Muscle getFirstMuscle() {
-		if(muscles.size() > 0) return muscles.get(0);
+		if(outputs.size() > 0) return (Muscle) outputs.get(0);
 		else return null;
 	}
 	public double getX(){
@@ -185,7 +178,9 @@ public class PointRodOrganism extends AbstractOrganism implements IDrawable, IDr
 	}
 
 	public AbstractOrganism beget(Environment e) {
-		return this.gene.mutate(e.getRandom()).create(pos_x, pos_y, e);
+		PointRodOrganism child = (PointRodOrganism) this.gene.mutate(e.getRandom()).create(pos_x, pos_y, e);
+		child.brain = this.brain.beget(e);
+		return child;
 	}
 	
 }

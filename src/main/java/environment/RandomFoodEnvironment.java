@@ -1,6 +1,6 @@
 package environment;
 
-import bio.organisms.PointRodOrganism;
+import bio.organisms.AbstractOrganism;
 import environment.generators.IGenerator;
 import environment.generators.PerlinGenerator;
 
@@ -25,7 +25,7 @@ public class RandomFoodEnvironment extends Environment {
 	public void update(double dt){
 		super.update(dt);
 		
-		for(PointRodOrganism o : this.organisms){
+		for(AbstractOrganism o : this.organisms){
 			double base_value = this.generator.terrainValue(o.getX(), o.getY());
 			// TODO - is food continuous or is it randomly all-or-nothing?
 			double food = this.seedRand.nextDouble() < base_value ? food_energy : 0.0;

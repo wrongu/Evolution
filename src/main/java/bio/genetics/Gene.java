@@ -27,11 +27,11 @@ public abstract class Gene<T> {
 	}
 	
 	public final Gene<T> clone(){
-		Gene<T> sub_clone = this.sub_clone();
+//		Gene<T> this = this.sub_clone();
 		for(Map.Entry<String, Double> e : this.mutation_rates.entrySet()){
-			sub_clone.mutation_rates.put(e.getKey(), e.getValue());
+			this.mutation_rates.put(e.getKey(), e.getValue());
 		}
-		return sub_clone;
+		return this;
 	}
 	
 	protected abstract Gene<T> sub_clone();

@@ -11,7 +11,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import environment.Environment;
 import environment.TestEnvironment;
 
 import javax.swing.JPanel;
@@ -46,7 +45,7 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 	public void paintComponent(Graphics g){
 		background(g);
 		g.setColor(Color.WHITE);
-		render.draw((Graphics2D) g, 0, 0, 1.0, 1.0);
+		render.draw((Graphics2D) g, 0f, 0f, 1f, 1f);
 	}
 
 	private void background(Graphics g){

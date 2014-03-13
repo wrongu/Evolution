@@ -36,8 +36,8 @@ public class DrawGraph implements IDrawable {
 		GraphVisualizer.PRIMARY_COLOR = Color.WHITE;
 	}
 
-	public void draw(Graphics2D g, int shiftx, int shifty, double scalex, double scaley) {
-		GraphVisualizer.drawGraphSpring((Graphics2D) g, mat, new Rectangle(10+shiftx, 10+shifty,
+	public void draw(Graphics2D g, float shiftx, float shifty, float scalex, float scaley) {
+		GraphVisualizer.drawGraphSpring((Graphics2D) g, mat, new Rectangle(10+(int)shiftx, 10+(int)shifty,
 				(int) (300 * scalex), (int) (400 * scaley)));
 	}
 }

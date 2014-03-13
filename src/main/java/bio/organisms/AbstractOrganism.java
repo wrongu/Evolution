@@ -1,17 +1,23 @@
 package bio.organisms;
 
 import java.awt.Graphics2D;
+import java.util.ArrayList;
+import java.util.List;
 
 import environment.Environment;
 
 import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
-import bio.organisms.brain.Brain;
+import bio.organisms.brain.IBrain;
+import bio.organisms.brain.IOutput;
+import bio.organisms.brain.ISense;
 
 public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>{
 
 	protected Gene<? extends AbstractOrganism> gene;
-	protected Brain brain;
+	protected IBrain brain;
+	protected List<ISense> senses;
+	protected List<IOutput> outputs;
 	protected double energy;
 	protected double pos_x;
 	protected double pos_y;
@@ -23,6 +29,8 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>
 		this.pos_y = y;
 		this.gene = gene;
 		this.env = e;
+		senses = new ArrayList<ISense>();
+		outputs = new ArrayList<IOutput>();
 	}
 	
 	public void feed(double food_energy){
@@ -34,8 +42,16 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>
 	 * 
 	 */
 	public final void thinkAndAct(){
-		if(this.brain != null)
+		if(this.brain != null){
+			// set inputs
+			for(int s = 0; s < this.senses.size(); s++)
+				this.brain.setInput(s, this.senses.get(s).doSense(env, this));
+			// compute next state
 			this.brain.tick();
+			// set outputs
+			for(int o = 0; o < this.outputs.size(); o++)
+				this.outputs.get(o).act(this.brain.getOutput(o));
+		}
 	}
 	
 	/**
@@ -63,7 +79,7 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>
 	 * @param scx x scale
 	 * @param scy y scale
 	 */
-	public void draw(Graphics2D g, int sx, int sy, double scx, double scy){}
+	public void draw(Graphics2D g, float sx, float sy, float scx, float scy){}
 	
 	/**
 	 * Draw this organism using OpenGL calls. note that scaling and offsets are managed elsewhere
@@ -95,5 +111,5 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>
 	
 	public double getY(){
 		return this.pos_y;
-	}	
+	}
 }

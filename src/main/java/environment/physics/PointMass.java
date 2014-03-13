@@ -167,6 +167,7 @@ public class PointMass {
 			dx /= dist;
 			dy /= dist;
 		} else {
+			// exactly on top of each other. separate by x-axis (randomly chosen by fair dice roll)
 			dx = 1;
 			dy = 0;
 		}

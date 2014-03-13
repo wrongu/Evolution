@@ -9,14 +9,13 @@ import java.util.List;
 import java.util.Random;
 
 import bio.organisms.AbstractOrganism;
-import bio.organisms.PointRodOrganism;
 
 public class Environment implements IDrawable, IDrawableGL {
 
 	public static enum Topology {INFINITE, TORUS, SPHERE};
 	public static final double TIME_STEP = 0.1;
 
-	public List<PointRodOrganism> organisms;
+	public List<AbstractOrganism> organisms;
 
 	protected Topology topology;
 	protected double width, height;
@@ -32,7 +31,7 @@ public class Environment implements IDrawable, IDrawableGL {
 
 	public Environment(double w, double h, Topology t, long seed){
 		// LinkedList because we only ever loop over them as a group, and we want fast insertion and removal
-		organisms = new LinkedList<PointRodOrganism>();
+		organisms = new LinkedList<AbstractOrganism>();
 		width = w;
 		height = h;
 		seedRand = new Random(seed);		
@@ -69,14 +68,14 @@ public class Environment implements IDrawable, IDrawableGL {
 			o.updatePhysics(dt);
 	}
 
-	public void draw(Graphics2D g, int sx, int sy, double scx, double scy) {
-		for(PointRodOrganism o : organisms)
+	public void draw(Graphics2D g, float sx, float sy, float scx, float scy) {
+		for(AbstractOrganism o : organisms)
 			o.draw(g, sx, sy, scx, scy);
 	}
 
 	public void glDraw() {
 		// TODO - draw some sort of background?
-		for(PointRodOrganism o : organisms)
+		for(AbstractOrganism o : organisms)
 			o.glDraw();
 	}
 

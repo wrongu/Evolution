@@ -99,10 +99,10 @@ public class DebugGenes extends JPanel {
 			// TODO - make a class that extends graphics and abstracts the viewport away
 			int shiftx = (int) -(minx+maxx)/2 + getWidth()/2;
 			int shifty = (int) -(miny+maxy)/2 + getHeight()/2;
-			double scalex = 1.0;//this.getWidth()  / (maxx - minx + 1) / 10.0;
-			double scaley = 1.0;//this.getHeight() / (maxy - miny + 1) / 10.0;
+			float scalex = 1f;//this.getWidth()  / (maxx - minx + 1) / 10.0;
+			float scaley = 1f;//this.getHeight() / (maxy - miny + 1) / 10.0;
 			
-			o.draw((Graphics2D) g, shiftx, shifty, scalex, scaley);
+			o.draw((Graphics2D) g, (float) shiftx, (float) shifty, scalex, scaley);
 
 			if(selected){
 				g.setColor(Color.yellow);
