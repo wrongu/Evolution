@@ -187,9 +187,9 @@ public class PointRodOrganism extends AbstractOrganism {
 		radius += 10;
 	}
 
-	public AbstractOrganism beget(Environment e) {
+	public AbstractOrganism beget(Environment e, Object o) {
 		PointRodOrganism child = (PointRodOrganism) this.gene.mutate(e.getRandom()).create(pos_x, pos_y, e);
-		child.brain = this.brain.beget(e);
+		child.brain = this.brain.beget(e, child);
 		return child;
 	}
 	

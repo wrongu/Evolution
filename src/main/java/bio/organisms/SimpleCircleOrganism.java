@@ -42,8 +42,11 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		oomph = omega = twist = 0.;
 	}
 
-	public AbstractOrganism beget(Environment e) {
-		return this.gene.mutate(e.getRandom()).create(pos_x, pos_y, e);
+	public AbstractOrganism beget(Environment e, Object o) {
+		energy /= 2.0;
+		AbstractOrganism child = new SimpleCircleOrganism(env, energy, pos_x, pos_y);
+		child.brain = brain.beget(e, child);
+		return child;
 	}
 
 	protected List<ISense> createSenses(){
@@ -149,7 +152,6 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 		@Override
 		protected void sub_act(double energy) {
-			System.out.println(SimpleCircleOrganism.this+" moving with e="+energy);
 			SimpleCircleOrganism.this.oomph = energy / ENERGY_PER_OOMPH;
 		}
 	}
@@ -169,7 +171,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		@Override
 		protected void sub_act(double energy) {
 			if(energy > MITOSIS_THRESHOLD){
-				env.organisms.add(beget(env));
+				env.addOrganism(beget(env, null));
 			}
 		}
 	}

@@ -2,8 +2,9 @@ package bio.organisms.brain;
 
 import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
+import bio.organisms.AbstractOrganism;
 
-public interface IBrain extends IGeneCarrier<IBrain>{
+public interface IBrain extends IGeneCarrier<IBrain, AbstractOrganism>{
 
 	public void tick();
 	

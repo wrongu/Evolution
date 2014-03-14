@@ -15,7 +15,8 @@ public class Environment implements IDrawable, IDrawableGL {
 	public static enum Topology {INFINITE, TORUS, SPHERE};
 	public static final double TIME_STEP = 0.1;
 
-	public List<AbstractOrganism> organisms;
+	protected List<AbstractOrganism> organisms;
+	private List<AbstractOrganism> next_organisms;
 
 	protected Topology topology;
 	protected double width, height;
@@ -32,6 +33,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	public Environment(double w, double h, Topology t, long seed){
 		// LinkedList because we only ever loop over them as a group, and we want fast insertion and removal
 		organisms = new LinkedList<AbstractOrganism>();
+		next_organisms = new LinkedList<AbstractOrganism>();
 		width = w;
 		height = h;
 		seedRand = new Random(seed);		
@@ -40,12 +42,23 @@ public class Environment implements IDrawable, IDrawableGL {
 	public Random getRandom(){
 		return seedRand;
 	}
+	
+	public void addOrganism(AbstractOrganism orgo){
+		next_organisms.add(orgo);
+	}
 
 	public void update(double dt){
 		// TODO remove dt entirely?
 		// The environment is no longer pseudo-randomly deterministic if we let dt
 		// depend on computer speeds.
 		dt = TIME_STEP;
+		
+		// before going anywhere.. add new babies to the population and check for dead organisms
+		for(AbstractOrganism baby : next_organisms)
+			organisms.add(baby);
+		next_organisms = new LinkedList<AbstractOrganism>();
+		for(AbstractOrganism o : organisms)
+			if(! o.is_alive()) organisms.remove(o);
 		
 		// first, process inputs and prepare outputs
 		for(AbstractOrganism o : organisms)

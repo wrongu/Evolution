@@ -9,20 +9,22 @@ import org.jblas.DoubleMatrix;
 import org.jblas.ranges.RangeUtils;
 
 import environment.Environment;
+import environment.RandomFoodEnvironment;
 
 import bio.genetics.Gene;
-import bio.genetics.IGeneCarrier;
 import bio.organisms.AbstractOrganism;
+import bio.organisms.SimpleCircleOrganism;
+import bio.organisms.brain.IBrain;
 
 /**
- * @author ewy-man and wrongu
- * TODO currently this is just a duplicate of DumbBrain. simplify it!!
+ * @author wrongu
+ * TODO this is currently just a copy of DumbBrain. simplify it!!
  */
-public class DumberBrain implements IGeneCarrier<DumberBrain>{
+public class DumberBrain implements IBrain {
 	
 	// Energy constants
-	public static final double NEURON_ENERGY = 0.00001; // Upkeep per neuron.
-	public static final double FIRING_ENERGY = 0.00001; // Energy to fire each neuron.
+	public static final double NEURON_ENERGY = 0.01; // Upkeep per neuron.
+	public static final double FIRING_ENERGY = 0.01; // Energy to fire each neuron.
 	
 	// Weight matrix and state vectors
 	private int i, s, o;
@@ -47,6 +49,13 @@ public class DumberBrain implements IGeneCarrier<DumberBrain>{
 	
 	public static DumberBrain newEmpty(int s, int o, AbstractOrganism org){
 		return fromGene(new BrainGene(s, o), org);
+	}
+	
+	public static DumberBrain newRandom(int s, int o, AbstractOrganism org, Random r){
+		DumberBrain db = fromGene(new BrainGene(s, o), org);
+		for(int n = 0; n < db.W.length; n++)
+			db.W.put(n, r.nextDouble()-r.nextDouble());
+		return db;
 	}
 	
 	/**
@@ -100,11 +109,11 @@ public class DumberBrain implements IGeneCarrier<DumberBrain>{
 	 * @param value Value of sense
 	 */
 	public void setInput(int index, double value) {
-		if(index >= i || index < 0){
-			System.err.println("MatrixNeuralNet.setInput() out of range");
+		if(index >= s || index < 0){
+			System.err.println("DumberBrain.setInput() out of range: "+index+" ("+s+" inputs available)");
 			return;
 		}
-		A.put(index,value);
+		I.put(i+index,value);
 	}
 	
 	/**
@@ -115,7 +124,7 @@ public class DumberBrain implements IGeneCarrier<DumberBrain>{
 	 */
 	public double getOutput(int index) {
 		if(index >= o || index < 0){
-			System.err.println("MatrixNeuralNet.getOutput() out of range");
+			System.err.println("DumberBrain.getOutput() out of range: "+index+" ("+o+" outputs available)");
 			return 0.0;
 		}
 		return O.get(index);
@@ -131,11 +140,11 @@ public class DumberBrain implements IGeneCarrier<DumberBrain>{
 	 */
 	public void tick() {
 		// Step 1.
-		A.mul(this.decay);
-		I.mul(this.decay); // TODO handle this such that senses aren't decayed?
-		O.mul(this.decay);
+		A = A.mul(this.decay);
+		I = I.mul(this.decay); // TODO handle this such that senses aren't decayed?
+		O = O.mul(this.decay);
 		// Step 2.
-		A.add(W.mmul(I));
+		A = A.add(W.mmul(I));
 		// Step 3.
 		for(int n=0; n < (i+o); n++){
 			// first 'i' neurons are stored in I
@@ -154,7 +163,7 @@ public class DumberBrain implements IGeneCarrier<DumberBrain>{
 			}
 		}
 		// step 4. clear inputs
-		for(int n=i+1; n<i+s; n++){
+		for(int n=i; n<i+s; n++){
 			I.put(n, 0.0);
 		}
 		// step 5;
@@ -162,12 +171,18 @@ public class DumberBrain implements IGeneCarrier<DumberBrain>{
 		this.meatCase.useEnergy(energy);
 	}
 
-	public DumberBrain beget(Environment e) {
-		return this.gene.mutate(e.getRandom()).create(0, 0, e);
+	public IBrain beget(Environment e, AbstractOrganism parent) {
+		DumberBrain brain = this.gene.mutate(e.getRandom()).create(0, 0, e);
+		brain.meatCase = parent;
+		return brain;
 	}
 
-	public void print() {
-		System.out.println(W.toString("%.1f"));
+	public Gene<? extends IBrain> getGene() {
+		return gene;
+	}
+
+	public String toString() {
+		return "W: "+W.toString("%.1f") + "\nA: " + A.toString("%.1f") + "\nO: " + O.toString("%.1f");
 	}
 	
 	private static class BrainGene extends Gene<DumberBrain>{
@@ -198,7 +213,7 @@ public class DumberBrain implements IGeneCarrier<DumberBrain>{
 			this.action_potential = 1.0;
 			this.depolarize = -0.1;
 			this.decay = 0.6;
-			this.threshold = 0.7;
+			this.threshold = 0.0;
 		}
 		
 		private void addNeuron(){
@@ -326,6 +341,20 @@ public class DumberBrain implements IGeneCarrier<DumberBrain>{
 			}
 		}
 		
+	}
+	
+	// TESTING
+	public static void main(String[] args){
+		Environment e = new RandomFoodEnvironment(1.0, 12L);
+		AbstractOrganism org = new SimpleCircleOrganism(e, 10.0, 0, 0);
+		DumberBrain db0 = DumberBrain.newEmpty(2, 4, org);
+		System.out.println(db0);
+		DumberBrain db1 = DumberBrain.newRandom(2, 4, org, e.getRandom());
+		System.out.println(db1);
+		db1.setInput(0, 10.0);
+		db1.setInput(1, 10.0);
+		db1.tick();
+		System.out.println(db1);
 	}
 }
 

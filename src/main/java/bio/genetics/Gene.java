@@ -27,9 +27,9 @@ public abstract class Gene<T> {
 	}
 	
 	public final Gene<T> clone(){
-//		Gene<T> this = this.sub_clone();
-		for(Map.Entry<String, Double> e : this.mutation_rates.entrySet()){
-			this.mutation_rates.put(e.getKey(), e.getValue());
+		Gene<T> copy = this.sub_clone();
+		for(Map.Entry<String, Double> e : copy.mutation_rates.entrySet()){
+			copy.mutation_rates.put(e.getKey(), e.getValue());
 		}
 		return this;
 	}

@@ -9,19 +9,21 @@ import org.jblas.DoubleMatrix;
 import org.jblas.ranges.RangeUtils;
 
 import environment.Environment;
+import environment.RandomFoodEnvironment;
 
 import bio.genetics.Gene;
 import bio.organisms.AbstractOrganism;
+import bio.organisms.SimpleCircleOrganism;
 import bio.organisms.brain.IBrain;
 
 /**
- * @author ewy-man and wrongu
+ * @author wrongu
  */
 public class DumbBrain implements IBrain {
 	
 	// Energy constants
-	public static final double NEURON_ENERGY = 0.00001; // Upkeep per neuron.
-	public static final double FIRING_ENERGY = 0.00001; // Energy to fire each neuron.
+	public static final double NEURON_ENERGY = 0.01; // Upkeep per neuron.
+	public static final double FIRING_ENERGY = 0.01; // Energy to fire each neuron.
 	
 	// Weight matrix and state vectors
 	private int i, s, o;
@@ -137,11 +139,11 @@ public class DumbBrain implements IBrain {
 	 */
 	public void tick() {
 		// Step 1.
-		A.mul(this.decay);
-		I.mul(this.decay); // TODO handle this such that senses aren't decayed?
-		O.mul(this.decay);
+		A = A.mul(this.decay);
+		I = I.mul(this.decay); // TODO handle this such that senses aren't decayed?
+		O = O.mul(this.decay);
 		// Step 2.
-		A.add(W.mmul(I));
+		A = A.add(W.mmul(I));
 		// Step 3.
 		for(int n=0; n < (i+o); n++){
 			// first 'i' neurons are stored in I
@@ -160,7 +162,7 @@ public class DumbBrain implements IBrain {
 			}
 		}
 		// step 4. clear inputs
-		for(int n=i+1; n<i+s; n++){
+		for(int n=i; n<i+s; n++){
 			I.put(n, 0.0);
 		}
 		// step 5;
@@ -168,16 +170,18 @@ public class DumbBrain implements IBrain {
 		this.meatCase.useEnergy(energy);
 	}
 
-	public IBrain beget(Environment e) {
-		return this.gene.mutate(e.getRandom()).create(0, 0, e);
+	public IBrain beget(Environment e, AbstractOrganism parent) {
+		DumbBrain brain = this.gene.mutate(e.getRandom()).create(0, 0, e);
+		brain.meatCase = parent;
+		return brain;
 	}
 
 	public Gene<? extends IBrain> getGene() {
 		return gene;
 	}
 
-	public void print() {
-		System.out.println(W.toString("%.1f"));
+	public String toString() {
+		return "W: "+W.toString("%.1f") + "\nA: " + A.toString("%.1f") + "\nO: " + O.toString("%.1f");
 	}
 	
 	private static class BrainGene extends Gene<DumbBrain>{
@@ -208,7 +212,7 @@ public class DumbBrain implements IBrain {
 			this.action_potential = 1.0;
 			this.depolarize = -0.1;
 			this.decay = 0.6;
-			this.threshold = 0.7;
+			this.threshold = 0.0;
 		}
 		
 		private void addNeuron(){
@@ -336,6 +340,20 @@ public class DumbBrain implements IBrain {
 			}
 		}
 		
+	}
+	
+	// TESTING
+	public static void main(String[] args){
+		Environment e = new RandomFoodEnvironment(1.0, 12L);
+		AbstractOrganism org = new SimpleCircleOrganism(e, 10.0, 0, 0);
+		DumbBrain db0 = DumbBrain.newEmpty(2, 4, org);
+		System.out.println(db0);
+		DumbBrain db1 = DumbBrain.newRandom(2, 4, org, e.getRandom());
+		System.out.println(db1);
+		db1.setInput(0, 10.0);
+		db1.setInput(1, 10.0);
+		db1.tick();
+		System.out.println(db1);
 	}
 }
 

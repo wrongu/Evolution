@@ -65,9 +65,9 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		env = new RandomFoodEnvironment(1.0, 0L);
 		// INITIAL POPULATION
 		for(int i=0; i<10; i++){
-			double x = 30. * Math.cos(2*Math.PI*i/10.);
-			double y = 30. * Math.sin(2*Math.PI*i/10.);
-			env.organisms.add(new SimpleCircleOrganism(env, 10.0, x, y));
+			double x = 60. * Math.cos(2*Math.PI*i/10.);
+			double y = 60. * Math.sin(2*Math.PI*i/10.);
+			env.addOrganism(new SimpleCircleOrganism(env, 10.0, x, y));
 		}
 		// env.bindInput(mouse_buttons, mouse_move); // TestEnvironments only
 		// opengl must be initialized in the same thread where it is used, so we need to create and

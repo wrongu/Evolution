@@ -12,8 +12,7 @@ import bio.organisms.brain.IOutput;
 import bio.organisms.brain.ISense;
 import bio.organisms.brain.ann.DumbBrain;
 
-public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>{
-	
+public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism, Object>{
 	
 	protected Gene<? extends AbstractOrganism> gene;
 	protected IBrain brain;
