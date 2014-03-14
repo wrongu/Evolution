@@ -1,11 +1,11 @@
 package bio.organisms;
 
 import java.awt.Graphics2D;
-import java.util.ArrayList;
 import java.util.List;
 
 import environment.Environment;
 
+import bio.ann.DumbBrain;
 import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
 import bio.organisms.brain.IBrain;
@@ -13,7 +13,8 @@ import bio.organisms.brain.IOutput;
 import bio.organisms.brain.ISense;
 
 public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>{
-
+	
+	
 	protected Gene<? extends AbstractOrganism> gene;
 	protected IBrain brain;
 	protected List<ISense> senses;
@@ -23,24 +24,27 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>
 	protected double pos_y;
 	protected Environment env;
 	
-	public AbstractOrganism(Environment e, Gene<? extends AbstractOrganism> gene, double init_energy, double x, double y){
+	public AbstractOrganism(Environment e,
+			Gene<? extends AbstractOrganism> gene,
+			double init_energy, double x, double y){
 		this.energy = init_energy;
 		this.pos_x = x;
 		this.pos_y = y;
 		this.gene = gene;
 		this.env = e;
-		senses = new ArrayList<ISense>();
-		outputs = new ArrayList<IOutput>();
+		this.senses = this.createSenses();
+		this.outputs = this.createOutputs();
+		this.brain = DumbBrain.newEmpty(senses.size(), outputs.size(), this);
 	}
+	
+	protected abstract List<ISense> createSenses();
+	protected abstract List<IOutput> createOutputs();
 	
 	public void feed(double food_energy){
 		assert(food_energy >= 0.0);
 		this.energy += food_energy;
 	}
 	
-	/**
-	 * 
-	 */
 	public final void thinkAndAct(){
 		if(this.brain != null){
 			// set inputs

@@ -2,46 +2,48 @@ package bio.organisms;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.Random;
+import java.util.Arrays;
+import java.util.List;
 
-import bio.ann.DumbBrain;
-import bio.genetics.Gene;
-import bio.organisms.brain.IBrain;
+import bio.organisms.brain.ISense;
+import bio.organisms.brain.IOutput;
 import environment.Environment;
 import environment.physics.PointMass;
 
 public class SimpleCircleOrganism extends AbstractOrganism {
 	
-	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
-	private static final Class<? extends IBrain> BRAIN_TYPE = DumbBrain.class;
+	public static final double ENERGY_PER_OOMPH = 0.1;
+	public static final double ENERGY_PER_TURN = 0.1;
+	public static final double ENERGY_PER_CHATTER = 0.01;
+	public static final double ENERGY_PER_ATTACK = 0.5;
+	public static final double MITOSIS_THRESHOLD = 0.5;
 	
-	private Gene<SimpleCircleOrganism> gene;
+	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
 	
 	private PointMass body;
+	/** orientation in radians. zero is along positive x. */
+	private double direction;
+	/** effort exerted to move forward */
+	private double oomph;
+	/** current rotational speed */
+	private double omega;
+	/** effort exerted to turn */
+	private double twist;
 	
-	public SimpleCircleOrganism fromGene(Gene<SimpleCircleOrganism> gene, Environment e, double start_energy, double x, double y){
-		SimpleCircleOrganism org = gene.create(x, y, e);
-		org.gene = gene;
-		org.energy = start_energy;
-		return org;
-	}
-	
-	public SimpleCircleOrganism newEmpty(Environment e, double start_energy, double x, double y){
-		Gene<SimpleCircleOrganism> g = new OrgoGene();
-		SimpleCircleOrganism orgo = g.create(x, y, e);
-		orgo.gene = g;
-		return orgo;
-	}
-	
-	private SimpleCircleOrganism(Environment e, Gene<SimpleCircleOrganism> gene, double init_energy, double x, double y) {
-		super(e, gene, init_energy, x, y);
+	private SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
+		super(e, null, init_energy, x, y);
 	}
 
 	public AbstractOrganism beget(Environment e) {
 		return this.gene.mutate(e.getRandom()).create(pos_x, pos_y, e);
+	}
+	
+	protected List<ISense> createSenses(){
+		return Arrays.asList(new Listen(), new SpeedSense(), new TurnSense(), new EnergySense());
+	}
+	
+	protected List<IOutput> createOutputs(){
+		return Arrays.asList(new Accelerate(), new Twist(), new Mitosis());
 	}
 	
 	@Override
@@ -58,12 +60,18 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 
 	@Override
 	public void preUpdatePhysics() {
-		// nothing to do since body is a single pointmass
+		// TODO factor out spinning point physics
+		// rotatinoal movement update
+		direction += omega;
+		omega += twist;
+		omega *= 0.8; // rotational viscosity
+		// linear movement update
+		this.body.addForce(oomph * Math.cos(direction), oomph * Math.sin(direction));
 	}
 
 	@Override
 	public void updatePhysics(double dt) {
-		// TODO Auto-generated method stub
+		this.body.move(env, dt);
 		this.pos_x = body.getX();
 		this.pos_y = body.getY();
 	}
@@ -75,49 +83,74 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 	}
 	
-	private static class OrgoGene extends Gene<SimpleCircleOrganism>{
-		
-		private Gene<? extends IBrain> braingene;
-		
-		public OrgoGene(){
-			try {
-				braingene = BRAIN_TYPE.newInstance().getGene();
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
+	// SENSES
+	private class Listen implements ISense{
+		public double doSense(Environment e, AbstractOrganism o) {
+			// TODO query environment for nearby organisms
+			return 0;
+		}
+	}
+	private class SpeedSense implements ISense{
+		public double doSense(Environment e, AbstractOrganism o) {
+			return SimpleCircleOrganism.this.body.getSpeed();
+		}
+	}
+	private class TurnSense implements ISense{
+		public double doSense(Environment e, AbstractOrganism o) {
+			return SimpleCircleOrganism.this.omega;
+		}
+	}
+	private class EnergySense implements ISense{
+		public double doSense(Environment e, AbstractOrganism o) {
+			return SimpleCircleOrganism.this.energy;
+		}
+	}
+	// OUTPUTS
+	private class Accelerate extends IOutput{
+		public Accelerate() {
+			super(SimpleCircleOrganism.this, ENERGY_PER_OOMPH);
+		}
+		@Override
+		protected void sub_act(double energy) {
+			SimpleCircleOrganism.this.oomph = energy / ENERGY_PER_OOMPH;
+		}
+	}
+	private class Twist extends IOutput{
+		public Twist() {
+			super(SimpleCircleOrganism.this, ENERGY_PER_TURN);
+		}
+		@Override
+		protected void sub_act(double energy) {
+			SimpleCircleOrganism.this.twist = energy / ENERGY_PER_TURN;
+		}
+	}
+	private class Mitosis extends IOutput{
+		public Mitosis() {
+			super(SimpleCircleOrganism.this, 1.0);
+		}
+		@Override
+		protected void sub_act(double energy) {
+			if(energy > MITOSIS_THRESHOLD){
+				env.organisms.add(beget(env));
 			}
 		}
-		
-		@Override
-		protected Gene<SimpleCircleOrganism> sub_clone() {
-			OrgoGene g = new OrgoGene();
-			g.braingene = braingene.clone();
-			return g;
-		}
-
-		@Override
-		protected void sub_mutate(Random r) {
-			braingene.mutate(r);
-		}
-
-		@Override
-		public SimpleCircleOrganism create(double posx, double posy, Environment e) {
-			SimpleCircleOrganism orgo = new SimpleCircleOrganism(e, this, 1.0, posx, posy);
-			orgo.brain = braingene.create(0, 0, e);
-			return orgo;
-		}
-
-		@Override
-		protected void sub_serialize(DataOutputStream dest) throws IOException {
-			braingene.serialize(dest);
-		}
-
-		@Override
-		protected void sub_deserialize(DataInputStream src) throws IOException {
-			braingene.deserialize(src);
-		}
-		
 	}
-	
+	private class Chatter extends IOutput{
+		public Chatter() {
+			super(SimpleCircleOrganism.this, ENERGY_PER_CHATTER);
+		}
+		@Override
+		protected void sub_act(double energy) {
+			// TODO
+		}
+	}
+	private class Attack extends IOutput{
+		public Attack() {
+			super(SimpleCircleOrganism.this, ENERGY_PER_ATTACK);
+		}
+		@Override
+		protected void sub_act(double energy) {
+			// TODO
+		}
+	}
 }

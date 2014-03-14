@@ -7,11 +7,13 @@ import environment.physics.Rod;
 import graphics.RenderPanel;
 
 import java.awt.Graphics2D;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import bio.genetics.Gene;
-import bio.ann.DumbBrain;
+import bio.organisms.brain.IOutput;
+import bio.organisms.brain.ISense;
 
 public class PointRodOrganism extends AbstractOrganism {
 	
@@ -26,8 +28,16 @@ public class PointRodOrganism extends AbstractOrganism {
 		rods = new LinkedList<Rod>();
 		joints = new LinkedList<Joint>();
 		pointmasses = new LinkedList<PointMass>();
-		// TODO brain should know about # muscles... but muscles aren't added until later?
-		brain = DumbBrain.newEmpty(senses.size(), outputs.size(), this);
+	}
+
+	@Override
+	protected List<ISense> createSenses() {
+		return Arrays.asList( /* nothing yet */ );
+	}
+
+	@Override
+	protected List<IOutput> createOutputs() {
+		return Arrays.asList( /* TODO somehow get muscles here, even though they are added later?? */ );
 	}
 	
 	@Override
