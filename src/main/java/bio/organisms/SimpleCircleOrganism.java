@@ -149,6 +149,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 		@Override
 		protected void sub_act(double energy) {
+			System.out.println(SimpleCircleOrganism.this+" moving with e="+energy);
 			SimpleCircleOrganism.this.oomph = energy / ENERGY_PER_OOMPH;
 		}
 	}

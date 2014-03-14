@@ -5,12 +5,12 @@ import java.util.List;
 
 import environment.Environment;
 
-import bio.ann.DumbBrain;
 import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
 import bio.organisms.brain.IBrain;
 import bio.organisms.brain.IOutput;
 import bio.organisms.brain.ISense;
+import bio.organisms.brain.ann.DumbBrain;
 
 public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>{
 	

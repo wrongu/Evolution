@@ -1,4 +1,4 @@
-package bio.ann;
+package bio.organisms.brain.ann;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -11,13 +11,14 @@ import org.jblas.ranges.RangeUtils;
 import environment.Environment;
 
 import bio.genetics.Gene;
+import bio.genetics.IGeneCarrier;
 import bio.organisms.AbstractOrganism;
-import bio.organisms.brain.IBrain;
 
 /**
  * @author ewy-man and wrongu
+ * TODO currently this is just a duplicate of DumbBrain. simplify it!!
  */
-public class DumbBrain implements IBrain {
+public class DumberBrain implements IGeneCarrier<DumberBrain>{
 	
 	// Energy constants
 	public static final double NEURON_ENERGY = 0.00001; // Upkeep per neuron.
@@ -32,27 +33,20 @@ public class DumbBrain implements IBrain {
 	private double threshold, action_potential, depolarize, decay;
 	
 	// A gene for evolution
-	private Gene<DumbBrain> gene;
+	private Gene<DumberBrain> gene;
 	// The organism who provides us energy
 	private AbstractOrganism meatCase;
 	
-	public static DumbBrain fromGene(Gene<DumbBrain> g, AbstractOrganism org){
+	public static DumberBrain fromGene(Gene<DumberBrain> g, AbstractOrganism org){
 		// TODO not all genes interact with the environment.. get rid of args to create()
-		DumbBrain brain = g.create(0, 0, null);
+		DumberBrain brain = g.create(0, 0, null);
 		brain.gene = g;
 		brain.meatCase = org;
 		return brain;
 	}
 	
-	public static DumbBrain newEmpty(int s, int o, AbstractOrganism org){
+	public static DumberBrain newEmpty(int s, int o, AbstractOrganism org){
 		return fromGene(new BrainGene(s, o), org);
-	}
-	
-	public static DumbBrain newRandom(int s, int o, AbstractOrganism org, Random r){
-		DumbBrain db = fromGene(new BrainGene(s, o), org);
-		for(int n = 0; n < db.W.length; n++)
-			db.W.put(n, r.nextDouble()-r.nextDouble());
-		return db;
 	}
 	
 	/**
@@ -64,7 +58,7 @@ public class DumbBrain implements IBrain {
 	 * @param ap value of action potential
 	 * @param de value of depolarization
 	 */
-	private DumbBrain(int i, int s, int o, double th, double ap, double dp, double dc){
+	private DumberBrain(int i, int s, int o, double th, double ap, double dp, double dc){
 		this.i = i;
 		this.o = o;
 		this.s = s;
@@ -106,11 +100,11 @@ public class DumbBrain implements IBrain {
 	 * @param value Value of sense
 	 */
 	public void setInput(int index, double value) {
-		if(index >= s || index < 0){
-			System.err.println("DumbBrain.setInput() out of range: "+index+" ("+s+" inputs available)");
+		if(index >= i || index < 0){
+			System.err.println("MatrixNeuralNet.setInput() out of range");
 			return;
 		}
-		I.put(i+index,value);
+		A.put(index,value);
 	}
 	
 	/**
@@ -121,7 +115,7 @@ public class DumbBrain implements IBrain {
 	 */
 	public double getOutput(int index) {
 		if(index >= o || index < 0){
-			System.err.println("DumbBrain.getOutput() out of range: "+index+" ("+o+" outputs available)");
+			System.err.println("MatrixNeuralNet.getOutput() out of range");
 			return 0.0;
 		}
 		return O.get(index);
@@ -168,19 +162,15 @@ public class DumbBrain implements IBrain {
 		this.meatCase.useEnergy(energy);
 	}
 
-	public IBrain beget(Environment e) {
+	public DumberBrain beget(Environment e) {
 		return this.gene.mutate(e.getRandom()).create(0, 0, e);
-	}
-
-	public Gene<? extends IBrain> getGene() {
-		return gene;
 	}
 
 	public void print() {
 		System.out.println(W.toString("%.1f"));
 	}
 	
-	private static class BrainGene extends Gene<DumbBrain>{
+	private static class BrainGene extends Gene<DumberBrain>{
 		
 		private static final String ADD_NEURON = "add";
 		private static final String DEL_NEURON = "del";
@@ -190,7 +180,7 @@ public class DumbBrain implements IBrain {
 		private static final String ALTER_DEPOLARIZE = "dep";
 		private static final String ALTER_DECAY = "dec";
 
-		// copy of relevant (mutable) values in the DumbBrain
+		// copy of relevant (mutable) values in the DumberBrain
 		private DoubleMatrix W;
 		int i, s, o;
 		private double threshold, action_potential, depolarize, decay;
@@ -248,8 +238,8 @@ public class DumbBrain implements IBrain {
 		}
 
 		@Override
-		public DumbBrain create(double posx, double posy, Environment e) {
-			DumbBrain brain = new DumbBrain(i, s, o, threshold, action_potential, depolarize, decay);
+		public DumberBrain create(double posx, double posy, Environment e) {
+			DumberBrain brain = new DumberBrain(i, s, o, threshold, action_potential, depolarize, decay);
 			brain.W = this.W.dup();
 			return brain;
 		}
@@ -282,7 +272,7 @@ public class DumbBrain implements IBrain {
 		}
 
 		@Override
-		protected Gene<DumbBrain> sub_clone() {
+		protected Gene<DumberBrain> sub_clone() {
 			BrainGene g = new BrainGene(s, o);
 			g.i = this.i;
 			g.W = this.W.dup();

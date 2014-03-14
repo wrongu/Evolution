@@ -1,4 +1,4 @@
-package bio.ann;
+package bio.organisms.brain.ann;
 
 import java.util.HashMap;
 
