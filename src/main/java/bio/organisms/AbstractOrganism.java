@@ -34,7 +34,7 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism>
 		this.env = e;
 		this.senses = this.createSenses();
 		this.outputs = this.createOutputs();
-		this.brain = DumbBrain.newEmpty(senses.size(), outputs.size(), this);
+		this.brain = DumbBrain.newRandom(senses.size(), outputs.size(), this, e.getRandom());
 	}
 	
 	protected abstract List<ISense> createSenses();

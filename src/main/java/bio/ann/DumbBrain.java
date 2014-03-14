@@ -48,6 +48,13 @@ public class DumbBrain implements IBrain {
 		return fromGene(new BrainGene(s, o), org);
 	}
 	
+	public static DumbBrain newRandom(int s, int o, AbstractOrganism org, Random r){
+		DumbBrain db = fromGene(new BrainGene(s, o), org);
+		for(int n = 0; n < db.W.length; n++)
+			db.W.put(n, r.nextDouble()-r.nextDouble());
+		return db;
+	}
+	
 	/**
 	 * Create a new neural net.
 	 * @param i number of internal neurons
