@@ -3,7 +3,7 @@ import java.awt.Canvas;
 import java.awt.Dimension;
 import java.nio.FloatBuffer;
 
-import environment.TestEnvironment;
+import environment.RandomFoodEnvironment;
 import graphics.opengl.RenderGL;
 
 import javax.swing.JApplet;
@@ -12,6 +12,8 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
+
+import bio.organisms.SimpleCircleOrganism;
 
 
 //import ann.DrawGraph;
@@ -23,7 +25,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	public static final int MAX_FPS = 60;
 	public static final long TICK_MS = 100;
 	
-	private TestEnvironment env;
+	private RandomFoodEnvironment env;
 	private Canvas canvas;
 	// input stuff
 	/** four booleans indicating "isDown()" state of up, down, left, and right respectively */
@@ -60,8 +62,14 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	
 	public void run(){
 		// initialize everything
-		env = new TestEnvironment(0L);
-		env.bindInput(mouse_buttons, mouse_move);
+		env = new RandomFoodEnvironment(1.0, 0L);
+		// INITIAL POPULATION
+		for(int i=0; i<10; i++){
+			double x = 30. * Math.cos(2*Math.PI*i/10.);
+			double y = 30. * Math.sin(2*Math.PI*i/10.);
+			env.organisms.add(new SimpleCircleOrganism(env, 10.0, x, y));
+		}
+		// env.bindInput(mouse_buttons, mouse_move); // TestEnvironments only
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
 		RenderGL renderpanel = new RenderGL(canvas, env, APPLET_WIDTH, APPLET_HEIGHT);
@@ -110,8 +118,8 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		else if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) direction_keys[RIGHT] = true;
 		else direction_keys[RIGHT] = false;
 		
-		// TESTING - 'M' for mutate
-		if(Keyboard.isKeyDown(Keyboard.KEY_M)) env.mutateTestGene();
+		// TESTING - 'M' for mutate (TestEnvironment and PointRodOrganisms ONLY
+		//if(Keyboard.isKeyDown(Keyboard.KEY_M)) env.mutateTestGene();
 		
 		// mouse movement
 		FloatBuffer mouseCoords = renderer.screenToWorldCoordinates(Mouse.getX(), Mouse.getY());

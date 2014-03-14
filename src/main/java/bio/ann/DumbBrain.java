@@ -99,11 +99,11 @@ public class DumbBrain implements IBrain {
 	 * @param value Value of sense
 	 */
 	public void setInput(int index, double value) {
-		if(index >= i || index < 0){
-			System.err.println("MatrixNeuralNet.setInput() out of range");
+		if(index >= s || index < 0){
+			System.err.println("DumbBrain.setInput() out of range: "+index+" ("+s+" inputs available)");
 			return;
 		}
-		A.put(index,value);
+		I.put(i+index,value);
 	}
 	
 	/**
@@ -114,7 +114,7 @@ public class DumbBrain implements IBrain {
 	 */
 	public double getOutput(int index) {
 		if(index >= o || index < 0){
-			System.err.println("MatrixNeuralNet.getOutput() out of range");
+			System.err.println("DumbBrain.getOutput() out of range: "+index+" ("+o+" outputs available)");
 			return 0.0;
 		}
 		return O.get(index);

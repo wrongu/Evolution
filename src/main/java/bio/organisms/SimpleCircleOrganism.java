@@ -10,16 +10,20 @@ import bio.organisms.brain.IOutput;
 import environment.Environment;
 import environment.physics.PointMass;
 
+// DRAWING
+import static org.lwjgl.opengl.GL11.*;
+
 public class SimpleCircleOrganism extends AbstractOrganism {
-	
+
 	public static final double ENERGY_PER_OOMPH = 0.1;
 	public static final double ENERGY_PER_TURN = 0.1;
 	public static final double ENERGY_PER_CHATTER = 0.01;
 	public static final double ENERGY_PER_ATTACK = 0.5;
 	public static final double MITOSIS_THRESHOLD = 0.5;
-	
+
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
-	
+	private static final double DRAW_SMOOTHNESS = 10;
+
 	private PointMass body;
 	/** orientation in radians. zero is along positive x. */
 	private double direction;
@@ -29,23 +33,27 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	private double omega;
 	/** effort exerted to turn */
 	private double twist;
-	
-	private SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
+
+	public SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
 		super(e, null, init_energy, x, y);
+		body = new PointMass(5.0);
+		body.initPosition(x, y);
+		direction = e.getRandom().nextDouble()*Math.PI*2;
+		oomph = omega = twist = 0.;
 	}
 
 	public AbstractOrganism beget(Environment e) {
 		return this.gene.mutate(e.getRandom()).create(pos_x, pos_y, e);
 	}
-	
+
 	protected List<ISense> createSenses(){
 		return Arrays.asList(new Listen(), new SpeedSense(), new TurnSense(), new EnergySense());
 	}
-	
+
 	protected List<IOutput> createOutputs(){
 		return Arrays.asList(new Accelerate(), new Twist(), new Mitosis());
 	}
-	
+
 	@Override
 	public void draw(Graphics2D g, float sx, float sy, float scx, float scy){
 		g.setColor(DRAW_COLOR);
@@ -56,6 +64,35 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		g.setColor(Color.WHITE);
 		int vx = (int) (body.getVX() * scx), vy = (int) (body.getVY() * scy);
 		g.drawLine(x, y, x-vx, y-vy);
+	}
+
+	@Override
+	public void glDraw(){
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		double dx = Math.cos(direction);
+		double dy = Math.sin(direction);
+		double vx = body.getVX();
+		double vy = body.getVY();
+		glBegin(GL_QUADS);
+		{
+			glVertex2d(pos_x + 2*dx, pos_y + 2*dy);
+			glVertex2d(pos_x + 2*dy, pos_y - 2*dx);
+			glVertex2d(pos_x - 2*vx - 2*dx, pos_y - 2*vy - 2*dy);
+			glVertex2d(pos_x - 2*dx, pos_y + 2*dx);
+		}
+		glEnd();
+		double range = body.getRadius();
+		int n = (int)(range*DRAW_SMOOTHNESS);
+		double t = 2*Math.PI/(double)n;
+		glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+		glBegin(GL_LINES);
+		{
+			for(int i = 0; i < n; i++) {
+				glVertex2d(pos_x + range*Math.cos(i*t), pos_y + range*Math.sin(i*t) );
+				glVertex2d(pos_x + range*Math.cos((i+1)*t), pos_y + range*Math.sin((i+1)*t));
+			}
+		}
+		glEnd();
 	}
 
 	@Override
@@ -82,7 +119,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 			this.body.collide(((SimpleCircleOrganism) other).body);
 		}
 	}
-	
+
 	// SENSES
 	private class Listen implements ISense{
 		public double doSense(Environment e, AbstractOrganism o) {
