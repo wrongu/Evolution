@@ -25,14 +25,11 @@ import bio.organisms.AbstractOrganism;
 public class Grid implements Iterable<Chunk> {
 	
 	private HashMap<HashCoords,Chunk> map;
-//	private HashMap<AbstractOrganism,Chunk> orgos;
 	private HashCoords coords;
 	
 	public Grid() {
 		map = new HashMap<HashCoords,Chunk>();
 		coords = new HashCoords();
-		
-//		orgos = new HashMap<AbstractOrganism,Chunk>();
 	}
 	
 	/**
@@ -61,11 +58,9 @@ public class Grid implements Iterable<Chunk> {
 		int y = (int)(orgo.getY()/Chunk.SIZE);
 		coords.set(x,y);
 		
-		// Add organism to chunk via getChunk method.
+		// Add organism to chunk.
 		Chunk c = summonChunk(x,y);
 		c.add(orgo);
-		// Add organism to orgos map.
-//		orgos.put(orgo,c);
 	}
 	
 	/**
@@ -90,13 +85,6 @@ public class Grid implements Iterable<Chunk> {
 	 */
 	public void removeChunk(int x, int y) {
 		coords.set(x, y);
-//		Chunk c = map.get(coords);
-//		if(c != null) {
-//			Set<AbstractOrganism> keySet = orgos.keySet();
-//			for(AbstractOrganism o : c) {
-//				keySet.remove(o);
-//			}
-//		}
 		map.remove(coords);
 	}
 	
@@ -115,25 +103,6 @@ public class Grid implements Iterable<Chunk> {
 	public Iterator<Chunk> iterator() {
 		return map.values().iterator();
 	}
-	
-//	/**
-//	 * Duplicate of iterator() method; returns
-//	 * the ChunkIterator.
-//	 * @return
-//	 */
-//	public Iterator<Chunk> chunkIterator() {
-//		return new ChunkIterator();
-//	}
-	
-//	/**
-//	 * Returns an iterator which iterates over all AbstractOrganisms
-//	 * recorded in the Grid.
-//	 * 
-//	 * @return
-//	 */
-//	public Iterator<AbstractOrganism> organismIterator() {
-//		return new OrganismIterator();
-//	}
 	
 	/**
 	 * Returns a list of all values within a radius r of x and y, in
@@ -284,20 +253,6 @@ public class Grid implements Iterable<Chunk> {
 		}
 	}
 	
-//	public void updateChunks() {
-//		for(AbstractOrganism o : orgos.keySet()) {
-//			coords.set((int)(o.getX()/Chunk.SIZE), (int)(o.getY()/Chunk.SIZE));
-//			Chunk actualChunk = map.get(coords);
-//			Chunk mapChunk = orgos.get(o);
-//			
-//			if(mapChunk != actualChunk) { // Possible bug: check for nulls?
-//				mapChunk.remove(o);
-//				actualChunk.add(o);
-//				orgos.put(o,actualChunk);
-//			}
-//		}
-//	}
-	
 	/**
 	 * Returns the chunk at coordinates (x,y).
 	 * Creates the chunk if none exists.
@@ -316,62 +271,4 @@ public class Grid implements Iterable<Chunk> {
 		return chunk;
 	}
 	
-//	private class ChunkIterator implements Iterator<Chunk> {
-//
-//		private Iterator<Chunk> i;
-//		private boolean iHasNext;
-//		private Chunk iCurrent;
-//		
-//		public ChunkIterator() {
-//			i = map.values().iterator();
-//			iHasNext = i.hasNext();
-//		}
-//		
-//		public boolean hasNext() {
-//			return iHasNext;
-//		}
-//
-//		public Chunk next() {
-//			iCurrent = i.next();
-//			iHasNext = i.hasNext();
-//			return iCurrent;
-//		}
-//
-//		public void remove() {
-//			Set<AbstractOrganism> keySet = orgos.keySet();
-//			for(AbstractOrganism o : iCurrent) {
-//				keySet.remove(o);
-//			}
-//			i.remove();
-//		}
-//		
-//	}
-//	
-//	private class OrganismIterator implements Iterator<AbstractOrganism> {
-//		
-//		private Iterator<AbstractOrganism> i;
-//		private boolean hasNext;
-//		private AbstractOrganism current;
-//		
-//		public OrganismIterator(){
-//			i = orgos.keySet().iterator();
-//			hasNext = i.hasNext();
-//		}
-//		
-//		public boolean hasNext() {
-//			return hasNext;
-//		}
-//
-//		public AbstractOrganism next() {
-//			current = i.next();
-//			hasNext = i.hasNext();
-//			return current;
-//		}
-//
-//		public void remove() {
-//			Chunk c = orgos.get(current);
-//			c.remove(current);
-//			i.remove();
-//		}
-//	}
 }
