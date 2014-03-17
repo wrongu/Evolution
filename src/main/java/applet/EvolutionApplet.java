@@ -15,7 +15,6 @@ import org.lwjgl.opengl.Display;
 
 import bio.organisms.SimpleCircleOrganism;
 
-
 //import ann.DrawGraph;
 
 public class EvolutionApplet extends JApplet implements Runnable {

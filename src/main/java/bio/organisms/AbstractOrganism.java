@@ -3,8 +3,8 @@ package bio.organisms;
 import java.awt.Graphics2D;
 import java.util.List;
 
+import utils.grid.Chunk;
 import environment.Environment;
-
 import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
 import bio.organisms.brain.IBrain;
@@ -115,4 +115,5 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 	public double getY(){
 		return this.pos_y;
 	}
+	
 }
