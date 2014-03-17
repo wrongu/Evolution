@@ -48,7 +48,7 @@ public class EvolutionDriver implements Runnable {
 		// initialize everything
 		env = new RandomFoodEnvironment(1.0, 0L);
 		// INITIAL POPULATION
-		for(int i=0; i<10; i++){
+		for(int i=0; i<1; i++){
 			double x = 60. * Math.cos(2*Math.PI*i/10.);
 			double y = 60. * Math.sin(2*Math.PI*i/10.);
 			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));

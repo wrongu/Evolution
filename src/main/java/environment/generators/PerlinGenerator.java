@@ -54,7 +54,6 @@ public class PerlinGenerator implements IGenerator {
 			random_table[swap] = temp;
 		}
 	}
-
 	
 	public void setSeed(long s) {
 		this.shuffle_table(s);
@@ -66,27 +65,32 @@ public class PerlinGenerator implements IGenerator {
 		return a + smooth * (b - a);
 	}
 	
+	private int table_modulo(int i){
+		int ret = (i % TABLE_SIZE);
+		if(ret < 0) ret += TABLE_SIZE;
+		return ret;
+	}
+	
 	private double pseudo_random2d(int x, int y)
 	{
 		// pseudo-random-number in [0,1) using lookup in the table
-		int i = x % TABLE_SIZE;
-		i = (random_table[i] + y) % TABLE_SIZE;
+		int i = table_modulo(x);
+		i = table_modulo(random_table[i] + y);
 		return (double) random_table[i] / (double) TABLE_SIZE;
 	}
 
 	public double terrainValue(double x, double y) {
 		double value = 0.;
-		double max = 0.;
+		double max = 2.0 - Math.pow(2.0, -(this.octaves-1));
 		for(int o=0; o < this.octaves; o++){
 			// the width of a single cell of this octave is proportional to 2^o (but reversed so 0th octave is coarsest-detail)
-			int octave_factor = 1 << (this.octaves - o - 1);
+			double octave_factor = 1 << (this.octaves - o - 1);
 			// the amplitude of this octave is inversely proportaional to the size
 			// (this makes low-frequency noise stronger and high-frequency less strong)
-			double amplitude = 1. / ((double) octave_factor);
-			max += amplitude;
+			double amplitude = 1. / octave_factor;
 			// convert coordinates to the worldspace of the RNG
 			// (scale gets finer as octaves go up)
-			double cell_width = this.scale / octave_factor;
+			double cell_width = this.scale * amplitude;
 			// get nearest (floor) x and y grid positions on this octave.
 			int xlo = ((int) Math.floor(x / cell_width));
 			int ylo = ((int) Math.floor(y / cell_width));
@@ -121,6 +125,14 @@ public class PerlinGenerator implements IGenerator {
 	
 	public int[] getTable(){
 		return this.random_table;
+	}
+	
+	public double getScale(){
+		return scale;
+	}
+
+	public int getOctaves() {
+		return octaves;
 	}
 	
 	public static abstract class Filter{
