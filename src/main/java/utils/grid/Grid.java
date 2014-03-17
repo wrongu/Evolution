@@ -25,14 +25,14 @@ import bio.organisms.AbstractOrganism;
 public class Grid implements Iterable<Chunk> {
 	
 	private HashMap<HashCoords,Chunk> map;
-	private HashMap<AbstractOrganism,Chunk> orgos;
+//	private HashMap<AbstractOrganism,Chunk> orgos;
 	private HashCoords coords;
 	
 	public Grid() {
 		map = new HashMap<HashCoords,Chunk>();
 		coords = new HashCoords();
 		
-		orgos = new HashMap<AbstractOrganism,Chunk>();
+//		orgos = new HashMap<AbstractOrganism,Chunk>();
 	}
 	
 	/**
@@ -65,7 +65,7 @@ public class Grid implements Iterable<Chunk> {
 		Chunk c = summonChunk(x,y);
 		c.add(orgo);
 		// Add organism to orgos map.
-		orgos.put(orgo,c);
+//		orgos.put(orgo,c);
 	}
 	
 	/**
@@ -90,13 +90,13 @@ public class Grid implements Iterable<Chunk> {
 	 */
 	public void removeChunk(int x, int y) {
 		coords.set(x, y);
-		Chunk c = map.get(coords);
-		if(c != null) {
-			Set<AbstractOrganism> keySet = orgos.keySet();
-			for(AbstractOrganism o : c) {
-				keySet.remove(o);
-			}
-		}
+//		Chunk c = map.get(coords);
+//		if(c != null) {
+//			Set<AbstractOrganism> keySet = orgos.keySet();
+//			for(AbstractOrganism o : c) {
+//				keySet.remove(o);
+//			}
+//		}
 		map.remove(coords);
 	}
 	
@@ -105,34 +105,35 @@ public class Grid implements Iterable<Chunk> {
 	 */
 	public void clear() {
 		map.clear();
-		orgos.clear();
+//		orgos.clear();
 	}
 
 	/**
-	 * Returns the ChunkIterator.
+	 * Returned iterator iterates through the chunks in the grid.
+	 * The remove() method is supported.
 	 */
 	public Iterator<Chunk> iterator() {
-		return new ChunkIterator();
+		return map.values().iterator();
 	}
 	
-	/**
-	 * Duplicate of iterator() method; returns
-	 * the ChunkIterator.
-	 * @return
-	 */
-	public Iterator<Chunk> chunkIterator() {
-		return new ChunkIterator();
-	}
+//	/**
+//	 * Duplicate of iterator() method; returns
+//	 * the ChunkIterator.
+//	 * @return
+//	 */
+//	public Iterator<Chunk> chunkIterator() {
+//		return new ChunkIterator();
+//	}
 	
-	/**
-	 * Returns an iterator which iterates over all AbstractOrganisms
-	 * recorded in the Grid.
-	 * 
-	 * @return
-	 */
-	public Iterator<AbstractOrganism> organismIterator() {
-		return new OrganismIterator();
-	}
+//	/**
+//	 * Returns an iterator which iterates over all AbstractOrganisms
+//	 * recorded in the Grid.
+//	 * 
+//	 * @return
+//	 */
+//	public Iterator<AbstractOrganism> organismIterator() {
+//		return new OrganismIterator();
+//	}
 	
 	/**
 	 * Returns a list of all values within a radius r of x and y, in
@@ -258,19 +259,44 @@ public class Grid implements Iterable<Chunk> {
 		
 	}
 	
+	/**
+	 * Checks which entities are in which chunks. Moves entities
+	 * to different chunks if necessary.
+	 */
 	public void updateChunks() {
-		for(AbstractOrganism o : orgos.keySet()) {
-			coords.set((int)(o.getX()/Chunk.SIZE), (int)(o.getY()/Chunk.SIZE));
-			Chunk actualChunk = map.get(coords);
-			Chunk mapChunk = orgos.get(o);
-			
-			if(mapChunk != actualChunk) { // Possible bug: check for nulls?
-				mapChunk.remove(o);
-				actualChunk.add(o);
-				orgos.put(o,actualChunk);
+		
+		LinkedList<AbstractOrganism> toAdd = new LinkedList<AbstractOrganism>();
+		
+		for(Chunk c : map.values()) {
+			for(Iterator<AbstractOrganism> i = c.iterator(); i.hasNext(); ) {
+				AbstractOrganism o = i.next();
+				int o_x = (int)(o.getX()/Chunk.SIZE);
+				int o_y = (int)(o.getY()/Chunk.SIZE);
+				if(!(o_x == c.getGridX() & o_y == c.getGridY())) {
+					i.remove();
+					toAdd.add(o);
+				}
 			}
 		}
+		
+		for(AbstractOrganism o : toAdd) {
+			this.add(o);
+		}
 	}
+	
+//	public void updateChunks() {
+//		for(AbstractOrganism o : orgos.keySet()) {
+//			coords.set((int)(o.getX()/Chunk.SIZE), (int)(o.getY()/Chunk.SIZE));
+//			Chunk actualChunk = map.get(coords);
+//			Chunk mapChunk = orgos.get(o);
+//			
+//			if(mapChunk != actualChunk) { // Possible bug: check for nulls?
+//				mapChunk.remove(o);
+//				actualChunk.add(o);
+//				orgos.put(o,actualChunk);
+//			}
+//		}
+//	}
 	
 	/**
 	 * Returns the chunk at coordinates (x,y).
@@ -290,62 +316,62 @@ public class Grid implements Iterable<Chunk> {
 		return chunk;
 	}
 	
-	private class ChunkIterator implements Iterator<Chunk> {
-
-		private Iterator<Chunk> i;
-		private boolean iHasNext;
-		private Chunk iCurrent;
-		
-		public ChunkIterator() {
-			i = map.values().iterator();
-			iHasNext = i.hasNext();
-		}
-		
-		public boolean hasNext() {
-			return iHasNext;
-		}
-
-		public Chunk next() {
-			iCurrent = i.next();
-			iHasNext = i.hasNext();
-			return iCurrent;
-		}
-
-		public void remove() {
-			Set<AbstractOrganism> keySet = orgos.keySet();
-			for(AbstractOrganism o : iCurrent) {
-				keySet.remove(o);
-			}
-			i.remove();
-		}
-		
-	}
-	
-	private class OrganismIterator implements Iterator<AbstractOrganism> {
-		
-		private Iterator<AbstractOrganism> i;
-		private boolean hasNext;
-		private AbstractOrganism current;
-		
-		public OrganismIterator(){
-			i = orgos.keySet().iterator();
-			hasNext = i.hasNext();
-		}
-		
-		public boolean hasNext() {
-			return hasNext;
-		}
-
-		public AbstractOrganism next() {
-			current = i.next();
-			hasNext = i.hasNext();
-			return current;
-		}
-
-		public void remove() {
-			Chunk c = orgos.get(current);
-			c.remove(current);
-			i.remove();
-		}
-	}
+//	private class ChunkIterator implements Iterator<Chunk> {
+//
+//		private Iterator<Chunk> i;
+//		private boolean iHasNext;
+//		private Chunk iCurrent;
+//		
+//		public ChunkIterator() {
+//			i = map.values().iterator();
+//			iHasNext = i.hasNext();
+//		}
+//		
+//		public boolean hasNext() {
+//			return iHasNext;
+//		}
+//
+//		public Chunk next() {
+//			iCurrent = i.next();
+//			iHasNext = i.hasNext();
+//			return iCurrent;
+//		}
+//
+//		public void remove() {
+//			Set<AbstractOrganism> keySet = orgos.keySet();
+//			for(AbstractOrganism o : iCurrent) {
+//				keySet.remove(o);
+//			}
+//			i.remove();
+//		}
+//		
+//	}
+//	
+//	private class OrganismIterator implements Iterator<AbstractOrganism> {
+//		
+//		private Iterator<AbstractOrganism> i;
+//		private boolean hasNext;
+//		private AbstractOrganism current;
+//		
+//		public OrganismIterator(){
+//			i = orgos.keySet().iterator();
+//			hasNext = i.hasNext();
+//		}
+//		
+//		public boolean hasNext() {
+//			return hasNext;
+//		}
+//
+//		public AbstractOrganism next() {
+//			current = i.next();
+//			hasNext = i.hasNext();
+//			return current;
+//		}
+//
+//		public void remove() {
+//			Chunk c = orgos.get(current);
+//			c.remove(current);
+//			i.remove();
+//		}
+//	}
 }

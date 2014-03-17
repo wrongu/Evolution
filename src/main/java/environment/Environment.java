@@ -56,6 +56,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	}
 
 	public void update(double dt){
+		System.out.println("Tick #: " + tickNumber);
 		// TODO remove dt entirely?
 		// The environment is no longer pseudo-randomly deterministic if we let dt
 		// depend on computer speeds.
@@ -69,19 +70,20 @@ public class Environment implements IDrawable, IDrawableGL {
 		// before going anywhere.. add new babies to the population and check for dead organisms
 		for(AbstractOrganism baby : next_organisms)
 			grid.add(baby);
-//			organisms.add(baby);
 		next_organisms = new LinkedList<AbstractOrganism>();
 		for(Chunk c : grid) {
-			for(Iterator<AbstractOrganism> i = c.iterator() ; i.hasNext(); ) {
+			for(Iterator<AbstractOrganism> i = c.iterator(); i.hasNext(); ) {
 				AbstractOrganism o = i.next();
 				if(! o.is_alive()) i.remove();
 			}
 		}
 		
 		// first, process inputs and prepare outputs
-		for(Chunk c : grid)
-			for(AbstractOrganism o : c)
+		for(Chunk c : grid) {
+			for(AbstractOrganism o : c) {
 				o.thinkAndAct();
+			}
+		}
 
 		// second (before real physics update), check for collisions
 		// TODO faster than O(o^2) collision checks

@@ -171,6 +171,9 @@ public class DumbBrain implements IBrain {
 	}
 
 	public IBrain beget(Environment e, AbstractOrganism parent) {
+//		if(this.gene == null) {
+//			System.out.println("There's your problem right there.");
+//		}
 		DumbBrain brain = this.gene.mutate(e.getRandom()).create(0, 0, e);
 		brain.meatCase = parent;
 		return brain;
