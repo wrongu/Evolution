@@ -138,6 +138,51 @@ public class Environment implements IDrawable, IDrawableGL {
 		return orgos;
 	}
 	
+	public HashSet<AbstractOrganism> getNearby(AbstractOrganism o, double r) {
+		
+		HashSet<AbstractOrganism> orgos = new HashSet<AbstractOrganism>();
+		double gridX = (o.getX()/Chunk.SIZE);
+		double gridY = (o.getY()/Chunk.SIZE);
+		double gridR = r/Chunk.SIZE;
+		
+		for(Chunk c : grid.getAllWithin(gridX, gridY, gridR)) {
+			orgos.addAll(c);
+		}
+		
+		orgos.remove(o);
+		
+		return orgos;
+	}
+	
+	/**
+	 * To be used with mutual interactions.
+	 * 
+	 * @param o
+	 * @param r
+	 * @return
+	 */
+	public HashSet<AbstractOrganism> getNearbyAsym(AbstractOrganism o, double r) {
+		
+		HashSet<AbstractOrganism> orgos = new HashSet<AbstractOrganism>();
+		double gridX = (o.getX()/Chunk.SIZE);
+		double gridY = (o.getY()/Chunk.SIZE);
+		double gridR = r/Chunk.SIZE;
+		HashSet<Chunk> nearChunks = grid.getAllWithinAsym(gridX, gridY, gridR);
+		Chunk homeChunk = grid.get((int)gridX, (int)gridY);
+		nearChunks.remove(homeChunk);
+		
+		for(Chunk c : nearChunks) {
+			orgos.addAll(c);
+		}
+		for(AbstractOrganism org : homeChunk) {
+			if(org.getY() > o.getY() || (org.getY() == o.getY() && org.getX() > o.getX()) ) {
+				orgos.add(org);
+			}
+		}
+		
+		return orgos;
+	}
+	
 	/**
 	 * get boundaries of this environment
 	 * @return double array [xmin, ymin, xmax, ymax] of environment's bounding area
