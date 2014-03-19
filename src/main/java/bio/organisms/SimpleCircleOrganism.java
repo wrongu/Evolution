@@ -3,6 +3,8 @@ package bio.organisms;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 import bio.organisms.brain.ISense;
@@ -18,6 +20,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public static final double ENERGY_PER_OOMPH = 0.1;
 	public static final double ENERGY_PER_TURN = 0.1;
 	public static final double ENERGY_PER_CHATTER = 0.01;
+	public static final double CHATTER_RANGE = 300;
 	public static final double ENERGY_PER_ATTACK = 0.5;
 	public static final double MITOSIS_THRESHOLD = 0.5;
 
@@ -33,6 +36,8 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	private double omega;
 	/** effort exerted to turn */
 	private double twist;
+	/** chatter signal strength */
+	private double chatter;
 
 	public SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
 		super(e, null, init_energy, x, y);
@@ -126,8 +131,16 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	// SENSES
 	private class Listen implements ISense{
 		public double doSense(Environment e, AbstractOrganism o) {
-			// TODO query environment for nearby organisms
-			return 0;
+			// query environment for nearby organisms
+			HashSet<AbstractOrganism> talkers = e.getNearby(o, CHATTER_RANGE);
+			double signal = 0;
+			for(AbstractOrganism orgo : talkers) {
+				if(orgo instanceof SimpleCircleOrganism) {
+					double r = Math.hypot(orgo.pos_x - SimpleCircleOrganism.this.pos_x, orgo.pos_y - SimpleCircleOrganism.this.pos_y);
+					signal += (r <= CHATTER_RANGE) ? ((SimpleCircleOrganism)orgo).chatter/(1 + r) : 0;
+				}
+			}
+			return signal;
 		}
 	}
 	private class SpeedSense implements ISense{
@@ -181,7 +194,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 		@Override
 		protected void sub_act(double energy) {
-			// TODO
+			SimpleCircleOrganism.this.chatter = energy / ENERGY_PER_CHATTER;
 		}
 	}
 	private class Attack extends IOutput{
