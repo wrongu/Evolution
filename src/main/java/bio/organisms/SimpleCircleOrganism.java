@@ -132,7 +132,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	private class Listen implements ISense{
 		public double doSense(Environment e, AbstractOrganism o) {
 			// query environment for nearby organisms
-			HashSet<AbstractOrganism> talkers = e.getNearby(o, CHATTER_RANGE);
+			HashSet<AbstractOrganism> talkers = e.getNearby(o, CHATTER_RANGE, true);
 			double signal = 0;
 			for(AbstractOrganism orgo : talkers) {
 				if(orgo instanceof SimpleCircleOrganism) {

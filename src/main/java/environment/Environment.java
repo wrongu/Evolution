@@ -140,7 +140,7 @@ public class Environment implements IDrawable, IDrawableGL {
 		return orgos;
 	}
 	
-	public HashSet<AbstractOrganism> getNearby(AbstractOrganism o, double r) {
+	public HashSet<AbstractOrganism> getNearby(AbstractOrganism o, double r, boolean exclude_self) {
 		
 		HashSet<AbstractOrganism> orgos = new HashSet<AbstractOrganism>();
 		double gridX = (o.getX()/Chunk.SIZE);
@@ -151,7 +151,7 @@ public class Environment implements IDrawable, IDrawableGL {
 			orgos.addAll(c);
 		}
 		
-		orgos.remove(o);
+		if(exclude_self) orgos.remove(o);
 		
 		return orgos;
 	}
