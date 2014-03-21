@@ -41,7 +41,7 @@ public class RandomFoodEnvironment extends Environment {
 	protected void doCollisions() {
 		for(Chunk c : this.grid){
 			for(AbstractOrganism a : c){
-				for(AbstractOrganism b : this.getNearby(a, 2*PointMass.DEFAULT_RADIUS, true)){
+				for(AbstractOrganism b : this.getNearbyAsym(a, 2*PointMass.DEFAULT_RADIUS)){
 					a.collide(b);
 				}
 			}
