@@ -33,6 +33,9 @@ public class DumbBrain implements IBrain {
 	private DoubleMatrix O; // vector of action potential outputs (stored after tick() for getOutput())
 	private double threshold, action_potential, depolarize, decay;
 	
+	// DEBUG
+	private int generation = 0;
+	
 	// A gene for evolution
 	private Gene<DumbBrain> gene;
 	// The organism who provides us energy
@@ -171,10 +174,10 @@ public class DumbBrain implements IBrain {
 	}
 
 	public IBrain beget(Environment e, AbstractOrganism parent) {
-//		if(this.gene == null) {
-//			System.out.println("There's your problem right there.");
-//		}
-		DumbBrain brain = this.gene.mutate(e.getRandom()).create(0, 0, e);
+		Gene<DumbBrain> child_gene = this.gene.mutate(e.getRandom());
+		DumbBrain brain = child_gene.create(0, 0, e);
+		brain.gene = child_gene;
+		brain.generation = this.generation + 1;
 		brain.meatCase = parent;
 		return brain;
 	}
@@ -289,7 +292,7 @@ public class DumbBrain implements IBrain {
 		}
 
 		@Override
-		protected Gene<DumbBrain> sub_clone() {
+		protected Gene<DumbBrain> _clone() {
 			BrainGene g = new BrainGene(s, o);
 			g.i = this.i;
 			g.W = this.W.dup();
@@ -301,14 +304,14 @@ public class DumbBrain implements IBrain {
 		}
 
 		@Override
-		protected void sub_mutate(Random r) {
+		protected void _mutate(Random r) {
 			// ADD 0 OR MORE
 			int safe_limit = 0; // it's possible for mutation rates to get up to 1.0.. just in case, don't make an infinite loop!
 			while(r.nextDouble() < mutationRate(ADD_NEURON) && (safe_limit++) < 100){
 				addNeuron();
 			}
 			// REMOVE 0 OR MORE
-			if(r.nextDouble() < mutationRate(DEL_NEURON) && i > 0){
+			while(r.nextDouble() < mutationRate(DEL_NEURON) && i > 0){
 				// choose a random index to remove, then decrement i
 				int del_ind = r.nextInt(i);
 				delNeuron(del_ind);

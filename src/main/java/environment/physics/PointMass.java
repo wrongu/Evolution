@@ -16,7 +16,7 @@ import environment.Environment;
 public class PointMass {
 
 	/** for physics, joints are modeled as point masses */
-	public static final double DEFAULT_RADIUS = 10;
+	public static final double DEFAULT_RADIUS = 5.0;
 	public static final double DEFAULT_MASS = 1.0;
 	public static final double VEL_MAX = 5.0;
 	public static final double ELASTICITY = 0; // Values between 0 and 1 (though negatives are interesting...)

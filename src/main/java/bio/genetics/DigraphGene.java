@@ -226,13 +226,13 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	}
 	
 	@Override
-	public Gene<PointRodOrganism> sub_clone(){
+	public Gene<PointRodOrganism> _clone(){
 		// TODO
 		return null;
 	}
 	
 	@Override
-	protected void sub_mutate(Random r) {
+	protected void _mutate(Random r) {
 		// (maybe) alter existing graph elements
 		for(GraphNode n: this.nodes.values()){
 			if(r.nextDouble() < mutationRate(MUT_MASS)){

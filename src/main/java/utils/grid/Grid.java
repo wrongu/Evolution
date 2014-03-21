@@ -1,12 +1,9 @@
 package utils.grid;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Set;
-
 import bio.organisms.AbstractOrganism;
 
 /**
@@ -61,6 +58,13 @@ public class Grid implements Iterable<Chunk> {
 		// Add organism to chunk.
 		Chunk c = summonChunk(x,y);
 		c.add(orgo);
+	}
+	
+	public int getCount(){
+		int c = 0;
+		for(Chunk ch : this.map.values())
+			c += ch.size();
+		return c;
 	}
 	
 	/**

@@ -14,7 +14,7 @@ import utils.grid.Chunk;
 import utils.grid.Grid;
 import bio.organisms.AbstractOrganism;
 
-public class Environment implements IDrawable, IDrawableGL {
+public abstract class Environment implements IDrawable, IDrawableGL {
 
 	public static enum Topology {INFINITE, TORUS, SPHERE};
 	public static final double TIME_STEP = 0.1;
@@ -22,6 +22,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	private static final int TICKS_PER_EMPTY = 1;
 
 //	protected List<AbstractOrganism> organisms;
+	// TODO make grid more abstract
 	protected Grid grid;
 	private List<AbstractOrganism> next_organisms;
 
@@ -32,7 +33,7 @@ public class Environment implements IDrawable, IDrawableGL {
 
 	// TODO factor out physics separately
 	public static double FRICTION = 0.1;
-	public static double VISCOSITY = 0.004;
+	public static double VISCOSITY = 0.000;
 
 	public Environment(long seed){
 		this(0D, 0D, Topology.INFINITE, seed);
@@ -56,7 +57,7 @@ public class Environment implements IDrawable, IDrawableGL {
 	}
 
 	public void update(double dt){
-		System.out.println("Tick #: " + tickNumber);
+		System.out.println("Tick #: " + tickNumber + " Organism count: " + grid.getCount());
 		// TODO remove dt entirely?
 		// The environment is no longer pseudo-randomly deterministic if we let dt
 		// depend on computer speeds.
@@ -197,7 +198,6 @@ public class Environment implements IDrawable, IDrawableGL {
 		return tickNumber;
 	}
 	
-	protected void doCollisions() {
-	}
+	protected abstract void doCollisions();
 	
 }

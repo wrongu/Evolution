@@ -18,7 +18,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class SimpleCircleOrganism extends AbstractOrganism {
 
 	public static final double ENERGY_PER_OOMPH = 0.1;
-	public static final double ENERGY_PER_TURN = 0.1;
+	public static final double ENERGY_PER_TURN = 0.5;
 	public static final double ENERGY_PER_CHATTER = 0.01;
 	public static final double CHATTER_RANGE = 300;
 	public static final double ENERGY_PER_ATTACK = 0.5;
@@ -59,7 +59,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 
 	protected List<IOutput> createOutputs(){
-		return Arrays.asList(new Accelerate(), new Twist(), new Mitosis());
+		return Arrays.asList(new Accelerate(), new Twist(), new Mitosis(), new Chatter());
 	}
 
 	@Override

@@ -72,6 +72,12 @@ public class TestEnvironment extends Environment {
 		this.mouse_in = mouse_move;
 	}
 
+	@Override
+	protected void doCollisions() {
+		// TODO Auto-generated method stub
+		
+	}
+
 	// TESTING ONLY
 //	public void mutateTestGene(){
 //		testgene.mutate(seedRand);

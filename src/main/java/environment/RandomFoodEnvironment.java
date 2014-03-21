@@ -4,6 +4,7 @@ import utils.grid.Chunk;
 import bio.organisms.AbstractOrganism;
 import environment.generators.IGenerator;
 import environment.generators.PerlinGenerator;
+import environment.physics.PointMass;
 
 /**
  * RandomFoodEnvironment will provide food to organisms based solely on a randomly generated terrain.
@@ -32,6 +33,17 @@ public class RandomFoodEnvironment extends Environment {
 				// TODO - is food continuous or is it randomly all-or-nothing?
 				double food = this.seedRand.nextDouble() < base_value ? food_energy : 0.0;
 				o.feed(food);
+			}
+		}
+	}
+
+	@Override
+	protected void doCollisions() {
+		for(Chunk c : this.grid){
+			for(AbstractOrganism a : c){
+				for(AbstractOrganism b : this.getNearby(a, 2*PointMass.DEFAULT_RADIUS, true)){
+					a.collide(b);
+				}
 			}
 		}
 	}

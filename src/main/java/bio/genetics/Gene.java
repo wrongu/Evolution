@@ -13,7 +13,7 @@ import environment.Environment;
 public abstract class Gene<T> {
 	
 	/** The maximum rate of change for mutation rates (+/-) */
-	private static final double META_MUTATION = 0.01;
+	private static final double META_MUTATION_RATE = 0.01;
 	
 	/** A Gene subclass may specify multiple named mutation rates which change according to
 	 * the meta mutation-rate */
@@ -27,14 +27,14 @@ public abstract class Gene<T> {
 	}
 	
 	public final Gene<T> clone(){
-		Gene<T> copy = this.sub_clone();
+		Gene<T> copy = this._clone();
 		for(Map.Entry<String, Double> e : copy.mutation_rates.entrySet()){
 			copy.mutation_rates.put(e.getKey(), e.getValue());
 		}
 		return this;
 	}
 	
-	protected abstract Gene<T> sub_clone();
+	protected abstract Gene<T> _clone();
 	
 	protected final double mutationRate(String k){
 		if(this.mutation_rates.containsKey(k))
@@ -45,7 +45,8 @@ public abstract class Gene<T> {
 	private final void metaMutate(Random r){
 		for(Entry<String, Double> pair : mutation_rates.entrySet()){
 			double val = pair.getValue();
-			val += (r.nextDouble() * 2.0 - 1.0) * META_MUTATION;
+			double unit_random = r.nextDouble() - r.nextDouble();
+			val *= Math.exp(unit_random * META_MUTATION_RATE);
 			val = Math.min(Math.max(0.0, val), 1.0); // clamp between 0 and 1
 			pair.setValue(val);
 		}
@@ -57,14 +58,14 @@ public abstract class Gene<T> {
 	public Gene<T> mutate(Random r){
 		Gene<T> child = this.clone();
 		child.metaMutate(r);
-		child.sub_mutate(r);
+		child._mutate(r);
 		return child;
 	}
 	
 	/** make a copy and alter its parameters randomly
 	 * subclasses should call super.metaMutate() */
 	// TODO the abstract/final trick so that subclasses aren't responsible for super.metaMutate()
-	protected abstract void sub_mutate(Random r);
+	protected abstract void _mutate(Random r);
 	
 	public abstract T create(double posx, double posy, Environment e);
 	

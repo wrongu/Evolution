@@ -287,7 +287,7 @@ public class DumberBrain implements IBrain {
 		}
 
 		@Override
-		protected Gene<DumberBrain> sub_clone() {
+		protected Gene<DumberBrain> _clone() {
 			BrainGene g = new BrainGene(s, o);
 			g.i = this.i;
 			g.W = this.W.dup();
@@ -299,7 +299,7 @@ public class DumberBrain implements IBrain {
 		}
 
 		@Override
-		protected void sub_mutate(Random r) {
+		protected void _mutate(Random r) {
 			// ADD 0 OR MORE
 			int safe_limit = 0; // it's possible for mutation rates to get up to 1.0.. just in case, don't make an infinite loop!
 			while(r.nextDouble() < mutationRate(ADD_NEURON) && (safe_limit++) < 100){
