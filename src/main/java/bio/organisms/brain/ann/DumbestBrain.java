@@ -16,10 +16,13 @@ import bio.organisms.AbstractOrganism;
 import bio.organisms.SimpleCircleOrganism;
 import bio.organisms.brain.IBrain;
 
+
 /**
- * @author wrongu
+ * @author ewy-man, wrongu
+ * 
+ * 
  */
-public class DumbBrain implements IBrain {
+public class DumbestBrain implements IBrain {
 	
 	// Energy constants
 	public static final double NEURON_ENERGY = 0.01; // Upkeep per neuron.
@@ -31,30 +34,27 @@ public class DumbBrain implements IBrain {
 	private DoubleMatrix A; // vector of current _internal_ activations (NOT outputs)
 	private DoubleMatrix I; // vector of sensory inputs AND internal-outputs (staging for tick())
 	private DoubleMatrix O; // vector of action potential outputs (stored after tick() for getOutput())
-	private double threshold, action_potential, depolarize, decay;
-	
-	// DEBUG
-	private int generation = 0;
+	private double outputTemperment = 1;
 	
 	// A gene for evolution
-	private Gene<DumbBrain> gene;
+	private Gene<DumbestBrain> gene;
 	// The organism who provides us energy
 	private AbstractOrganism meatCase;
 	
-	public static DumbBrain fromGene(Gene<DumbBrain> g, AbstractOrganism org){
+	public static DumbestBrain fromGene(Gene<DumbestBrain> g, AbstractOrganism org){
 		// TODO not all genes interact with the environment.. get rid of args to create()
-		DumbBrain brain = g.create(0, 0, null);
+		DumbestBrain brain = g.create(0, 0, null);
 		brain.gene = g;
 		brain.meatCase = org;
 		return brain;
 	}
 	
-	public static DumbBrain newEmpty(int s, int o, AbstractOrganism org){
+	public static DumbestBrain newEmpty(int s, int o, AbstractOrganism org){
 		return fromGene(new BrainGene(s, o), org);
 	}
 	
-	public static DumbBrain newRandom(int s, int o, AbstractOrganism org, Random r){
-		DumbBrain db = fromGene(new BrainGene(s, o), org);
+	public static DumbestBrain newRandom(int s, int o, AbstractOrganism org, Random r){
+		DumbestBrain db = fromGene(new BrainGene(s, o), org);
 		for(int n = 0; n < db.W.length; n++)
 			db.W.put(n, r.nextDouble()-r.nextDouble());
 		return db;
@@ -65,11 +65,9 @@ public class DumbBrain implements IBrain {
 	 * @param i number of internal neurons
 	 * @param s number of sensory neurons
 	 * @param o number of output neurons
-	 * @param th threshold for action potentials
-	 * @param ap value of action potential
-	 * @param de value of depolarization
 	 */
-	private DumbBrain(int i, int s, int o, double th, double ap, double dp, double dc){
+	private DumbestBrain(int i, int s, int o){
+		i = (i < 0) ? 0 : i; // Check inputs.
 		this.i = i;
 		this.o = o;
 		this.s = s;
@@ -77,10 +75,6 @@ public class DumbBrain implements IBrain {
 		A = new DoubleMatrix(i+o, 1);
 		I = new DoubleMatrix(i+s, 1);
 		O = new DoubleMatrix(o, 1);
-		threshold = th;
-		action_potential = ap;
-		depolarize = dp;
-		decay = dc;
 	}
 	
 	/**
@@ -112,7 +106,7 @@ public class DumbBrain implements IBrain {
 	 */
 	public void setInput(int index, double value) {
 		if(index >= s || index < 0){
-			System.err.println("DumbBrain.setInput() out of range: "+index+" ("+s+" inputs available)");
+			System.err.println("DumbestBrain.setInput() out of range: "+index+" ("+s+" inputs available)");
 			return;
 		}
 		I.put(i+index,value);
@@ -126,58 +120,43 @@ public class DumbBrain implements IBrain {
 	 */
 	public double getOutput(int index) {
 		if(index >= o || index < 0){
-			System.err.println("DumbBrain.getOutput() out of range: "+index+" ("+o+" outputs available)");
+			System.err.println("DumbestBrain.getOutput() out of range: "+index+" ("+o+" outputs available)");
 			return 0.0;
 		}
 		return O.get(index);
 	}
 
+
 	/**
-	 * Ticks the brain. This is a five-step process.
-	 * 1. Decay all signals
-	 * 2. Multiply inputs by weights to get next-activation
-	 * 3. Apply thresholding and depolarization to get next-outputs
-	 * 4. Clear input signals
-	 * 5. Drain requisite energy from the organism
+	 * Ticks the brain. This is a four-step process.
+	 * 1. Tick brain and record outputs.
+	 * 2. Apply thresholding to get next-outputs
+	 * 3. Clear input signals
+	 * 4. Drain requisite energy from the organism
 	 */
 	public void tick() {
 		// Step 1.
-		A = A.mul(this.decay);
-		I = I.mul(this.decay); // TODO handle this such that senses aren't decayed?
-		O = O.mul(this.decay);
+		A = W.mmul(I);
 		// Step 2.
-		A = A.add(W.mmul(I));
-		// Step 3.
-		for(int n=0; n < (i+o); n++){
+		for(int n=0; n < i; n++) {
 			// first 'i' neurons are stored in I
-			if(n < i){
-				if(A.get(n) > threshold){
-					I.put(n, action_potential);
-					A.put(n, depolarize);
-				}
-			}
-			// output neurons 'i+1:end' are stored in O
-			else{
-				if(A.get(n) > threshold){
-					O.put(n-i, action_potential);
-					A.put(n, depolarize);
-				}
-			}
+			I.put(n, thresholdFunction(A.get(n)));
 		}
-		// step 4. clear inputs
+		for(int n = i; n < o + i; n++) {
+			// output neurons 'i+1:end' are stored in O
+			O.put(n-i, temperOutput(A.get(n)));
+		}
+		// step 3. clear inputs
 		for(int n=i; n<i+s; n++){
 			I.put(n, 0.0);
 		}
-		// step 5;
-		double energy = NEURON_ENERGY * i + FIRING_ENERGY * O.norm1();
+		// step 4;
+		double energy = NEURON_ENERGY * i + FIRING_ENERGY * A.norm1();
 		this.meatCase.useEnergy(energy);
 	}
 
 	public IBrain beget(Environment e, AbstractOrganism parent) {
-		Gene<DumbBrain> child_gene = this.gene.mutate(e.getRandom());
-		DumbBrain brain = child_gene.create(0, 0, e);
-		brain.gene = child_gene;
-		brain.generation = this.generation + 1;
+		DumbestBrain brain = this.gene.mutate(e.getRandom()).create(0, 0, e);
 		brain.meatCase = parent;
 		return brain;
 	}
@@ -189,36 +168,32 @@ public class DumbBrain implements IBrain {
 	public String toString() {
 		return "W: "+W.toString("%.1f") + "\nA: " + A.toString("%.1f") + "\nO: " + O.toString("%.1f");
 	}
+
+	private double thresholdFunction(double x) {
+		return (x > 0d) ? (x < 1d ? x : 1d ) : 0d;
+	}
 	
-	private static class BrainGene extends Gene<DumbBrain>{
+	private double temperOutput(double x) {
+		return Math.signum(x)*(2.0/outputTemperment) * Math.sqrt(outputTemperment*Math.abs(x) + 1) - 1;
+	}
+	private static class BrainGene extends Gene<DumbestBrain>{
 		
 		private static final String ADD_NEURON = "add";
 		private static final String DEL_NEURON = "del";
 		private static final String ALTER_CONNECTION = "conn";
-		private static final String ALTER_THRESHOLD = "thresh";
-		private static final String ALTER_POTENTIAL = "pot";
-		private static final String ALTER_DEPOLARIZE = "dep";
-		private static final String ALTER_DECAY = "dec";
 
-		// copy of relevant (mutable) values in the DumbBrain
+		// copy of relevant (mutable) values in the DumberBrain
 		private DoubleMatrix W;
 		int i, s, o;
-		private double threshold, action_potential, depolarize, decay;
 		
 		public BrainGene(int s, int o){
 			// registering meta-mutation parameters means that all their updates and serialization come
 			// for free, courtesy of Gene<T>
-			super(ADD_NEURON, DEL_NEURON, ALTER_CONNECTION,
-				ALTER_THRESHOLD, ALTER_POTENTIAL,
-				ALTER_DEPOLARIZE, ALTER_DECAY);
+			super(ADD_NEURON, DEL_NEURON, ALTER_CONNECTION);
 			W = new DoubleMatrix(o, s);
 			this.i = 0;
 			this.s = s;
 			this.o = o;
-			this.action_potential = 1.0;
-			this.depolarize = -0.1;
-			this.decay = 0.6;
-			this.threshold = 0.0;
 		}
 		
 		private void addNeuron(){
@@ -231,7 +206,6 @@ public class DumbBrain implements IBrain {
 		}
 		
 		private void delNeuron(int which){
-			assert(0 <= which && which < i);
 			i--;
 			// Make a new matrix to hold the data
 			DoubleMatrix shrink = new DoubleMatrix(i+o, i+s);
@@ -259,8 +233,8 @@ public class DumbBrain implements IBrain {
 		}
 
 		@Override
-		public DumbBrain create(double posx, double posy, Environment e) {
-			DumbBrain brain = new DumbBrain(i, s, o, threshold, action_potential, depolarize, decay);
+		public DumbestBrain create(double posx, double posy, Environment e) {
+			DumbestBrain brain = new DumbestBrain(i, s, o);
 			brain.W = this.W.dup();
 			return brain;
 		}
@@ -272,12 +246,8 @@ public class DumbBrain implements IBrain {
 			dest.writeInt(o);
 			for(int n = 0; n < W.length; n++)
 				dest.writeDouble(W.get(n));
-			dest.writeDouble(action_potential);
-			dest.writeDouble(threshold);
-			dest.writeDouble(decay);
-			dest.writeDouble(depolarize);
 		}
-
+		
 		@Override
 		protected void sub_deserialize(DataInputStream src) throws IOException {
 			i = src.readInt();
@@ -286,21 +256,13 @@ public class DumbBrain implements IBrain {
 			W = new DoubleMatrix(i+o, i+s);
 			for(int n = 0; n < W.length; i++)
 				W.put(n, src.readDouble());
-			action_potential = src.readDouble();
-			threshold = src.readDouble();
-			decay = src.readDouble();
-			depolarize = src.readDouble();
 		}
 
 		@Override
-		protected Gene<DumbBrain> _clone() {
+		protected Gene<DumbestBrain> _clone() {
 			BrainGene g = new BrainGene(s, o);
 			g.i = this.i;
 			g.W = this.W.dup();
-			g.threshold = this.threshold;
-			g.action_potential = this.action_potential;
-			g.decay = this.decay;
-			g.depolarize = this.depolarize;
 			return g;
 		}
 
@@ -312,7 +274,7 @@ public class DumbBrain implements IBrain {
 				addNeuron();
 			}
 			// REMOVE 0 OR MORE
-			while(r.nextDouble() < mutationRate(DEL_NEURON) && i > 0){
+			if(r.nextDouble() < mutationRate(DEL_NEURON) && i > 0){
 				// choose a random index to remove, then decrement i
 				int del_ind = r.nextInt(i);
 				delNeuron(del_ind);
@@ -325,37 +287,16 @@ public class DumbBrain implements IBrain {
 					}
 				}
 			}
-			// CHANGE THRESHOLD
-			if(r.nextDouble() < mutationRate(ALTER_THRESHOLD)){
-				// up to 10% change in either direction
-				threshold *= (1 + (r.nextDouble() - r.nextDouble())*0.1);
-			}
-			// CHANGE DEPOLARIZATION
-			if(r.nextDouble() < mutationRate(ALTER_DEPOLARIZE)){
-				// up to 10% change in either direction
-				depolarize *= (1 + (r.nextDouble() - r.nextDouble())*0.1);
-			}
-			// CHANGE ACTION POTENTIAL
-			if(r.nextDouble() < mutationRate(ALTER_POTENTIAL)){
-				// up to 10% change in either direction
-				action_potential *= (1 + (r.nextDouble() - r.nextDouble())*0.1);
-			}
-			// CHANGE DECAY RATE
-			if(r.nextDouble() < mutationRate(ALTER_DECAY)){
-				// up to 10% change in either direction
-				decay *= (1 + (r.nextDouble() - r.nextDouble())*0.1);
-			}
 		}
-		
 	}
 	
 	// TESTING
 	public static void main(String[] args){
 		Environment e = new RandomFoodEnvironment(1.0, 12L);
 		AbstractOrganism org = new SimpleCircleOrganism(e, 10.0, 0, 0);
-		DumbBrain db0 = DumbBrain.newEmpty(2, 4, org);
+		DumbestBrain db0 = DumbestBrain.newEmpty(2, 4, org);
 		System.out.println(db0);
-		DumbBrain db1 = DumbBrain.newRandom(2, 4, org, e.getRandom());
+		DumbestBrain db1 = DumbestBrain.newRandom(2, 4, org, e.getRandom());
 		System.out.println(db1);
 		db1.setInput(0, 10.0);
 		db1.setInput(1, 10.0);

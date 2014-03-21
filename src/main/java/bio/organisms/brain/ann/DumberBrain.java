@@ -1,308 +1,166 @@
 package bio.organisms.brain.ann;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.Random;
+import java.util.HashMap;
 
 import org.jblas.DoubleMatrix;
-import org.jblas.ranges.RangeUtils;
+import org.jblas.MatrixFunctions;
 
 import environment.Environment;
-import environment.RandomFoodEnvironment;
 
 import bio.genetics.Gene;
 import bio.organisms.AbstractOrganism;
-import bio.organisms.SimpleCircleOrganism;
 import bio.organisms.brain.IBrain;
 
-/**
- * @author ewy-man, wrongu
- * 
- * 
- */
-public class DumberBrain implements IBrain {
+public class DumberBrain  implements IBrain {
+
+	// necessary matrices
+	private DoubleMatrix weightMatrix;
+	private DoubleMatrix actVector;
+	private DoubleMatrix outVector;
+	private DoubleMatrix thresholdVector;
+	private DoubleMatrix restVector;
+
+	//constants for updating, etc
+	private final double c = 5.0; // logistic function f = (1 + exp(-a*c))^-1;
+	private final double decay = 0.9;
 	
-	// Energy constants
-	public static final double NEURON_ENERGY = 0.01; // Upkeep per neuron.
-	public static final double FIRING_ENERGY = 0.01; // Energy to fire each neuron.
-	
-	// Weight matrix and state vectors
-	private int i, s, o;
-	private DoubleMatrix W; // weight matrix (I+O) x (I+S)
-	private DoubleMatrix A; // vector of current _internal_ activations (NOT outputs)
-	private DoubleMatrix I; // vector of sensory inputs AND internal-outputs (staging for tick())
-	private DoubleMatrix O; // vector of action potential outputs (stored after tick() for getOutput())
-	private double outputTemperment = 1;
-	
-	// A gene for evolution
 	private Gene<DumberBrain> gene;
 	// The organism who provides us energy
 	private AbstractOrganism meatCase;
-	
-	public static DumberBrain fromGene(Gene<DumberBrain> g, AbstractOrganism org){
-		// TODO not all genes interact with the environment.. get rid of args to create()
-		DumberBrain brain = g.create(0, 0, null);
-		brain.gene = g;
-		brain.meatCase = org;
-		return brain;
-	}
-	
-	public static DumberBrain newEmpty(int s, int o, AbstractOrganism org){
-		return fromGene(new BrainGene(s, o), org);
-	}
-	
-	public static DumberBrain newRandom(int s, int o, AbstractOrganism org, Random r){
-		DumberBrain db = fromGene(new BrainGene(s, o), org);
-		for(int n = 0; n < db.W.length; n++)
-			db.W.put(n, r.nextDouble()-r.nextDouble());
-		return db;
-	}
-	
-	/**
-	 * Create a new neural net.
-	 * @param i number of internal neurons
-	 * @param s number of sensory neurons
-	 * @param o number of output neurons
-	 */
-	private DumberBrain(int i, int s, int o){
-		i = (i < 0) ? 0 : i; // Check inputs.
-		this.i = i;
-		this.o = o;
-		this.s = s;
-		W = new DoubleMatrix(i+o, i+s);
-		A = new DoubleMatrix(i+o, 1);
-		I = new DoubleMatrix(i+s, 1);
-		O = new DoubleMatrix(o, 1);
-	}
-	
-	/**
-	 * Get number of inputs
-	 */
-	public int inputs(){
-		return s;
-	}
-	
-	/**
-	 * Get number of outputs
-	 */
-	public int outputs(){
-		return o;
-	}
-	
-	/**
-	 * Get number of internal neurons
-	 */
-	public int neurons(){
-		return i;
-	}
-	
-	/**
-	 * Input sensory information into the brain.
-	 * 
-	 * @param index which of the s inputs to set
-	 * @param value Value of sense
-	 */
-	public void setInput(int index, double value) {
-		if(index >= s || index < 0){
-			System.err.println("DumberBrain.setInput() out of range: "+index+" ("+s+" inputs available)");
-			return;
-		}
-		I.put(i+index,value);
-	}
-	
-	/**
-	 * Read off action information from the brain.
-	 * 
-	 * @param index which of the o outputs to get
-	 * @return Value of action
-	 */
-	public double getOutput(int index) {
-		if(index >= o || index < 0){
-			System.err.println("DumberBrain.getOutput() out of range: "+index+" ("+o+" outputs available)");
-			return 0.0;
-		}
-		return O.get(index);
+
+	// book-keeping
+	private HashMap<Integer, Integer> id_map;
+	private int next_ind = 0;
+
+	public DumberBrain(int n_neurons){
+		weightMatrix = new DoubleMatrix(n_neurons, n_neurons);
+		actVector = DoubleMatrix.zeros(n_neurons);
+		outVector = DoubleMatrix.zeros(n_neurons);	
+		thresholdVector = DoubleMatrix.zeros(n_neurons);
+		restVector = DoubleMatrix.zeros(n_neurons);
+
+		id_map = new HashMap<Integer, Integer>(n_neurons);
 	}
 
-	/**
-	 * Ticks the brain. This is a four-step process.
-	 * 1. Tick brain and record outputs.
-	 * 2. Apply thresholding to get next-outputs
-	 * 3. Clear input signals
-	 * 4. Drain requisite energy from the organism
-	 */
-	public void tick() {
-		// Step 1.
-		A = W.mmul(I);
-		// Step 2.
-		for(int n=0; n < i; n++) {
-			// first 'i' neurons are stored in I
-			I.put(n, thresholdFunction(A.get(n)));
+	public void init(){
+		actVector = restVector.dup();
+	}
+
+	public void setProperties(int neuron_id, double threshold, double rest){
+		int ind = id_to_index(neuron_id);
+		thresholdVector.put(ind, threshold);
+		restVector.put(ind, rest);
+	}
+
+	public void addConnection(int id_from, int id_to, double weight){
+		int ind_from = id_to_index(id_from);
+		int ind_to = id_to_index(id_to);
+		weightMatrix.put(ind_to, ind_from, weight);
+	}
+
+	private int id_to_index(int id){
+		Integer lookup = id_map.get(id);
+		if(lookup != null) {
+			//			System.out.println(id + " --> " + lookup);
+			return lookup.intValue();
+		} else {
+			//			System.out.println(id + " --> " + next_ind);
+			id_map.put(id, next_ind);
+			return next_ind++;
 		}
-		for(int n = i; n < o + i; n++) {
-			// output neurons 'i+1:end' are stored in O
-			O.put(n-i, temperOutput(A.get(n)));
-		}
-		// step 3. clear inputs
-		for(int n=i; n<i+s; n++){
-			I.put(n, 0.0);
-		}
-		// step 4;
-		double energy = NEURON_ENERGY * i + FIRING_ENERGY * A.norm1();
-		this.meatCase.useEnergy(energy);
+	}
+
+	public void tick(){
+		// activation += weights * outputs;
+		actVector = actVector.add(weightMatrix.mmul(outVector));
+	
+		// update outputs as logistic-activation-function of activation
+		// out = 1 / (1 + exp(-c*a)) = (1 + exp(a)^-c)^-1
+		//
+		// note that actVector.sub(thresholdVector) is used in place of "a", above, so that thresholds may vary
+		outVector =
+				MatrixFunctions.pow(
+						MatrixFunctions.pow(
+								MatrixFunctions.expi(actVector.sub(thresholdVector)),
+								-c)
+							.add(1.0),
+							-1.0);
+		// decay activation
+		actVector = (actVector.sub(restVector).mul(decay)).add(restVector);
+	}
+
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+
+		builder.append("activation:\t");
+		for(int i=0; i < actVector.length; i++)
+			builder.append(actVector.get(i)+", ");
+		builder.append('\n');
+
+		builder.append("output:\t\t");
+		for(int i=0; i < outVector.length; i++)
+			builder.append(outVector.get(i)+", ");
+		builder.append('\n');
+
+		builder.append("thresholds:\t");
+		for(int i=0; i < thresholdVector.length; i++)
+			builder.append(thresholdVector.get(i)+", ");
+		builder.append('\n');
+
+		builder.append("rest:\t\t");
+		for(int i=0; i < restVector.length; i++)
+			builder.append(restVector.get(i)+", ");
+		builder.append('\n');
+		
+//		builder.append("weights:\n");
+//		for(int r = 0; r < weightMatrix.rows; r++){
+//			for(int c = 0; c < weightMatrix.columns; c++){
+//				builder.append(weightMatrix.get(r,c) + ", ");
+//			}
+//			builder.append('\n');
+//		}
+
+		return builder.toString();
 	}
 
 	public IBrain beget(Environment e, AbstractOrganism parent) {
-		DumberBrain brain = this.gene.mutate(e.getRandom()).create(0, 0, e);
-		brain.meatCase = parent;
-		return brain;
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void setInput(int id, double val) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public double getOutput(int id) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 	public Gene<? extends IBrain> getGene() {
-		return gene;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	public String toString() {
-		return "W: "+W.toString("%.1f") + "\nA: " + A.toString("%.1f") + "\nO: " + O.toString("%.1f");
-	}
-	
-	private double thresholdFunction(double x) {
-		return (x > 0) ? (x < 1 ? x : 1 ) : 0;
-	}
-	
-	private double temperOutput(double x) {
-		return Math.signum(x)*(2.0/outputTemperment) * Math.sqrt(outputTemperment*Math.abs(x) + 1) - 1;
-	}
-	
-	private static class BrainGene extends Gene<DumberBrain>{
-		
-		private static final String ADD_NEURON = "add";
-		private static final String DEL_NEURON = "del";
-		private static final String ALTER_CONNECTION = "conn";
-
-		// copy of relevant (mutable) values in the DumberBrain
-		private DoubleMatrix W;
-		int i, s, o;
-		
-		public BrainGene(int s, int o){
-			// registering meta-mutation parameters means that all their updates and serialization come
-			// for free, courtesy of Gene<T>
-			super(ADD_NEURON, DEL_NEURON, ALTER_CONNECTION);
-			W = new DoubleMatrix(o, s);
-			this.i = 0;
-			this.s = s;
-			this.o = o;
-		}
-		
-		private void addNeuron(){
-			this.i++;
-			// create a new matrix that is 1 row and 1 column larger
-			DoubleMatrix expanded = new DoubleMatrix(i+o, i+s);
-			// copy the old matrix into the [1:end] range (leave zeros in the 0th row and column)
-			expanded.put(RangeUtils.interval(1, i+o), RangeUtils.interval(1,i+s), this.W);
-			this.W = expanded;
-		}
-		
-		private void delNeuron(int which){
-			i--;
-			// Make a new matrix to hold the data
-			DoubleMatrix shrink = new DoubleMatrix(i+o, i+s);
-			// Copy in 4 quadrants of data that are split by del_ind
-			shrink.put(
-					RangeUtils.interval(0, which-1),
-					RangeUtils.interval(0, which-1),
-					W.getRange(0, which-1, 0, which-1));
-			shrink.put(
-					RangeUtils.interval(which+1, i+o),
-					RangeUtils.interval(0, which-1),
-					W.getRange(which+1, i+o, 0, which-1));
-			shrink.put(
-					RangeUtils.interval(0, which-1),
-					RangeUtils.interval(which+1, i+s),
-					W.getRange(0, which-1, which+1, i+s));
-			shrink.put(
-					RangeUtils.interval(which+1, i+o),
-					RangeUtils.interval(which+1, i+s),
-					W.getRange(which+1, i+o, which+1, i+s));
-		}
-		
-		private void alterConnection(int fro, int to, double val){
-			W.put(to, fro, val);
-		}
-
-		@Override
-		public DumberBrain create(double posx, double posy, Environment e) {
-			DumberBrain brain = new DumberBrain(i, s, o);
-			brain.W = this.W.dup();
-			return brain;
-		}
-
-		@Override
-		protected void sub_serialize(DataOutputStream dest) throws IOException {
-			dest.writeInt(i);
-			dest.writeInt(s);
-			dest.writeInt(o);
-			for(int n = 0; n < W.length; n++)
-				dest.writeDouble(W.get(n));
-		}
-		
-		@Override
-		protected void sub_deserialize(DataInputStream src) throws IOException {
-			i = src.readInt();
-			s = src.readInt();
-			o = src.readInt();
-			W = new DoubleMatrix(i+o, i+s);
-			for(int n = 0; n < W.length; i++)
-				W.put(n, src.readDouble());
-		}
-
-		@Override
-		protected Gene<DumberBrain> _clone() {
-			BrainGene g = new BrainGene(s, o);
-			g.i = this.i;
-			g.W = this.W.dup();
-			return g;
-		}
-
-		@Override
-		protected void _mutate(Random r) {
-			// ADD 0 OR MORE
-			int safe_limit = 0; // it's possible for mutation rates to get up to 1.0.. just in case, don't make an infinite loop!
-			while(r.nextDouble() < mutationRate(ADD_NEURON) && (safe_limit++) < 100){
-				addNeuron();
-			}
-			// REMOVE 0 OR MORE
-			if(r.nextDouble() < mutationRate(DEL_NEURON) && i > 0){
-				// choose a random index to remove, then decrement i
-				int del_ind = r.nextInt(i);
-				delNeuron(del_ind);
-			}
-			// CHANGE CONNECTION
-			for(int fro = 0; fro < i+s; fro++){
-				for(int to = 0; to < i+o; to++){
-					if(r.nextDouble() < mutationRate(ALTER_CONNECTION)){
-						alterConnection(fro, to, r.nextDouble()-r.nextDouble());
-					}
-				}
-			}
-			
-		}
-		
-	}
-	
-	// TESTING
 	public static void main(String[] args){
-		Environment e = new RandomFoodEnvironment(1.0, 12L);
-		AbstractOrganism org = new SimpleCircleOrganism(e, 10.0, 0, 0);
-		DumberBrain db0 = DumberBrain.newEmpty(2, 4, org);
-		System.out.println(db0);
-		DumberBrain db1 = DumberBrain.newRandom(2, 4, org, e.getRandom());
-		System.out.println(db1);
-		db1.setInput(0, 10.0);
-		db1.setInput(1, 10.0);
-		db1.tick();
-		System.out.println(db1);
+		DumberBrain myAnn = new DumberBrain(4);
+
+		myAnn.setProperties(0, 0.0, 0.1);
+		myAnn.setProperties(1, 0.0, 0.1);
+		myAnn.setProperties(2, 0.0, 0.1);
+		myAnn.setProperties(3, 0.0, 0.1);
+
+		myAnn.addConnection(0, 1, 1.0);
+		myAnn.addConnection(1, 2, -1.0);
+
+		myAnn.init();
+
+		System.out.println(myAnn);
+
+		for(int i=0; i<5; i++){
+			myAnn.tick();
+			System.out.println(myAnn);
+		}
 	}
 }
-
