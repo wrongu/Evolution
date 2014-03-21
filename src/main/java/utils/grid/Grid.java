@@ -4,7 +4,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+
+import environment.Environment;
+import bio.genetics.Gene;
 import bio.organisms.AbstractOrganism;
+import bio.organisms.brain.IOutput;
+import bio.organisms.brain.ISense;
 
 /**
  * A wrapper for a HashMap<HashCoords,Chunk> object. Contains
@@ -20,6 +26,8 @@ import bio.organisms.AbstractOrganism;
  * @author ewy-man
  */
 public class Grid implements Iterable<Chunk> {
+	
+	private static final double ROOT_2 = Math.sqrt(2);
 	
 	private HashMap<HashCoords,Chunk> map;
 	private HashCoords coords;
@@ -124,50 +132,117 @@ public class Grid implements Iterable<Chunk> {
 	 * @return
 	 */
 	public HashSet<Chunk> getAllWithin(double x_0, double y_0, double r) {
-		
+				
 		HashSet<Chunk> values = new HashSet<Chunk>();
 		
-		for(int y = (int)Math.ceil(y_0); y - y_0 < r; y++) {
-			double r_x = Math.sqrt( r*r - (y - y_0)*(y - y_0) );
-			for(int x = (int)(x_0 - r_x); x < x_0 + r_x; x++) {
-				coords.set(x, y);
-				Chunk chunk = map.get(coords);
-				if(chunk != null && !chunk.isEmpty()) {
-					values.add(chunk);
+		r += ROOT_2;
+		int x_L = (int)Math.floor(x_0 - r);
+		int x_U = (int)Math.ceil(x_0 + r);
+		int y_L = (int)Math.floor(y_0 - r);
+		int y_U = (int)Math.ceil(y_0 + r);
+		int x_range = x_U - x_L + 1;
+		int y_range = y_U - y_L + 1;
+		boolean[][] cornerMarkers = new boolean[x_range][y_range];
+		
+		for(int i = 0; i < x_range; i++) {
+			for(int j = 0; j < y_range; j++) {
+				double dx = (i + x_L) - x_0;
+				double dy = (j + y_L) - y_0;
+				cornerMarkers[i][j] = dx*dx + dy*dy < r*r;
+			}
+		}
+		
+		for(int i = 0; i < x_range - 1; i++) {
+			for(int j = 0; j < y_range - 1; j++) {
+				if(cornerMarkers[i][j] & cornerMarkers[i+1][j] & cornerMarkers[i][j+1] & cornerMarkers[i+1][j+1]) {
+					coords.set(i + x_L, j + y_L);
+					values.add(map.get(coords));
 				}
 			}
 		}
-		for(int y = (int)Math.ceil(y_0) - 2; y_0 - y - 1 < r; y-- ) {
-			double r_x = Math.sqrt( r*r - (y - y_0 + 1)*(y - y_0 + 1) );
-			for(int x = (int)(x_0 - r_x); x < x_0 + r_x; x++) {
-				Chunk chunk = map.get(coords);
-				if(chunk != null && !chunk.isEmpty()) {
-					values.add(chunk);
-				}
-			}
-		}
-		for(int x = (int)(x_0 - r); x + x_0 < r; x++) {
-			coords.set(x, (int)Math.ceil(y_0) - 1);
-			Chunk chunk = map.get(coords);
-			if(chunk != null && !chunk.isEmpty()) {
-				values.add(chunk);
-			}
-		}
+		
+		values.remove(null);
 		
 		return values;
 	}
 	
 	/**
-	 * Returns the chunks within the bounding box determined by the
-	 * points (x_1,y_1) and (x_2,y_2).
+	 * Get all Chunks which are potentially within a distance r
+	 * of the given Chunk c.
+	 * 
+	 * @param c
+	 * @param r
+	 * @return
+	 */
+	public HashSet<Chunk> getAllWithin(Chunk c, double r) {
+		HashSet<Chunk> values = new HashSet<Chunk>();
+		
+		r += ROOT_2;
+		int x_0 = c.getGridX();
+		int y_0 = c.getGridY();
+		int r_ceil = (int)Math.ceil(r);
+		int x_L = x_0 - r_ceil;
+		int x_U = x_0 + r_ceil + 1;
+		int y_L = y_0 - r_ceil;
+		int y_U = y_0 + r_ceil + 1;
+		int x_range = x_U - x_L + 1;
+		int y_range = y_U - y_L + 1;
+		boolean[][] cornerMarkers = new boolean[x_range][y_range];
+		
+		for(int i = 0; i <= r_ceil; i++) {
+			for(int j = 0; j <= r_ceil; j++) {
+				double dx = (i + x_L) - x_0;
+				double dy = (j + y_L) - y_0;
+				cornerMarkers[i][j] = dx*dx + dy*dy < r*r;
+			}
+		}
+		for(int i = 0; i <= r_ceil; i++) {
+			for(int j = r_ceil + 1; j < y_range; j++) {
+				double dx = (i + x_L) - x_0;
+				double dy = (j + y_L) - (y_0 + 1);
+				cornerMarkers[i][j] = dx*dx + dy*dy < r*r;
+			}
+		}
+		for(int i = r_ceil + 1; i < x_range; i++) {
+			for(int j = 0; j <= r_ceil; j++) {
+				double dx = (i + x_L) - (x_0 + 1);
+				double dy = (j + y_L) - y_0;
+				cornerMarkers[i][j] = dx*dx + dy*dy < r*r;
+			}
+		}
+		for(int i = r_ceil + 1; i < x_range; i++) {
+			for(int j = r_ceil + 1; j < y_range; j++) {
+				double dx = (i + x_L) - (x_0 + 1);
+				double dy = (j + y_L) - (y_0 + 1);
+				cornerMarkers[i][j] = dx*dx + dy*dy < r*r;
+			}
+		}
+		
+		for(int i = 0; i < x_range - 1; i++) {
+			for(int j = 0; j < y_range - 1; j++) {
+				if(cornerMarkers[i][j] & cornerMarkers[i+1][j] & cornerMarkers[i][j+1] & cornerMarkers[i+1][j+1]) {
+					coords.set(i + x_L, j + y_L);
+					values.add(map.get(coords));
+				}
+			}
+		}
+		
+		values.remove(null);
+		
+		return values;
+	}
+	
+	/**
+	 * Returns the chunks within the bounding box [x_1,x_2] x [y_1,y_2],
+	 * in interval notation.
 	 * 
 	 * @param x_1
-	 * @param y_1
 	 * @param x_2
+	 * @param y_1
 	 * @param y_2
 	 * @return chunks
 	 */
-	public HashSet<Chunk> getAllInBoundingBox(double x_1, double y_1, double x_2, double y_2) {
+	public HashSet<Chunk> getAllInBoundingBox(double x_1, double x_2, double y_1, double y_2) {
 		
 		HashSet<Chunk> chunks = new HashSet<Chunk>();
 		
@@ -187,7 +262,7 @@ public class Grid implements Iterable<Chunk> {
 				
 				coords.set(x, y);
 				Chunk chunk = map.get(coords);
-				if(chunk != null && !chunk.isEmpty()) {
+				if(chunk != null) { // && !chunk.isEmpty()
 					chunks.add(chunk);
 				}
 				
@@ -199,7 +274,8 @@ public class Grid implements Iterable<Chunk> {
 	
 	/**
 	 * As getAllWithin, but returns only the Chunks which lie not left of
-	 * not under the original position.
+	 * not under the original position. To be used with mutual interactions
+	 * between entities to avoid duplicate effects.
 	 * 
 	 * @param x_0
 	 * @param y_0
@@ -209,27 +285,90 @@ public class Grid implements Iterable<Chunk> {
 	public HashSet<Chunk> getAllWithinAsym(double x_0, double y_0, double r) {
 		
 		HashSet<Chunk> values = new HashSet<Chunk>();
+		r += ROOT_2;
+		int x_L = (int)Math.floor(x_0);
+		int x_U = (int)Math.ceil(x_0 + r);
+		int y_L = (int)Math.floor(y_0);
+		int y_U = (int)Math.ceil(y_0 + r);
+		int x_range = x_U - x_L + 1;
+		int y_range = y_U - y_L + 1;
+		boolean[][] cornerMarkers = new boolean[x_range][y_range];
 		
-		for(int y = (int)Math.ceil(y_0); y - y_0 < r; y++) {
-			double r_x = Math.sqrt( r*r - (y - y_0)*(y - y_0) );
-			for(int x = (int)(x_0); x < x_0 + r_x; x++) {
-				coords.set(x, y);
-				Chunk chunk = map.get(coords);
-				if(chunk != null && !chunk.isEmpty()) {
-					values.add(chunk);
+		for(int i = 0; i < x_range; i++) {
+			for(int j = 0; j < y_range; j++) {
+				double dx = (i + x_L) - x_0;
+				double dy = (j + y_L) - y_0;
+				cornerMarkers[i][j] = dx*dx + dy*dy < r*r;
+			}
+		}
+		
+		for(int i = 0; i < x_range - 1; i++) {
+			for(int j = 0; j < y_range - 1; j++) {
+				if(cornerMarkers[i][j] & cornerMarkers[i+1][j] & cornerMarkers[i][j+1] & cornerMarkers[i+1][j+1]) {
+					coords.set(i + x_L, j + y_L);
+					values.add(map.get(coords));
 				}
 			}
 		}
-		for(int x = (int)(x_0); x + x_0 < r; x++) {
-			coords.set(x, (int)Math.ceil(y_0) - 1);
-			Chunk chunk = map.get(coords);
-			if(chunk != null && !chunk.isEmpty()) {
-				values.add(chunk);
-			}
-		}
+		
+		values.remove(null);
 		
 		return values;
 		
+	}
+	
+	/**
+	 * Get all Chunks which are potentially within a distance r
+	 * of the given Chunk c, but lie not below and not to the
+	 * left of c. To be used for mutual interactions to avoid
+	 * duplicate effects.
+	 * 
+	 * @param c
+	 * @param r
+	 * @return
+	 */
+	public HashSet<Chunk> getAllWithinAsym(Chunk c, double r) {
+		HashSet<Chunk> values = new HashSet<Chunk>();
+		
+		r += ROOT_2;
+		int x_0 = c.getGridX();
+		int y_0 = c.getGridY();
+		int r_ceil = (int)Math.ceil(r);
+		int x_L = x_0;
+		int x_U = x_0 + r_ceil + 1;
+		int y_L = y_0;
+		int y_U = y_0 + r_ceil + 1;
+		int x_range = x_U - x_L + 1;
+		int y_range = y_U - y_L + 1;
+		boolean[][] cornerMarkers = new boolean[x_range][y_range];
+		
+		cornerMarkers[0][0] = true;
+		for(int i = 1; i < x_range; i++) {
+			cornerMarkers[i][0] = true;
+		}
+		for(int j = 1; j < y_range; j++) {
+			cornerMarkers[0][j] = true;
+		}
+		for(int i = 1; i < x_range; i++) {
+			for(int j = 1; j < y_range; j++) {
+				double dx = (i + x_L) - (x_0 + 1);
+				double dy = (j + y_L) - (y_0 + 1);
+				cornerMarkers[i][j] = dx*dx + dy*dy < r*r;
+			}
+		}
+		
+		for(int i = 0; i < x_range - 1; i++) {
+			for(int j = 0; j < y_range - 1; j++) {
+				if(cornerMarkers[i][j] & cornerMarkers[i+1][j] & cornerMarkers[i][j+1] & cornerMarkers[i+1][j+1]) {
+					coords.set(i + x_L, j + y_L);
+					values.add(map.get(coords));
+				}
+			}
+		}
+		
+		values.remove(null);
+		
+		return values;
 	}
 	
 	/**
@@ -260,10 +399,6 @@ public class Grid implements Iterable<Chunk> {
 	/**
 	 * Returns the chunk at coordinates (x,y).
 	 * Creates the chunk if none exists.
-	 * 
-	 * @param x
-	 * @param y
-	 * @return chunk
 	 */
 	private Chunk summonChunk(int x, int y) {
 		coords.set(x,y);
@@ -273,6 +408,30 @@ public class Grid implements Iterable<Chunk> {
 			map.put(coords, chunk);
 		}
 		return chunk;
+	}
+	
+	// TESTING
+	public static void main(String[] args) {
+		
+		// Initialize grid and put in some chunks to start.
+		System.out.print("Initializing...");
+		Grid grid = new Grid();
+		for(int i = -20; i <= 20; i++) {
+			for(int j = -20; j <= 20; j++) {
+				grid.summonChunk(i,j);
+			}
+		}
+		System.out.println("done.");
+		
+		// Print out number of chunks.
+		System.out.println("Number of chunks = " + grid.map.size());
+		
+		// Get nearby test.
+		HashSet<Chunk> nearbyChunks = grid.getAllWithinAsym(grid.get(0,0),0.5);
+		System.out.println("Number of nearby chunks = " + nearbyChunks.size());
+		for(Chunk c : nearbyChunks) {
+			System.out.println("Coords: x = " + c.getGridX() + "   y = " + c.getGridY());
+		}
 	}
 	
 }

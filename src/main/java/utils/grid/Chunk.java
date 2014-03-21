@@ -8,14 +8,17 @@ public class Chunk extends HashSet<AbstractOrganism> {
 	
 	private static final long serialVersionUID = -1953294672491456887L;
 
-	public static final int SIZE = 20; // MUST be at least twice 
+	public static final int SIZE = 20; 
 	
 	private int x;
 	private int y;
+	private HashCoords coords;
 	
 	public Chunk(int x, int y) {
 		this.x = x;
 		this.y = y;
+		coords = new HashCoords();
+		coords.set(x,y);
 	}
 	
 	public int[] getGridCoords() {
@@ -46,6 +49,21 @@ public class Chunk extends HashSet<AbstractOrganism> {
 	
 	public int getWorldY() {
 		return y*SIZE;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		
+		if(!(o instanceof Chunk)) {
+			return false;
+		}
+		
+		return (x == ((Chunk)o).x & y == ((Chunk)o).y) && super.equals(o);
+	}
+	
+	@Override
+	public int hashCode() {
+		return coords.hashCode(); // This is likely bad practice...but suck it?
 	}
 
 }
