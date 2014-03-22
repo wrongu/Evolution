@@ -134,6 +134,7 @@ public class EvolutionDriver implements Runnable {
 		canvas.setPreferredSize(new Dimension(APPLET_WIDTH, APPLET_HEIGHT));
 		window.getContentPane().add(canvas);
 		window.setIgnoreRepaint(true);
+		window.pack();
 		
 		window.setVisible(true);
 		
