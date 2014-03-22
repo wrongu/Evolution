@@ -36,17 +36,19 @@ public class EvolutionDriver implements Runnable {
 	// variables for tracking fps
 	private long second_timer;
 	private int fps, frame_counter;
+	private boolean paused, sp_down, mouse_hold;
 	
 	public EvolutionDriver(Canvas c){
 		
 		second_timer = 0L;
 		fps = MAX_FPS;
 		frame_counter = 0;
+		paused = true; sp_down = false; mouse_hold = false;
 
 		// initialize everything
 		env = new RandomFoodEnvironment(1.0, 0L);
 		// INITIAL POPULATION
-		for(int i=0; i<1; i++){
+		for(int i=0; i<10; i++){
 			double x = 60. * Math.cos(2*Math.PI*i/10.);
 			double y = 60. * Math.sin(2*Math.PI*i/10.);
 			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
@@ -75,11 +77,14 @@ public class EvolutionDriver implements Runnable {
 			long now = System.currentTimeMillis();
 			double dt = ((double) (now - time)) / (double) TICK_MS;
 			checkInput(renderpanel);
-			env.update(dt);
-			if(env.getOrganismCount() == 0) break;
 			renderpanel.moveCamera(dt);
 			renderpanel.redraw();
 			updateFPS(now);
+			if(frame_counter == 0 || !paused || (mouse_buttons[0] == 1 && !mouse_hold)){
+				mouse_hold = true;
+				env.update(dt);
+				if(env.getOrganismCount() == 0) break;
+			}
 			Display.sync(MAX_FPS);
 		}
 		
@@ -103,6 +108,13 @@ public class EvolutionDriver implements Runnable {
 		if(Keyboard.isKeyDown(Keyboard.KEY_D)) direction_keys[RIGHT] = true;
 		else if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) direction_keys[RIGHT] = true;
 		else direction_keys[RIGHT] = false;
+		// PAUSE ON SPACE
+		if(Keyboard.isKeyDown(Keyboard.KEY_SPACE)){
+			if(!sp_down) paused = !paused;
+			sp_down = true;
+		} else{
+			sp_down = false;
+		}
 		
 		// TESTING - 'M' for mutate (TestEnvironment and PointRodOrganisms ONLY
 		//if(Keyboard.isKeyDown(Keyboard.KEY_M)) env.mutateTestGene();
@@ -114,6 +126,9 @@ public class EvolutionDriver implements Runnable {
 		if(Mouse.isButtonDown(0)) mouse_buttons[0] = 1;
 		else mouse_buttons[0] = 0;
 		mouse_buttons[1] = Mouse.getDWheel();
+		
+		if(mouse_buttons[0] != 1)
+			mouse_hold = false;
 	}
 	
 	private void updateFPS(long now){
