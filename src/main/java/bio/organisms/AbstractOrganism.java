@@ -3,14 +3,13 @@ package bio.organisms;
 import java.awt.Graphics2D;
 import java.util.List;
 
-import utils.grid.Chunk;
 import environment.Environment;
 import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
 import bio.organisms.brain.IBrain;
 import bio.organisms.brain.IOutput;
 import bio.organisms.brain.ISense;
-import bio.organisms.brain.ann.DumbBrain;
+import bio.organisms.brain.BrainFactory;
 
 public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism, Object>{
 	
@@ -33,7 +32,7 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 		this.env = e;
 		this.senses = this.createSenses();
 		this.outputs = this.createOutputs();
-		this.brain = DumbBrain.newRandom(senses.size(), outputs.size(), this, e.getRandom());
+		this.brain = BrainFactory.newDumberBrain(senses.size(), outputs.size(), this, e.getRandom());
 	}
 	
 	protected abstract List<ISense> createSenses();

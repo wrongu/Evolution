@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 
 import bio.organisms.brain.ISense;
@@ -22,7 +21,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public static final double ENERGY_PER_CHATTER = 0.01;
 	public static final double CHATTER_RANGE = 300;
 	public static final double ENERGY_PER_ATTACK = 0.5;
-	public static final double MITOSIS_THRESHOLD = 0.5;
+	public static final double MITOSIS_THRESHOLD = 0.97;
 
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
 	private static final double DRAW_SMOOTHNESS = 10;
@@ -114,6 +113,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		omega += (twist_ccw - twist_cw);
 		omega *= 0.8; // rotational viscosity
 		// linear movement update
+		oomph *= 0.001; // TESTING
 		this.body.addForce(oomph * Math.cos(direction), oomph * Math.sin(direction));
 	}
 

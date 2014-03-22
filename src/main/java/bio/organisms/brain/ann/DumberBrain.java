@@ -33,8 +33,8 @@ public class DumberBrain  implements IBrain {
 	private DoubleMatrix restVector;
 
 	//constants for updating, etc
-	private double c = 5.0; // logistic function f = (1 + exp(-a*c))^-1;
-	private double decay = 0.9;
+	private double c; // logistic function f = (1 + exp(-a*c))^-1;
+	private double decay;
 	private boolean initialized = false;
 	
 	private Gene<DumberBrain> gene;
@@ -198,7 +198,7 @@ public class DumberBrain  implements IBrain {
 			this.s = s;
 			this.o = o;
 			this.exp = 3.0;
-			this.decay = 0.85;
+			this.decay = 0.3;
 		}
 		
 		public BrainGene(int s, int o, Random r){
