@@ -54,10 +54,7 @@ public class DumbestBrain implements IBrain {
 	}
 	
 	public static DumbestBrain newRandom(int s, int o, AbstractOrganism org, Random r){
-		DumbestBrain db = fromGene(new BrainGene(s, o), org);
-		for(int n = 0; n < db.W.length; n++)
-			db.W.put(n, r.nextDouble()-r.nextDouble());
-		return db;
+		return fromGene(new BrainGene(s, o, r), org);
 	}
 	
 	/**
@@ -196,6 +193,13 @@ public class DumbestBrain implements IBrain {
 			this.o = o;
 		}
 		
+		public BrainGene(int s, int o, Random r) {
+			this(s, o);
+			// random weights
+			for(int n=0; n<W.length; n++)
+				W.put(n, r.nextDouble() - r.nextDouble());
+		}
+
 		private void addNeuron(){
 			this.i++;
 			// create a new matrix that is 1 row and 1 column larger
