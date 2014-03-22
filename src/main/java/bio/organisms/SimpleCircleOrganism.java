@@ -26,6 +26,9 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
 	private static final double DRAW_SMOOTHNESS = 10;
+	
+	// Turning directions
+	private static enum DIRECTION {CW, CCW};
 
 	private PointMass body;
 	/** orientation in radians. zero is along positive x. */
@@ -35,7 +38,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	/** current rotational speed */
 	private double omega;
 	/** effort exerted to turn */
-	private double twist;
+	private double twist_ccw, twist_cw;
 	/** chatter signal strength */
 	private double chatter;
 
@@ -44,7 +47,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		body = new PointMass(5.0);
 		body.initPosition(x, y);
 		direction = e.getRandom().nextDouble()*Math.PI*2;
-		oomph = omega = twist = 0.;
+		oomph = omega = twist_ccw = twist_cw = 0.;
 	}
 
 	public AbstractOrganism beget(Environment e, Object o) {
@@ -59,7 +62,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 
 	protected List<IOutput> createOutputs(){
-		return Arrays.asList(new Accelerate(), new Twist(), new Mitosis(), new Chatter());
+		return Arrays.asList(new Accelerate(), new Twist(DIRECTION.CW), new Twist(DIRECTION.CCW), new Mitosis(), new Chatter());
 	}
 
 	@Override
@@ -108,7 +111,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		// TODO factor out spinning point physics
 		// rotatinoal movement update
 		direction += omega;
-		omega += twist;
+		omega += (twist_ccw - twist_cw);
 		omega *= 0.8; // rotational viscosity
 		// linear movement update
 		this.body.addForce(oomph * Math.cos(direction), oomph * Math.sin(direction));
@@ -169,12 +172,23 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 	}
 	private class Twist extends IOutput{
-		public Twist() {
+		
+		private DIRECTION dir;
+		
+		public Twist(DIRECTION dir) {
 			super(SimpleCircleOrganism.this, ENERGY_PER_TURN);
+			this.dir = dir;
 		}
 		@Override
 		protected void sub_act(double energy) {
-			SimpleCircleOrganism.this.twist = energy / ENERGY_PER_TURN;
+			switch(this.dir){
+			case CW:
+				SimpleCircleOrganism.this.twist_cw = energy / ENERGY_PER_TURN;
+				break;
+			case CCW:
+				SimpleCircleOrganism.this.twist_ccw = energy / ENERGY_PER_TURN;
+				break;
+			}
 		}
 	}
 	private class Mitosis extends IOutput{
