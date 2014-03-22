@@ -78,7 +78,9 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 
 	@Override
 	public void glDraw(){
-		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		float r = (float) Math.exp(-energy);
+		float g = 1-r;
+		glColor4f(r, g, 0f, 1.0f);
 		double dx = Math.cos(direction);
 		double dy = Math.sin(direction);
 		double vx = body.getVX();

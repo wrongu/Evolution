@@ -36,14 +36,14 @@ public class EvolutionDriver implements Runnable {
 	// variables for tracking fps
 	private long second_timer;
 	private int fps, frame_counter;
-	private boolean paused, sp_down, mouse_hold;
+	private boolean paused, sp_down, mouse_hold, first_frame;
 	
 	public EvolutionDriver(Canvas c){
 		
 		second_timer = 0L;
 		fps = MAX_FPS;
 		frame_counter = 0;
-		paused = true; sp_down = false; mouse_hold = false;
+		paused = true; sp_down = false; mouse_hold = false; first_frame = true;
 
 		// initialize everything
 		env = new RandomFoodEnvironment(1.0, 0L);
@@ -80,7 +80,8 @@ public class EvolutionDriver implements Runnable {
 			renderpanel.moveCamera(dt);
 			renderpanel.redraw();
 			updateFPS(now);
-			if(frame_counter == 0 || !paused || (mouse_buttons[0] == 1 && !mouse_hold)){
+			if(first_frame || !paused || (mouse_buttons[0] == 1 && !mouse_hold)){
+				first_frame = false;
 				mouse_hold = true;
 				env.update(dt);
 				if(env.getOrganismCount() == 0) break;
