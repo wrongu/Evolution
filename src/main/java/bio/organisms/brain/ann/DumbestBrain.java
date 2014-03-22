@@ -27,6 +27,7 @@ public class DumbestBrain implements IBrain {
 	// Energy constants
 	public static final double NEURON_ENERGY = 0.01; // Upkeep per neuron.
 	public static final double FIRING_ENERGY = 0.01; // Energy to fire each neuron.
+	private static final double OUTPUT_TEMPERMENT = 1; // Strength of temperOutput() method.
 	
 	// Weight matrix and state vectors
 	private int i, s, o;
@@ -34,7 +35,6 @@ public class DumbestBrain implements IBrain {
 	private DoubleMatrix A; // vector of current _internal_ activations (NOT outputs)
 	private DoubleMatrix I; // vector of sensory inputs AND internal-outputs (staging for tick())
 	private DoubleMatrix O; // vector of action potential outputs (stored after tick() for getOutput())
-	private double outputTemperment = 1;
 	
 	// A gene for evolution
 	private Gene<DumbestBrain> gene;
@@ -171,7 +171,7 @@ public class DumbestBrain implements IBrain {
 	}
 	
 	private double temperOutput(double x) {
-		return Math.signum(x)*(2.0/outputTemperment) * Math.sqrt(outputTemperment*Math.abs(x) + 1) - 1;
+		return Math.signum(x)*(2.0/OUTPUT_TEMPERMENT) * Math.sqrt(OUTPUT_TEMPERMENT*Math.abs(x) + 1) - 1;
 	}
 	private static class BrainGene extends Gene<DumbestBrain>{
 		
