@@ -163,7 +163,7 @@ public class DumberBrain  implements IBrain {
 
 	public double getOutput(int id) {
 		assert(0 <= id && id < o);
-		return actVector.get(i+id);
+		return outVector.get(i+id);
 	}
 
 	public Gene<? extends IBrain> getGene() {
