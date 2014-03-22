@@ -240,7 +240,7 @@ public class DumbestBrain implements IBrain {
 		}
 
 		@Override
-		protected void sub_serialize(DataOutputStream dest) throws IOException {
+		protected void _serialize(DataOutputStream dest) throws IOException {
 			dest.writeInt(i);
 			dest.writeInt(s);
 			dest.writeInt(o);
@@ -249,7 +249,7 @@ public class DumbestBrain implements IBrain {
 		}
 		
 		@Override
-		protected void sub_deserialize(DataInputStream src) throws IOException {
+		protected void _deserialize(DataInputStream src) throws IOException {
 			i = src.readInt();
 			s = src.readInt();
 			o = src.readInt();

@@ -473,7 +473,7 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	}
 	
 	@Override
-	public void sub_serialize(DataOutputStream dest) throws IOException {
+	public void _serialize(DataOutputStream dest) throws IOException {
 		// NOTE that local_uid is never mutated but only used for convenience when
 		// serializing and deserializing.
 		//
@@ -512,7 +512,7 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 	}
 	
 	@Override
-	public void sub_deserialize(DataInputStream source) throws IOException {
+	public void _deserialize(DataInputStream source) throws IOException {
 		// parse nodes
 		GraphNode n;
 		int n_nodes = source.readInt();

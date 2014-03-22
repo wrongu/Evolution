@@ -79,10 +79,10 @@ public abstract class Gene<T> {
 				dest.writeChar(key.charAt(i));
 			dest.writeDouble(pair.getValue());
 		}
-		this.sub_serialize(dest);
+		this._serialize(dest);
 	}
 	
-	protected abstract void sub_serialize(DataOutputStream s) throws IOException;
+	protected abstract void _serialize(DataOutputStream s) throws IOException;
 	
 	public final void deserialize(DataInputStream src) throws IOException{
 		// read mutation rates
@@ -95,7 +95,7 @@ public abstract class Gene<T> {
 			double val = src.readDouble();
 			this.mutation_rates.put(key.toString(), val);
 		}
-		this.sub_deserialize(src);
+		this._deserialize(src);
 	}
-	protected abstract void sub_deserialize(DataInputStream s) throws IOException;
+	protected abstract void _deserialize(DataInputStream s) throws IOException;
 }
