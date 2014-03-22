@@ -20,7 +20,7 @@ public abstract class IOutput {
 	 * @param o the parent organism
 	 */
 	public final void act(double energy){
-		double request = energy * this.multiplier;
+		double request = Math.abs(energy) * this.multiplier;
 		double e = theOrganism.useEnergy(request, name);
 		this.sub_act(e);
 	}
