@@ -6,7 +6,7 @@ import java.nio.FloatBuffer;
 import environment.RandomFoodEnvironment;
 import graphics.opengl.RenderGL;
 
-import javax.swing.JApplet;
+import javax.swing.JFrame;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -17,9 +17,8 @@ import bio.organisms.SimpleCircleOrganism;
 
 //import ann.DrawGraph;
 
-public class EvolutionApplet extends JApplet implements Runnable {
+public class EvolutionDriver implements Runnable {
 	
-	private static final long serialVersionUID = 145131501779963654L;
 	public static final int APPLET_WIDTH = 800, APPLET_HEIGHT = 600;
 	public static final int MAX_FPS = 60;
 	public static final long TICK_MS = 100;
@@ -38,28 +37,12 @@ public class EvolutionApplet extends JApplet implements Runnable {
 	private long second_timer;
 	private int fps, frame_counter;
 	
-	public void init(){
-		setSize(APPLET_WIDTH, APPLET_HEIGHT);
-		
-		canvas = new Canvas();
-		canvas.setPreferredSize(new Dimension(APPLET_WIDTH, APPLET_HEIGHT));
-		
-		getContentPane().add(canvas);
-		
-		setVisible(true);
+	public EvolutionDriver(Canvas c){
 		
 		second_timer = 0L;
 		fps = MAX_FPS;
 		frame_counter = 0;
-		
-		Thread th = new Thread(this);
-		th.setDaemon(true);
-		setIgnoreRepaint(true);
-		th.start();
-		
-	}
-	
-	public void run(){
+
 		// initialize everything
 		env = new RandomFoodEnvironment(1.0, 0L);
 		// INITIAL POPULATION
@@ -68,6 +51,9 @@ public class EvolutionApplet extends JApplet implements Runnable {
 			double y = 60. * Math.sin(2*Math.PI*i/10.);
 			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
 		}
+	}
+	
+	public void run(){
 		// env.bindInput(mouse_buttons, mouse_move); // TestEnvironments only
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
@@ -98,7 +84,6 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		}
 		
 		renderpanel.destroy();
-		this.destroy();
 	}
 	
 	public void checkInput(RenderGL renderer){
@@ -139,5 +124,21 @@ public class EvolutionApplet extends JApplet implements Runnable {
 			second_timer = now;
 			//System.out.println(fps);
 		}
+	}
+	
+	public static void main(String[] args){
+		// create JFrame with a canvas
+		JFrame window = new JFrame("Evolution App");
+		window.setSize(APPLET_WIDTH, APPLET_HEIGHT);
+		Canvas canvas = new Canvas();
+		canvas.setPreferredSize(new Dimension(APPLET_WIDTH, APPLET_HEIGHT));
+		window.getContentPane().add(canvas);
+		window.setIgnoreRepaint(true);
+		
+		window.setVisible(true);
+		
+		EvolutionDriver driver = new EvolutionDriver(canvas);
+		driver.run();
+		window.dispose();
 	}
 }
