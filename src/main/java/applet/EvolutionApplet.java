@@ -63,7 +63,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		// initialize everything
 		env = new RandomFoodEnvironment(1.0, 0L);
 		// INITIAL POPULATION
-		for(int i=0; i<10; i++){
+		for(int i=0; i<1; i++){
 			double x = 60. * Math.cos(2*Math.PI*i/10.);
 			double y = 60. * Math.sin(2*Math.PI*i/10.);
 			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
@@ -90,6 +90,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 			double dt = ((double) (now - time)) / (double) TICK_MS;
 			checkInput(renderpanel);
 			env.update(dt);
+			if(env.getOrganismCount() == 0) break;
 			renderpanel.moveCamera(dt);
 			renderpanel.redraw();
 			updateFPS(now);
@@ -97,6 +98,7 @@ public class EvolutionApplet extends JApplet implements Runnable {
 		}
 		
 		renderpanel.destroy();
+		this.destroy();
 	}
 	
 	public void checkInput(RenderGL renderer){
