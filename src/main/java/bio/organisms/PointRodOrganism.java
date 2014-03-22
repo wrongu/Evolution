@@ -40,11 +40,6 @@ public class PointRodOrganism extends AbstractOrganism {
 		return Arrays.asList( /* TODO somehow get muscles here, even though they are added later?? */ );
 	}
 	
-	@Override
-	public void feed(double food_energy){
-		this.energy += food_energy;
-	}
-	
 	public void initStructure(){
 		for(int i=0; i<5; i++) {
 			preUpdatePhysics();

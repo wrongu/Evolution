@@ -1,15 +1,17 @@
 package bio.organisms;
 
 import java.awt.Graphics2D;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
-import environment.Environment;
 import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
+import bio.organisms.brain.BrainFactory;
 import bio.organisms.brain.IBrain;
 import bio.organisms.brain.IOutput;
 import bio.organisms.brain.ISense;
-import bio.organisms.brain.BrainFactory;
+import environment.Environment;
 
 public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism, Object>{
 	
@@ -22,6 +24,9 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 	protected double pos_y;
 	protected Environment env;
 	
+	// debug/tune
+	private HashMap<String, Double> energy_drains;
+	
 	public AbstractOrganism(Environment e,
 			Gene<? extends AbstractOrganism> gene,
 			double init_energy, double x, double y){
@@ -33,6 +38,7 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 		this.senses = this.createSenses();
 		this.outputs = this.createOutputs();
 		this.brain = BrainFactory.newDumberBrain(senses.size(), outputs.size(), this, e.getRandom());
+		energy_drains = new HashMap<String, Double>();
 	}
 	
 	protected abstract List<ISense> createSenses();
@@ -88,17 +94,36 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 	 */
 	public void glDraw(){}
 	
+	// TESTING
+	public void print_energy_stats(){
+		double tot = 0.0;
+		for(Double energy : energy_drains.values())
+			tot += energy;
+		System.out.println("Total Energy Used: " + tot);
+		if(tot > 0.0){
+			for(Entry<String, Double> pair : energy_drains.entrySet())
+				System.out.printf("%20s: %f%%\n", pair.getKey(), (100. * pair.getValue() / tot));
+		}
+	}
+	
 	/**
 	 * Expend energy
 	 * @param requested the amount of energy you would like to use
+	 * @param requester a unique name for the requester (used to tally totals)
 	 * @return how much energy you can use
 	 */
-	public double useEnergy(double requested){
+	public double useEnergy(double requested, String requester){
+		assert(requested >= 0);
 		// can't use more energy than I have left
 		double available = Math.min(requested, this.energy);
 		// take away energy
 		// (deliberately allowing for overdraft since that's the only way is_alive() can fail)
 		this.energy -= requested;
+		// tally total
+		if(this.energy_drains.containsKey(requester))
+			energy_drains.put(requester, energy_drains.get(requester) + requested);
+		else
+			energy_drains.put(requester, requested);
 		// return how much can be used
 		return available;
 	}

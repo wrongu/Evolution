@@ -15,7 +15,7 @@ public class Muscle extends IOutput{
 //	private Structure[] dependents;
 	
 	public Muscle(AbstractOrganism o, Structure s, double strength){
-		super(o, strength);
+		super(o, strength, "Muscle");
 		struct = s;
 	}
 	

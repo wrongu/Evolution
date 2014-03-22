@@ -6,10 +6,12 @@ public abstract class IOutput {
 	
 	protected AbstractOrganism theOrganism;
 	private double multiplier;
+	private String name;
 	
-	public IOutput(AbstractOrganism o, double strength){
+	public IOutput(AbstractOrganism o, double strength, String n){
 		this.theOrganism = o;
 		this.multiplier = strength;
+		this.name = n;
 	}
 	
 	/**
@@ -19,7 +21,7 @@ public abstract class IOutput {
 	 */
 	public final void act(double energy){
 		double request = energy * this.multiplier;
-		double e = theOrganism.useEnergy(request);
+		double e = theOrganism.useEnergy(request, name);
 		this.sub_act(e);
 	}
 	

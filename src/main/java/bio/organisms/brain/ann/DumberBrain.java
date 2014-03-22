@@ -111,7 +111,7 @@ public class DumberBrain  implements IBrain {
 		
 		// drain energy from host
 		double energy = NEURON_ENERGY * i + FIRING_ENERGY * outVector.sum();
-		meatCase.useEnergy(energy);
+		meatCase.useEnergy(energy, "Dumber Think");
 	}
 
 	public String toString(){

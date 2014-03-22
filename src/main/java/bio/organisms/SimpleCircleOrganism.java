@@ -50,7 +50,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 
 	public AbstractOrganism beget(Environment e, Object o) {
-		energy /= 2.0;
+		this.useEnergy(this.energy / 2.0, "Child Split");
 		AbstractOrganism child = new SimpleCircleOrganism(env, energy, pos_x, pos_y);
 		child.brain = brain.beget(e, child);
 		return child;
@@ -164,7 +164,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	// OUTPUTS
 	private class Accelerate extends IOutput{
 		public Accelerate() {
-			super(SimpleCircleOrganism.this, ENERGY_PER_OOMPH);
+			super(SimpleCircleOrganism.this, ENERGY_PER_OOMPH, "Accelerate");
 		}
 		@Override
 		protected void sub_act(double energy) {
@@ -176,7 +176,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		private DIRECTION dir;
 		
 		public Twist(DIRECTION dir) {
-			super(SimpleCircleOrganism.this, ENERGY_PER_TURN);
+			super(SimpleCircleOrganism.this, ENERGY_PER_TURN, "Turn");
 			this.dir = dir;
 		}
 		@Override
@@ -193,7 +193,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 	private class Mitosis extends IOutput{
 		public Mitosis() {
-			super(SimpleCircleOrganism.this, 1.0);
+			super(SimpleCircleOrganism.this, 1.0, "Mitosis");
 		}
 		@Override
 		protected void sub_act(double energy) {
@@ -204,7 +204,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 	private class Chatter extends IOutput{
 		public Chatter() {
-			super(SimpleCircleOrganism.this, ENERGY_PER_CHATTER);
+			super(SimpleCircleOrganism.this, ENERGY_PER_CHATTER, "Chatter");
 		}
 		@Override
 		protected void sub_act(double energy) {
@@ -213,7 +213,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 	private class Attack extends IOutput{
 		public Attack() {
-			super(SimpleCircleOrganism.this, ENERGY_PER_ATTACK);
+			super(SimpleCircleOrganism.this, ENERGY_PER_ATTACK, "Attack");
 		}
 		@Override
 		protected void sub_act(double energy) {

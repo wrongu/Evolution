@@ -167,7 +167,7 @@ public class DumbBrain implements IBrain {
 		}
 		// step 5;
 		double energy = NEURON_ENERGY * i + FIRING_ENERGY * O.norm1();
-		this.meatCase.useEnergy(energy);
+		this.meatCase.useEnergy(energy, "Dumb Think");
 	}
 
 	public IBrain beget(Environment e, AbstractOrganism parent) {

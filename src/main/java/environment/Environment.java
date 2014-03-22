@@ -75,7 +75,10 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 		for(Chunk c : grid) {
 			for(Iterator<AbstractOrganism> i = c.iterator(); i.hasNext(); ) {
 				AbstractOrganism o = i.next();
-				if(! o.is_alive()) i.remove();
+				if(! o.is_alive()){
+					i.remove();
+					o.print_energy_stats();
+				}
 			}
 		}
 		
