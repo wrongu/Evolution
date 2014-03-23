@@ -11,10 +11,14 @@ import bio.organisms.brain.IOutput;
 import environment.Environment;
 import environment.physics.PointMass;
 
+import environment.physics.VeryTinyCar;
 // DRAWING
 import static org.lwjgl.opengl.GL11.*;
 
 public class SimpleCircleOrganism extends AbstractOrganism {
+	
+	public static final double DEFAULT_MASS = 5.0;
+	public static final double DEFAULT_RANGE = 10;
 
 	public static final double ENERGY_PER_OOMPH = 0.1;
 	public static final double ENERGY_PER_TURN = 0.5;
@@ -25,13 +29,16 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
 	private static final double DRAW_SMOOTHNESS = 10;
+	private static final double TAIL_LENGTH_PER_SPEED = 0.3;
 	
 	// Turning directions
 	private static enum DIRECTION {CW, CCW};
 
-	private PointMass body;
-	/** orientation in radians. zero is along positive x. */
-	private double direction;
+	private VeryTinyCar body;
+	/** the "reach" of the organism for attack, mate, touch, etc. */
+	private double range;
+//	/** orientation in radians. zero is along positive x. */
+//	private double direction;
 	/** effort exerted to move forward */
 	private double oomph;
 	/** current rotational speed */
@@ -43,15 +50,16 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 
 	public SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
 		super(e, null, init_energy, x, y);
-		body = new PointMass(5.0);
-		body.initPosition(x, y);
-		direction = e.getRandom().nextDouble()*Math.PI*2;
+//		direction = e.getRandom().nextDouble()*Math.PI*2;
+		body = new VeryTinyCar(DEFAULT_MASS, e.getRandom().nextDouble());
+		body.initPos(x, y);
 		oomph = omega = twist_ccw = twist_cw = 0.;
+		range = DEFAULT_RANGE;
 	}
 
 	public AbstractOrganism beget(Environment e, Object o) {
 		this.useEnergy(this.energy / 2.0, "Child Split");
-		AbstractOrganism child = new SimpleCircleOrganism(env, energy, pos_x, pos_y);
+		AbstractOrganism child = new SimpleCircleOrganism(env, energy, body.getPosX(), body.getPosY());
 		child.brain = brain.beget(e, child);
 		return child;
 	}
@@ -67,12 +75,13 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	@Override
 	public void draw(Graphics2D g, float sx, float sy, float scx, float scy){
 		g.setColor(DRAW_COLOR);
-		int diam = (int) (2.*body.getRadius());
-		int x = (int) ((sx + pos_x) * scx);
-		int y = (int) ((sy + pos_y) * scy);
+		int diam = (int) (2.*range);
+		int x = (int) ((sx + body.getPosX()) * scx);
+		int y = (int) ((sy + body.getPosY()) * scy);
 		g.drawOval(x, y, diam, diam);
 		g.setColor(Color.WHITE);
-		int vx = (int) (body.getVX() * scx), vy = (int) (body.getVY() * scy);
+		double[] vel = body.getVel();
+		int vx = (int) (vel[0] * scx), vy = (int) (vel[1] * scy);
 		g.drawLine(x, y, x-vx, y-vy);
 	}
 
@@ -81,56 +90,67 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		float r = (float) Math.exp(-energy);
 		float g = 1-r;
 		glColor4f(r, g, 0f, 1.0f);
-		double dx = Math.cos(direction);
-		double dy = Math.sin(direction);
-		double vx = body.getVX();
-		double vy = body.getVY();
+		double[] pos = body.getPos();
+		double[] d = body.getDir();
+//		double dx = Math.cos(direction);
+//		double dy = Math.sin(direction);
+		double tail = TAIL_LENGTH_PER_SPEED*Math.max(body.getSpeed(),0);
+//		double vx = body.getVX();
+//		double vy = body.getVY();
 		glBegin(GL_QUADS);
 		{
-			glVertex2d(pos_x + 2*dx, pos_y + 2*dy);
-			glVertex2d(pos_x + 2*dy, pos_y - 2*dx);
-			glVertex2d(pos_x - 2*vx - 2*dx, pos_y - 2*vy - 2*dy);
-			glVertex2d(pos_x - 2*dx, pos_y + 2*dx);
+			glVertex2d(pos[0] + 2*d[0], pos[1] + 2*d[1]);
+			glVertex2d(pos[0] + 2*d[1], pos[1] - 2*d[0]);
+			glVertex2d(pos[0] - 2*(tail + 1)*d[0], pos[1] - 2*(tail + 1)*d[1]);
+			glVertex2d(pos[0] - 2*d[1], pos[1] + 2*d[0]);
 		}
 		glEnd();
-		double range = body.getRadius();
 		int n = (int)(range*DRAW_SMOOTHNESS);
 		double t = 2*Math.PI/(double)n;
 		glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
 		glBegin(GL_LINES);
 		{
 			for(int i = 0; i < n; i++) {
-				glVertex2d(pos_x + range*Math.cos(i*t), pos_y + range*Math.sin(i*t) );
-				glVertex2d(pos_x + range*Math.cos((i+1)*t), pos_y + range*Math.sin((i+1)*t));
+				glVertex2d(pos[0] + range*Math.cos(i*t), pos[1] + range*Math.sin(i*t) );
+				glVertex2d(pos[0] + range*Math.cos((i+1)*t), pos[1] + range*Math.sin((i+1)*t));
 			}
 		}
 		glEnd();
 	}
-
+	
 	@Override
 	public void preUpdatePhysics() {
 		// TODO factor out spinning point physics
-		// rotatinoal movement update
-		direction += omega;
-		omega += (twist_ccw - twist_cw);
-		omega *= 0.8; // rotational viscosity
-		// linear movement update
-		oomph *= 0.001; // TESTING
-		this.body.addForce(oomph * Math.cos(direction), oomph * Math.sin(direction));
+		// rotational movement update
+//		direction += omega;
+//		omega += (twist_ccw - twist_cw);
+//		omega *= 0.8; // rotational viscosity
+//		// linear movement update
+//		oomph *= 0.001; // TESTING
+//		this.body.addForce(oomph * Math.cos(direction), oomph * Math.sin(direction));
 	}
-
+	
 	@Override
 	public void updatePhysics(double dt) {
-		this.body.move(env, dt);
-		this.pos_x = body.getX();
-		this.pos_y = body.getY();
+		this.body.update(dt);
+//		double[] pos = body.getPos();
+//		this.pos_x = pos[0];
+//		this.pos_y = pos[1];
 	}
 
 	@Override
 	public void collide(AbstractOrganism other) {
-		if(other instanceof SimpleCircleOrganism){
-			this.body.collide(((SimpleCircleOrganism) other).body);
-		}
+//		if(other instanceof SimpleCircleOrganism){
+//			this.body.collide(((SimpleCircleOrganism) other).body);
+//		}
+	}
+	
+	public double getX() {
+		return body.getPosX();
+	}
+	
+	public double getY() {
+		return body.getPosY();
 	}
 
 	// SENSES
@@ -141,7 +161,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 			double signal = 0;
 			for(AbstractOrganism orgo : talkers) {
 				if(orgo instanceof SimpleCircleOrganism) {
-					double r = Math.hypot(orgo.pos_x - SimpleCircleOrganism.this.pos_x, orgo.pos_y - SimpleCircleOrganism.this.pos_y);
+					double r = Math.hypot(orgo.getX() - SimpleCircleOrganism.this.getX(), orgo.getY() - SimpleCircleOrganism.this.getY());
 					signal += (r <= CHATTER_RANGE) ? ((SimpleCircleOrganism)orgo).chatter/(1 + r) : 0;
 				}
 			}
@@ -170,7 +190,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 		@Override
 		protected void sub_act(double energy) {
-			SimpleCircleOrganism.this.oomph = energy / ENERGY_PER_OOMPH;
+			SimpleCircleOrganism.this.body.addThrust(energy / ENERGY_PER_OOMPH);
 		}
 	}
 	private class Twist extends IOutput{
@@ -185,10 +205,10 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		protected void sub_act(double energy) {
 			switch(this.dir){
 			case CW:
-				SimpleCircleOrganism.this.twist_cw = energy / ENERGY_PER_TURN;
+				SimpleCircleOrganism.this.body.addTurn(energy / ENERGY_PER_TURN);
 				break;
 			case CCW:
-				SimpleCircleOrganism.this.twist_ccw = energy / ENERGY_PER_TURN;
+				SimpleCircleOrganism.this.body.addTurn(-energy / ENERGY_PER_TURN);
 				break;
 			}
 		}
@@ -222,4 +242,5 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 			// TODO
 		}
 	}
+	
 }

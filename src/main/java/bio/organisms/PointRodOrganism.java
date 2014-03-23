@@ -20,6 +20,8 @@ public class PointRodOrganism extends AbstractOrganism {
 	private List<PointMass> pointmasses;
 	private List<Rod> rods;
 	private List<Joint> joints;
+	private double pos_x;
+	private double pos_y;
 
 	private double radius;
 	

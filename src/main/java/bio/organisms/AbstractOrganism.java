@@ -12,6 +12,7 @@ import bio.organisms.brain.IBrain;
 import bio.organisms.brain.IOutput;
 import bio.organisms.brain.ISense;
 import environment.Environment;
+import environment.physics.PhysicalObject;
 
 public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism, Object>{
 	
@@ -20,8 +21,6 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 	protected List<ISense> senses;
 	protected List<IOutput> outputs;
 	protected double energy;
-	protected double pos_x;
-	protected double pos_y;
 	protected Environment env;
 	
 	// debug/tune
@@ -31,8 +30,6 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 			Gene<? extends AbstractOrganism> gene,
 			double init_energy, double x, double y){
 		this.energy = init_energy;
-		this.pos_x = x;
-		this.pos_y = y;
 		this.gene = gene;
 		this.env = e;
 		this.senses = this.createSenses();
@@ -132,12 +129,7 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 		return this.energy > 0.0;
 	}
 	
-	public double getX(){
-		return this.pos_x;
-	}
-	
-	public double getY(){
-		return this.pos_y;
-	}
+	public abstract double getX();
+	public abstract double getY();
 	
 }

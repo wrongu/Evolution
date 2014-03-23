@@ -191,7 +191,7 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 	
 	/**
 	 * get boundaries of this environment
-	 * @return double array [xmin, ymin, xmax, ymax] of environment's bounding area
+	 * @return double array (xmin, ymin, xmax, ymax) of environment's bounding area
 	 */
 	public double[] getBounds(){
 		return new double[] {-width/2, -height/2, width/2, height/2};
