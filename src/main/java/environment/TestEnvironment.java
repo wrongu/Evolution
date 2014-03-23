@@ -13,24 +13,13 @@ public class TestEnvironment extends Environment {
 
 	private int[] mouse_in;
 	private int[] mouse_buttons;
-	private int mousex, mousey;
+	private boolean keep_alive;
 	private boolean spaceIsPressed;
 
-	// TESTING
-	private Gene<SimpleCircleOrganism> testgene;
-
-	public TestEnvironment(long seed){
+	public TestEnvironment(long seed, boolean keep_alive){
 		super(SIZE, SIZE, Topology.TORUS, seed);
-		// DEBUGGING
-		//		organisms.add(OrganismFactory.testDummy(OrganismFactory.SIMPLE_JELLYFISH,this));
-		//		organisms.add(OrganismFactory.testDummy(OrganismFactory.GENE_TEST, this));
-		//		organisms.add(OrganismFactory.testDummy(OrganismFactory.DUMBELL, this));
-		//		for(int i = 0; i < 20; i++)
-		//			organisms.add(OrganismFactory.testDummy(OrganismFactory.POINT_MASS, this));
-		//testgene = new DigraphGene();
-		//for(int i=0; i<100; i++) testgene.mutate(seedRand);
-		//grid.add(OrganismFactory.fromGene(testgene, this));
 		grid.add(new SimpleCircleOrganism(this, 1000.0, 0, 0));
+		this.keep_alive = keep_alive;
 	}
 
 	public void update(double dt){
@@ -38,11 +27,11 @@ public class TestEnvironment extends Environment {
 
 		for(Chunk c : grid) {
 			for(AbstractOrganism ao : c){
+				if(keep_alive) ao.feed(10.0);
 				if(mouse_buttons[0] != 0) {
-					double dist = Math.sqrt((mousex - ao.getX())*(mousex - ao.getX()) + (mousey - ao.getY())*(mousey - ao.getY()));
+					double dist = Math.hypot((mouse_in[0] - ao.getX()), (mouse_in[1] - ao.getY()));
 					if(ao instanceof SimpleCircleOrganism)
-						((SimpleCircleOrganism) ao).addExternalForce(MOUSE_CONSTANT*(mousex - ao.getX()) / dist, MOUSE_CONSTANT*(mousey - ao.getY())/ dist);
-					//System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
+						((SimpleCircleOrganism) ao).addExternalForce(MOUSE_CONSTANT*(mouse_in[0] - ao.getX()) / dist, MOUSE_CONSTANT*(mouse_in[1] - ao.getY())/ dist);
 				}
 
 //				try{
@@ -53,12 +42,6 @@ public class TestEnvironment extends Environment {
 //				} catch(Exception e){}
 			}
 		}
-	}
-
-	public void mouse_move(int mx, int my){
-		mouse_buttons[0] = 1;
-		mousex = mx;
-		mousey = my;
 	}
 
 	public void space_press(boolean isPressed) {

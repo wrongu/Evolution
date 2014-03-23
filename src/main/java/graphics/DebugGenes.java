@@ -33,7 +33,7 @@ public class DebugGenes extends JPanel {
 	public DebugGenes(){
 		setPreferredSize(new Dimension(800,600));
 
-		dummyEnv = new TestEnvironment(0L);
+		dummyEnv = new TestEnvironment(0L, true);
 		
 		leftOrg = OrganismFactory.testDummy(OrganismFactory.TRIANGLE_WITH_TAIL,dummyEnv);
 		rightOrg = OrganismFactory.testDummy(OrganismFactory.TRIANGLE_WITH_TAIL,dummyEnv);
