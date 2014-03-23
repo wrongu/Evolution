@@ -6,12 +6,12 @@ public class VeryTinyCar extends PhysicalObject {
 	
 	public static final double DEFAULT_MASS = 1;
 	
-	private static final double FORWARD_RESISTANCE = 0.1;
+	private static final double FORWARD_RESISTANCE = 0.2;
 	private static final double REVERSE_RESISTANCE = 5*FORWARD_RESISTANCE;
-	private static final double TURN_RESTORATION = 1;
+	private static final double TURN_RESTORATION = 0.5;
 	private static final double ADDFORCE_BUFFER = 0.1;// Prevents divide by zero errors in addForce. Must by > 0.
 	
-	private Vector2d pos;
+//	private Vector2d pos;
 	private Vector2d dir;
 	private double speed;
 	private double acc; // tangential acceleration
@@ -48,24 +48,24 @@ public class VeryTinyCar extends PhysicalObject {
 	
 	public void addForce(double[] force) {
 		double tanAcc = (force[0]*dir.x + force[1]*dir.y)/mass;
-		double nrmAcc = (force[1]*dir.x - force[0]*dir.y)/mass;
+		double nrmAcc = (force[0]*dir.y - force[1]*dir.x)/mass;
 		
 		acc += tanAcc;
-		turn += nrmAcc/(speed*speed + ADDFORCE_BUFFER);
+		turn -= nrmAcc/(speed*speed + ADDFORCE_BUFFER);
 	}
 	
 	// Gratuitous amounts of getters	
-	public double getPosX() {
-		return pos.x;
-	}
-	
-	public double getPosY() {
-		return pos.y;
-	}
-	
-	public double[] getPos() {
-		return new double[] {pos.x, pos.y};
-	}
+//	public double getPosX() {
+//		return pos.x;
+//	}
+//	
+//	public double getPosY() {
+//		return pos.y;
+//	}
+//	
+//	public double[] getPos() {
+//		return new double[] {pos.x, pos.y};
+//	}
 	
 	public double getVelX() {
 		return speed*dir.x;
@@ -103,8 +103,7 @@ public class VeryTinyCar extends PhysicalObject {
 		double distance = speed*dt;
 		double sin = Math.sin(turn*distance);
 		double cos = Math.cos(turn*distance);
-		dir.x = cos*dir.x - sin*dir.y;
-		dir.y = sin*dir.x + cos*dir.y;
+		dir.set(cos*dir.x - sin*dir.y, sin*dir.x + cos*dir.y);
 		dir.normalize(); // Could this possibly crash a long-running simulation?
 		
 		// update position

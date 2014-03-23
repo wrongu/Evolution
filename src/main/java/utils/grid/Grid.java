@@ -70,8 +70,12 @@ public class Grid implements Iterable<Chunk> {
 		return c;
 	}
 	
+	public int getChunkCount() {
+		return map.values().size();
+	}
+	
 	/**
-	 * Returns the value at coordinates (x,y).
+	 * Returns the Chunk at coordinates (x,y).
 	 * 
 	 * @param x
 	 * @param y
@@ -116,9 +120,6 @@ public class Grid implements Iterable<Chunk> {
 	 * 
 	 * TODO: Check so you don't go over boundaries, or add in buffer
 	 * in the Environment class.
-	 * 
-	 * TODO: Needs to be tested with a visualizer to make sure it works
-	 * correctly.
 	 * 
 	 * @param x
 	 * @param y
@@ -227,7 +228,7 @@ public class Grid implements Iterable<Chunk> {
 	}
 	
 	/**
-	 * Returns the chunks within the bounding box [x_1,x_2] x [y_1,y_2],
+	 * Returns the chunks intersecting the bounding box [x_1,x_2] x [y_1,y_2],
 	 * in interval notation.
 	 * 
 	 * @param x_1
@@ -263,11 +264,13 @@ public class Grid implements Iterable<Chunk> {
 			}
 		}
 		
+		chunks.remove(null);
+		
 		return chunks;
 	}
 	
 	/**
-	 * As getAllWithin, but returns only the Chunks which lie not left of
+	 * As getAllWithin, but returns only the Chunks which lie not left of and
 	 * not under the original position. To be used with mutual interactions
 	 * between entities to avoid duplicate effects.
 	 * 

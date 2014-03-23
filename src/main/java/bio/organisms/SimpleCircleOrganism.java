@@ -207,10 +207,10 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		protected void sub_act(double energy) {
 			switch(this.dir){
 			case CW:
-				SimpleCircleOrganism.this.body.addTurn(energy / ENERGY_PER_TURN);
+				SimpleCircleOrganism.this.body.addTurn(-energy / ENERGY_PER_TURN);
 				break;
 			case CCW:
-				SimpleCircleOrganism.this.body.addTurn(-energy / ENERGY_PER_TURN);
+				SimpleCircleOrganism.this.body.addTurn(energy / ENERGY_PER_TURN);
 				break;
 			}
 		}

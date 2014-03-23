@@ -8,7 +8,7 @@ import bio.organisms.SimpleCircleOrganism;
 public class TestEnvironment extends Environment {
 
 	public final double GRAVITY = 0.1;
-	public final double MOUSE_CONSTANT = 0.1;
+	public final double MOUSE_CONSTANT = 0.2;
 	public final static double SIZE = 1000.;
 
 	private int[] mouse_in;
@@ -18,7 +18,8 @@ public class TestEnvironment extends Environment {
 
 	public TestEnvironment(long seed, boolean keep_alive){
 		super(SIZE, SIZE, Topology.TORUS, seed);
-		grid.add(new SimpleCircleOrganism(this, 1000.0, 0, 0));
+		for(int i = 0; i < 200; i++)
+			grid.add(new SimpleCircleOrganism(this, 1000.0, (getRandom().nextDouble() - 0.5)*SIZE, (getRandom().nextDouble() - 0.5)*SIZE));
 		this.keep_alive = keep_alive;
 	}
 
