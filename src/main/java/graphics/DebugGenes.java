@@ -92,10 +92,10 @@ public class DebugGenes extends JPanel {
 			minx = miny = Double.MAX_VALUE;
 			maxx = maxy = Double.MIN_VALUE;
 			for(PointMass pm : o.getPoints()){
-				if(minx > pm.getX()) minx = Math.floor(pm.getX());
-				else if(maxx < pm.getX()) maxx = Math.ceil(pm.getX());
-				if(miny > pm.getY()) miny = Math.floor(pm.getY());
-				else if(maxy < pm.getY()) maxy = Math.ceil(pm.getY());
+				if(minx > pm.getPosX()) minx = Math.floor(pm.getPosX());
+				else if(maxx < pm.getPosX()) maxx = Math.ceil(pm.getPosX());
+				if(miny > pm.getPosY()) miny = Math.floor(pm.getPosY());
+				else if(maxy < pm.getPosY()) maxy = Math.ceil(pm.getPosY());
 			}
 			// TODO - make a class that extends graphics and abstracts the viewport away
 			int shiftx = (int) -(minx+maxx)/2 + getWidth()/2;

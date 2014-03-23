@@ -47,7 +47,7 @@ public class PointRodOrganism extends AbstractOrganism {
 			preUpdatePhysics();
 			updatePhysics(0.1);
 			for( PointMass pm : pointmasses ) {
-				pm.move(env,1.0);
+				pm.update(1.0);
 			}
 		}
 		for(PointMass pm : pointmasses) pm.clearPhysics();
@@ -68,7 +68,7 @@ public class PointRodOrganism extends AbstractOrganism {
 	public void updatePhysics(double dt){
 		// move point-mass-joints, update center-x and center-y coordinates, and average velocity.
 		for(PointMass p : pointmasses)
-			p.move(env, dt);
+			p.update(dt);
 		updateXYRad();
 	}
 	
@@ -117,10 +117,10 @@ public class PointRodOrganism extends AbstractOrganism {
 		else return null;
 	}
 	public double getX(){
-		return this.pointmasses.get(0).getX();
+		return this.pointmasses.get(0).getPosX();
 	}
 	public double getY(){
-		return this.pointmasses.get(0).getY();
+		return this.pointmasses.get(0).getPosY();
 	}
 
 	public void collide(AbstractOrganism other) {
@@ -164,8 +164,8 @@ public class PointRodOrganism extends AbstractOrganism {
 		double y = 0;
 		radius = 0;
 		for(PointMass pm : pointmasses) {
-			x += pm.getX();
-			y += pm.getY();
+			x += pm.getPosX();
+			y += pm.getPosY();
 		}
 		x /= (double)pointmasses.size();
 		y /= (double)pointmasses.size();
@@ -174,8 +174,8 @@ public class PointRodOrganism extends AbstractOrganism {
 		double dy;
 		double tempRadius = 0;
 		for(PointMass pm : pointmasses) {
-			dx = x - pm.getX();
-			dy = y - pm.getY();
+			dx = x - pm.getPosX();
+			dy = y - pm.getPosY();
 			tempRadius = Math.sqrt(dx*dx + dy*dy) + pm.getRadius();
 			if(tempRadius > radius) {
 				radius = tempRadius;

@@ -9,7 +9,6 @@ import java.util.List;
 import bio.organisms.brain.ISense;
 import bio.organisms.brain.IOutput;
 import environment.Environment;
-import environment.physics.PointMass;
 
 import environment.physics.VeryTinyCar;
 // DRAWING
