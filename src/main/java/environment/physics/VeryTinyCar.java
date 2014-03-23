@@ -46,8 +46,8 @@ public class VeryTinyCar extends PhysicalObject {
 	}
 	
 	public void addForce(double[] force) {
-		double tanAcc = (force[0]*dir.x + force[1]*dir.y)/mass; // Possible sign error here.
-		double nrmAcc = (force[0]*dir.y - force[1]*dir.x)/mass;
+		double tanAcc = (force[0]*dir.x + force[1]*dir.y)/mass;
+		double nrmAcc = (force[1]*dir.x - force[0]*dir.y)/mass;
 		
 		acc += tanAcc;
 		turn += nrmAcc/(speed*speed + ADDFORCE_BUFFER);
