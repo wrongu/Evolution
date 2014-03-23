@@ -2,7 +2,7 @@ package environment.physics;
 
 import javax.vecmath.Vector2d;
 
-public class VeryTinyCar extends PhysicalObject {
+public class VeryTinyCar {
 	
 	public static final double DEFAULT_MASS = 1;
 	
@@ -11,6 +11,7 @@ public class VeryTinyCar extends PhysicalObject {
 	private static final double TURN_RESTORATION = 1;
 	private static final double ADDFORCE_BUFFER = 0.1;// Prevents divide by zero errors in addForce. Must by > 0.
 	
+	private Vector2d pos;
 	private Vector2d dir;
 	private double speed;
 	private double acc; // tangential acceleration
@@ -59,7 +60,19 @@ public class VeryTinyCar extends PhysicalObject {
 		turn += nrmAcc/(speed*speed + ADDFORCE_BUFFER);
 	}
 	
-	// Gratuitous amounts of getters
+	// Gratuitous amounts of getters	
+	public double getPosX() {
+		return pos.x;
+	}
+	
+	public double getPosY() {
+		return pos.y;
+	}
+	
+	public double[] getPos() {
+		return new double[] {pos.x, pos.y};
+	}
+	
 	public double getVelX() {
 		return speed*dir.x;
 	}
