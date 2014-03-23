@@ -43,10 +43,10 @@ public class Rod extends Structure {
 		PointMass j1 = points[0];
 		PointMass j2 = points[1];
 		if(!(j1 == null | j2 == null)){
-			int x1 = (int) ((shiftx + j1.getX()) * scalex);
-			int y1 = (int) ((shifty + j1.getY()) * scaley);
-			int x2 = (int) ((shiftx + j2.getX()) * scalex);
-			int y2 = (int) ((shifty + j2.getY()) * scaley);
+			int x1 = (int) ((shiftx + j1.getPosX()) * scalex);
+			int y1 = (int) ((shifty + j1.getPosY()) * scaley);
+			int x2 = (int) ((shiftx + j2.getPosX()) * scalex);
+			int y2 = (int) ((shifty + j2.getPosY()) * scaley);
 			g.drawLine(x1, y1, x2, y2);
 			//System.out.println("Draw rod ("+x1+", "+y1+"), ("+x2+", "+y2+")");
 		}
@@ -57,8 +57,8 @@ public class Rod extends Structure {
 		glColor4f(0f, 0.4f, 1.0f, 1.0f);
 		glBegin(GL_LINES);
 		{
-			glVertex2d(points[0].getX(), points[0].getY());
-			glVertex2d(points[1].getX(), points[1].getY());
+			glVertex2d(points[0].getPosX(), points[0].getPosY());
+			glVertex2d(points[1].getPosX(), points[1].getPosY());
 		}
 		glEnd();
 	}
@@ -101,19 +101,19 @@ public class Rod extends Structure {
 	}
 	
 	public double getActualLength(){
-		double dx = points[0].getX() - points[1].getX();
-		double dy = points[0].getY() - points[1].getY();
+		double dx = points[0].getPosX() - points[1].getPosX();
+		double dy = points[0].getPosY() - points[1].getPosY();
 		
 		return Math.sqrt(dx*dx + dy+dy);
 	}
 	
 	public Vector2d asVector(){
-		return new Vector2d(points[1].getX()-points[0].getX(), points[1].getY()-points[0].getY());
+		return new Vector2d(points[1].getPosX()-points[0].getPosX(), points[1].getPosY()-points[0].getPosY());
 	}
 	
 	public double getAngleOffHorizontal(){
 		if(points[0] != null && points[1] != null){
-			return Math.atan2(points[1].getY()-points[0].getY(), points[1].getX()-points[0].getX());
+			return Math.atan2(points[1].getPosY()-points[0].getPosY(), points[1].getPosX()-points[0].getPosX());
 		} else{
 			return 0.0;
 		}
@@ -124,8 +124,8 @@ public class Rod extends Structure {
 		PointMass j1 = points[0];
 		PointMass j2 = points[1];
 		if(!(j1 == null | j2 == null)){
-			double dx = j2.getX() - j1.getX();
-			double dy = j2.getY() - j1.getY();
+			double dx = j2.getPosX() - j1.getPosX();
+			double dy = j2.getPosY() - j1.getPosY();
 			double dist = Math.sqrt(dx*dx + dy*dy);
 			
 			// calculate the strain, which will be multiplied to calculate restoring force
@@ -194,7 +194,7 @@ public class Rod extends Structure {
 		double v0 = m1*(1-t)*dis/(m0*t*t + m1*(1-t)*(1-t));
 		double v1 = m0*t*dis/(m0*t*t + m1*(1-t)*(1-t));
 		// 0-1 and 1-0 is deliberate - perp([x,y]) = [-y,x]
-		Vector2d norm = new Vector2d(points[0].getY()-points[1].getY(), points[1].getX()-points[0].getX());
+		Vector2d norm = new Vector2d(points[0].getPosY()-points[1].getPosY(), points[1].getPosX()-points[0].getPosX());
 		norm.normalize();
 		points[0].addPos(norm.x*v0, norm.y*v0);
 		points[1].addPos(norm.x*v1, norm.y*v1);

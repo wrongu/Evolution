@@ -13,7 +13,7 @@ import javax.vecmath.Vector2d;
 
 import environment.Environment;
 
-public class PointMass {
+public class PointMass extends PhysicalObject {
 
 	/** for physics, joints are modeled as point masses */
 	public static final double DEFAULT_RADIUS = 5.0;
@@ -22,7 +22,6 @@ public class PointMass {
 	public static final double ELASTICITY = 0; // Values between 0 and 1 (though negatives are interesting...)
 	private double mass;
 	private double radius;
-	private Vector2d pos;
 	private Vector2d vel;
 	private Vector2d acc;
 	private Vector2d force;
@@ -30,12 +29,12 @@ public class PointMass {
 	private List<Rod> connections;
 
 	public PointMass(double m, Rod ... rods){
+		super();
 		connections = new ArrayList<Rod>();
 		for(Rod r : rods){
 			connections.add(r);
 			r.addPoint(this);
 		}
-		pos = new Vector2d();
 		vel = new Vector2d();
 		acc = new Vector2d();
 		force = new Vector2d();
@@ -53,8 +52,7 @@ public class PointMass {
 		force.y += fy;
 	}
 
-	// TODO: Perhaps get rid of the Environment e parameter?
-	public void move(Environment e, double dt){
+	public void update(double dt){
 
 		double vmag = vel.length();
 		
@@ -94,18 +92,6 @@ public class PointMass {
 	
 	public double getRadius() {
 		return radius;
-	}
-	
-	public Vector2d getPos() {
-		return pos;
-	}
-
-	public double getX(){
-		return pos.x;
-	}
-
-	public double getY(){
-		return pos.y;
 	}
 
 	public void clearPhysics() {
@@ -200,7 +186,6 @@ public class PointMass {
 		
 		double dx = pos.x - rod.getEnd(0).pos.x;
 		double dy = pos.y - rod.getEnd(0).pos.y;
-		double dist = Math.hypot(dx,dy);
 		double projNormal = -r.x*dy + r.y*dx;
 		double projTangent = r.x*dx + r.y*dy;
 		

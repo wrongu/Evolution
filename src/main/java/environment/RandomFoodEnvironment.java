@@ -47,9 +47,4 @@ public class RandomFoodEnvironment extends Environment {
 			}
 		}
 	}
-
-	public int getOrganismCount() {
-		return grid.getCount();
-	}
-	
 }

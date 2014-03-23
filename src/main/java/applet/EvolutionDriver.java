@@ -3,7 +3,8 @@ import java.awt.Canvas;
 import java.awt.Dimension;
 import java.nio.FloatBuffer;
 
-import environment.RandomFoodEnvironment;
+import environment.Environment;
+import environment.TestEnvironment;
 import graphics.opengl.RenderGL;
 
 import javax.swing.JFrame;
@@ -13,8 +14,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
-import bio.organisms.SimpleCircleOrganism;
-
 //import ann.DrawGraph;
 
 public class EvolutionDriver implements Runnable {
@@ -23,7 +22,7 @@ public class EvolutionDriver implements Runnable {
 	public static final int MAX_FPS = 60;
 	public static final long TICK_MS = 100;
 	
-	private RandomFoodEnvironment env;
+	private Environment env;
 	private Canvas canvas;
 	// input stuff
 	/** four booleans indicating "isDown()" state of up, down, left, and right respectively */
@@ -44,15 +43,22 @@ public class EvolutionDriver implements Runnable {
 		fps = MAX_FPS;
 		frame_counter = 0;
 		paused = true; sp_down = false; mouse_hold = false; first_frame = true;
+		
+		initEnvironment();
+	}
+	
+	private void initEnvironment(){
 
-		// initialize everything
-		env = new RandomFoodEnvironment(1.0, 0L);
-		// INITIAL POPULATION
-		for(int i=0; i<10; i++){
-			double x = 60. * Math.cos(2*Math.PI*i/10.);
-			double y = 60. * Math.sin(2*Math.PI*i/10.);
-			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
-		}
+//		// initialize everything
+//		env = new RandomFoodEnvironment(1.0, 0L);
+//		// INITIAL POPULATION
+//		for(int i=0; i<10; i++){
+//			double x = 60. * Math.cos(2*Math.PI*i/10.);
+//			double y = 60. * Math.sin(2*Math.PI*i/10.);
+//			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
+//		}
+		env = new TestEnvironment(0L, false);
+		((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
 	}
 	
 	public void run(){

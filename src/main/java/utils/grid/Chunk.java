@@ -58,12 +58,17 @@ public class Chunk extends HashSet<AbstractOrganism> {
 			return false;
 		}
 		
-		return (x == ((Chunk)o).x & y == ((Chunk)o).y) && super.equals(o);
+		return (x == ((Chunk)o).x) && (y == ((Chunk)o).y);
 	}
 	
 	@Override
 	public int hashCode() {
 		return coords.hashCode(); // This is likely bad practice...but suck it?
+	}
+	
+	@Override
+	public String toString(){
+		return "Chunk @("+x+","+y+"): "+super.toString();
 	}
 
 }

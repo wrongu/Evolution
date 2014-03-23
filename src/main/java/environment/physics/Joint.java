@@ -114,7 +114,7 @@ public class Joint extends Structure {
 	}
 
 	private static double[] pointMassDiffVector(PointMass A, PointMass B){
-		return new double[]{B.getX() - A.getX(), B.getY() - A.getY()};
+		return new double[]{B.getPosX() - A.getPosX(), B.getPosY() - A.getPosY()};
 	}
 
 	public void draw(Graphics2D g, float shift, float shifty, float scalex, float scaley) {

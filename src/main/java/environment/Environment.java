@@ -189,6 +189,10 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 		return orgos;
 	}
 	
+	public int getOrganismCount(){
+		return grid.getCount();
+	}
+	
 	/**
 	 * get boundaries of this environment
 	 * @return double array (xmin, ymin, xmax, ymax) of environment's bounding area

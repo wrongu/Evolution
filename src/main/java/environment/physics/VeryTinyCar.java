@@ -2,7 +2,7 @@ package environment.physics;
 
 import javax.vecmath.Vector2d;
 
-public class VeryTinyCar {
+public class VeryTinyCar extends PhysicalObject {
 	
 	public static final double DEFAULT_MASS = 1;
 	
@@ -18,30 +18,24 @@ public class VeryTinyCar {
 	private double turn; // Is equal to 1/r where r = turn radius.
 	private double mass;
 	
-	public VeryTinyCar(double mass, double random) {
+	public VeryTinyCar(double mass, double x, double y, double random) {
+		super(x, y);
 		random *= 2*Math.PI;
 		this.dir = new Vector2d(Math.cos(random), Math.sin(random));
 		this.mass = mass;
-		this.pos = new Vector2d(0,0);
 		speed = 0;
 		acc = 0;
 		turn = 0;
 	}
 	
-	// Initializers
-	public void initPos(double x, double y) {
-		pos.x = x;
-		pos.y = y;
-	}
-	
-	public void initVel(double vel_x, double vel_y) {
-		speed = Math.hypot(vel_x, vel_y);
-		if(speed > 0) {
-			dir.x = vel_x/speed;
-			dir.y = vel_y/speed;
-			dir.normalize(); // Possibly cause problems in long-running simulations? Not with speed cap.
-		}
-	}
+//	public void initVel(double vel_x, double vel_y) {
+//		speed = Math.hypot(vel_x, vel_y);
+//		if(speed > 0) {
+//			dir.x = vel_x/speed;
+//			dir.y = vel_y/speed;
+//			dir.normalize(); // Possibly cause problems in long-running simulations? Not with speed cap.
+//		}
+//	}
 	
 	// Effectors
 	public void addTurn(double dTurn) {
@@ -53,8 +47,8 @@ public class VeryTinyCar {
 	}
 	
 	public void addForce(double[] force) {
-		double tanAcc = (force[0]*dir.x + force[1]*dir.y)/mass; // Possible sign error here.
-		double nrmAcc = (force[0]*dir.y - force[1]*dir.x)/mass;
+		double tanAcc = (force[0]*dir.x + force[1]*dir.y)/mass;
+		double nrmAcc = (force[1]*dir.x - force[0]*dir.y)/mass;
 		
 		acc += tanAcc;
 		turn += nrmAcc/(speed*speed + ADDFORCE_BUFFER);
