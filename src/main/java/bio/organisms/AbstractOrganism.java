@@ -12,7 +12,6 @@ import bio.organisms.brain.IBrain;
 import bio.organisms.brain.IOutput;
 import bio.organisms.brain.ISense;
 import environment.Environment;
-import environment.physics.PhysicalObject;
 
 public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism, Object>{
 	

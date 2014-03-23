@@ -50,8 +50,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
 		super(e, null, init_energy, x, y);
 //		direction = e.getRandom().nextDouble()*Math.PI*2;
-		body = new VeryTinyCar(DEFAULT_MASS, e.getRandom().nextDouble());
-		body.initPos(x, y);
+		body = new VeryTinyCar(DEFAULT_MASS, x, y, e.getRandom().nextDouble());
 		oomph = omega = twist_ccw = twist_cw = 0.;
 		range = DEFAULT_RANGE;
 	}
@@ -68,7 +67,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 
 	protected List<IOutput> createOutputs(){
-		return Arrays.asList(new Accelerate(), new Twist(DIRECTION.CW), new Twist(DIRECTION.CCW), new Mitosis(), new Chatter());
+		return Arrays.asList(new Accelerate(), new Twist(DIRECTION.CW), new Twist(DIRECTION.CCW)/*, new Mitosis(), new Chatter()*/);
 	}
 
 	@Override
@@ -142,6 +141,10 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 //		if(other instanceof SimpleCircleOrganism){
 //			this.body.collide(((SimpleCircleOrganism) other).body);
 //		}
+	}
+	
+	public void addExternalForce(double fx, double fy){
+		this.body.addForce(new double[]{fx, fy});
 	}
 	
 	public double getX() {

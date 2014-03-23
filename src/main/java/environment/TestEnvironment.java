@@ -1,11 +1,9 @@
 package environment;
 
 import utils.grid.Chunk;
-import bio.genetics.DigraphGene;
 import bio.genetics.Gene;
 import bio.organisms.AbstractOrganism;
-import bio.organisms.OrganismFactory;
-import bio.organisms.PointRodOrganism;
+import bio.organisms.SimpleCircleOrganism;
 
 public class TestEnvironment extends Environment {
 
@@ -19,7 +17,7 @@ public class TestEnvironment extends Environment {
 	private boolean spaceIsPressed;
 
 	// TESTING
-	private Gene<PointRodOrganism> testgene;
+	private Gene<SimpleCircleOrganism> testgene;
 
 	public TestEnvironment(long seed){
 		super(SIZE, SIZE, Topology.TORUS, seed);
@@ -29,9 +27,10 @@ public class TestEnvironment extends Environment {
 		//		organisms.add(OrganismFactory.testDummy(OrganismFactory.DUMBELL, this));
 		//		for(int i = 0; i < 20; i++)
 		//			organisms.add(OrganismFactory.testDummy(OrganismFactory.POINT_MASS, this));
-		testgene = new DigraphGene();
-		for(int i=0; i<100; i++) testgene.mutate(seedRand);
-		grid.add(OrganismFactory.fromGene(testgene, this));
+		//testgene = new DigraphGene();
+		//for(int i=0; i<100; i++) testgene.mutate(seedRand);
+		//grid.add(OrganismFactory.fromGene(testgene, this));
+		grid.add(new SimpleCircleOrganism(this, 1000.0, 0, 0));
 	}
 
 	public void update(double dt){
@@ -39,20 +38,19 @@ public class TestEnvironment extends Environment {
 
 		for(Chunk c : grid) {
 			for(AbstractOrganism ao : c){
-				PointRodOrganism o = (PointRodOrganism) ao;
 				if(mouse_buttons[0] != 0) {
-					double dist = Math.sqrt((mousex - o.getX())*(mousex - o.getX()) + (mousey - o.getY())*(mousey - o.getY()));
-					//			 	o.drift((mousex - o.getX()) / dist, (mousey - o.getY())/ dist);
-					o.getPoints().get(0).addForce(MOUSE_CONSTANT*(mousex - o.getX()) / dist, MOUSE_CONSTANT*(mousey - o.getY())/ dist);
+					double dist = Math.sqrt((mousex - ao.getX())*(mousex - ao.getX()) + (mousey - ao.getY())*(mousey - ao.getY()));
+					if(ao instanceof SimpleCircleOrganism)
+						((SimpleCircleOrganism) ao).addExternalForce(MOUSE_CONSTANT*(mousex - ao.getX()) / dist, MOUSE_CONSTANT*(mousey - ao.getY())/ dist);
 					//System.out.println("Mouse down on: x = " + mousex + ", y = " + mousey + ".");
 				}
 
-				try{
-					if(spaceIsPressed)
-						o.getFirstMuscle().act(0.2);
-					else
-						o.getFirstMuscle().act(0.0);
-				} catch(Exception e){}
+//				try{
+//					if(spaceIsPressed)
+//						ao.getFirstMuscle().act(0.2);
+//					else
+//						ao.getFirstMuscle().act(0.0);
+//				} catch(Exception e){}
 			}
 		}
 	}
