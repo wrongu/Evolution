@@ -19,12 +19,26 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public static final double DEFAULT_MASS = 5.0;
 	public static final double DEFAULT_RANGE = 10;
 
+	// Energy constants for actions
 	public static final double ENERGY_PER_OOMPH = 0.1;
 	public static final double ENERGY_PER_TURN = 0.5;
 	public static final double ENERGY_PER_CHATTER = 0.01;
 	public static final double CHATTER_RANGE = 300;
 	public static final double ENERGY_PER_ATTACK = 0.5;
 	public static final double MITOSIS_THRESHOLD = 0.97;
+	
+	// Action strengths.
+	public static final double OOMPH_STRENGTH = 1.5;
+	public static final double TURN_STRENGTH = 0.15;
+	public static final double CHATTER_STRENGTH = 1;
+	public static final double ATTACK_STRENGTH = 1;
+	
+	// Sense sensitivities.
+	public static final double SPEED_SENSITIVITY = 1;
+	public static final double TURN_SENSITIVITY = 1;
+	public static final double LISTEN_SENSITIVITY = 1;
+	public static final double ENERGY_SENSITIVITY = 1;
+	public static final double TOUCH_SENSITIVITY = 1;
 
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
 	private static final double DRAW_SMOOTHNESS = 10;
@@ -39,10 +53,10 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 //	/** orientation in radians. zero is along positive x. */
 //	private double direction;
 	/** effort exerted to move forward */
-	private double oomph;
-	/** current rotational speed */
-	private double omega;
-	/** effort exerted to turn */
+//	private double oomph;
+//	/** current rotational speed */
+//	private double omega;
+//	/** effort exerted to turn */
 	private double twist_ccw, twist_cw;
 	/** chatter signal strength */
 	private double chatter;
@@ -51,7 +65,8 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		super(e, null, init_energy, x, y);
 //		direction = e.getRandom().nextDouble()*Math.PI*2;
 		body = new VeryTinyCar(DEFAULT_MASS, x, y, e.getRandom().nextDouble());
-		oomph = omega = twist_ccw = twist_cw = 0.;
+//		oomph = omega = 0.;
+		twist_ccw = twist_cw = 0.;
 		range = DEFAULT_RANGE;
 	}
 
@@ -167,22 +182,22 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 					signal += (r <= CHATTER_RANGE) ? ((SimpleCircleOrganism)orgo).chatter/(1 + r) : 0;
 				}
 			}
-			return signal;
+			return signal*LISTEN_SENSITIVITY;
 		}
 	}
 	private class SpeedSense implements ISense{
 		public double doSense(Environment e, AbstractOrganism o) {
-			return SimpleCircleOrganism.this.body.getSpeed();
+			return SimpleCircleOrganism.this.body.getSpeed() * SPEED_SENSITIVITY;
 		}
 	}
 	private class TurnSense implements ISense{
 		public double doSense(Environment e, AbstractOrganism o) {
-			return SimpleCircleOrganism.this.omega;
+			return SimpleCircleOrganism.this.body.getTurn() * TURN_SENSITIVITY;
 		}
 	}
 	private class EnergySense implements ISense{
 		public double doSense(Environment e, AbstractOrganism o) {
-			return SimpleCircleOrganism.this.energy;
+			return SimpleCircleOrganism.this.energy * ENERGY_SENSITIVITY;
 		}
 	}
 	// OUTPUTS
@@ -192,7 +207,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 		@Override
 		protected void sub_act(double energy) {
-			SimpleCircleOrganism.this.body.addThrust(energy / ENERGY_PER_OOMPH);
+			SimpleCircleOrganism.this.body.addThrust(energy * OOMPH_STRENGTH / ENERGY_PER_OOMPH);
 		}
 	}
 	private class Twist extends IOutput{
@@ -207,10 +222,10 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		protected void sub_act(double energy) {
 			switch(this.dir){
 			case CW:
-				SimpleCircleOrganism.this.body.addTurn(-energy / ENERGY_PER_TURN);
+				SimpleCircleOrganism.this.body.addTurn(-energy * TURN_STRENGTH / ENERGY_PER_TURN);
 				break;
 			case CCW:
-				SimpleCircleOrganism.this.body.addTurn(energy / ENERGY_PER_TURN);
+				SimpleCircleOrganism.this.body.addTurn(energy * TURN_STRENGTH / ENERGY_PER_TURN);
 				break;
 			}
 		}
@@ -232,7 +247,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 		@Override
 		protected void sub_act(double energy) {
-			SimpleCircleOrganism.this.chatter = energy / ENERGY_PER_CHATTER;
+			SimpleCircleOrganism.this.chatter = energy * CHATTER_STRENGTH / ENERGY_PER_CHATTER;
 		}
 	}
 	private class Attack extends IOutput{

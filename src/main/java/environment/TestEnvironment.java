@@ -8,7 +8,7 @@ import bio.organisms.SimpleCircleOrganism;
 public class TestEnvironment extends Environment {
 
 	public final double GRAVITY = 0.1;
-	public final double MOUSE_CONSTANT = 0.2;
+	public final double MOUSE_CONSTANT = 0.5;
 	public final static double SIZE = 1000.;
 
 	private int[] mouse_in;

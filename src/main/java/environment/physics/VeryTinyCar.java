@@ -6,16 +6,17 @@ public class VeryTinyCar extends PhysicalObject {
 	
 	public static final double DEFAULT_MASS = 1;
 	
-	private static final double FORWARD_RESISTANCE = 0.2;
+	private static final double FORWARD_RESISTANCE = 0.4;
 	private static final double REVERSE_RESISTANCE = 5*FORWARD_RESISTANCE;
-	private static final double TURN_RESTORATION = 0.5;
-	private static final double ADDFORCE_BUFFER = 0.1;// Prevents divide by zero errors in addForce. Must by > 0.
+//	private static final double TURN_RESTORATION = 10;
+	private static final double ADDFORCE_BUFFER = 0.00000000000001;// Prevents divide by zero errors in addForce. Must by > 0.
 	
 //	private Vector2d pos;
 	private Vector2d dir;
 	private double speed;
 	private double acc; // tangential acceleration
 	private double turn; // Is equal to 1/r where r = turn radius.
+	private double last_turn; // tracks last frame's turn.
 	private double mass;
 	
 	public VeryTinyCar(double mass, double x, double y, double random) {
@@ -26,6 +27,7 @@ public class VeryTinyCar extends PhysicalObject {
 		speed = 0;
 		acc = 0;
 		turn = 0;
+		last_turn = 0;
 	}
 	
 //	public void initVel(double vel_x, double vel_y) {
@@ -94,8 +96,15 @@ public class VeryTinyCar extends PhysicalObject {
 	public double getSpeed() {
 		return speed;
 	}
+	
+	public double getTurn() {
+		return last_turn;
+	}
 
 	public void update(double dt) {
+		// Set last_turn
+		last_turn = turn;
+		
 		// update speed
 		speed += acc*dt;
 
@@ -110,8 +119,9 @@ public class VeryTinyCar extends PhysicalObject {
 		pos.x += dir.x*distance;
 		pos.y += dir.y*distance;
 		
-		// apply restoring force to turn
-		turn -= TURN_RESTORATION*turn*dt;
+//		// apply restoring force to turn
+//		turn -= TURN_RESTORATION*turn*dt;
+		turn = 0;
 		
 		// apply resistance to speed
 		speed -= (speed > 0) ? FORWARD_RESISTANCE*speed*dt : REVERSE_RESISTANCE*speed*dt;
