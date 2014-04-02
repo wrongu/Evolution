@@ -24,7 +24,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public static final double ENERGY_PER_CHATTER = 0.01;
 	public static final double CHATTER_RANGE = 300;
 	public static final double ENERGY_PER_ATTACK = 0.5;
-	public static final double MITOSIS_THRESHOLD = 0.97;
+	public static final double MITOSIS_THRESHOLD = 0.98;
 
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
 	private static final double DRAW_SMOOTHNESS = 10;
@@ -67,7 +67,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 
 	protected List<IOutput> createOutputs(){
-		return Arrays.asList(new Accelerate(), new Twist(DIRECTION.CW), new Twist(DIRECTION.CCW)/*, new Mitosis(), new Chatter()*/);
+		return Arrays.asList(new Accelerate(), new Twist(DIRECTION.CW), new Twist(DIRECTION.CCW), new Mitosis()/*, new Chatter()*/);
 	}
 
 	@Override
