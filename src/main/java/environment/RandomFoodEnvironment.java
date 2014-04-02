@@ -23,6 +23,10 @@ public class RandomFoodEnvironment extends Environment {
 		this.generator = new PerlinGenerator(4, 20., this.getRandom().nextLong());
 	}
 	
+	public IGenerator getGenerator(){
+		return generator;
+	}
+	
 	@Override
 	public void update(double dt){
 		super.update(dt);
