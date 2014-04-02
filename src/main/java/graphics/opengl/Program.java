@@ -43,7 +43,7 @@ public class Program {
 		glDeleteProgram(glId);
 	}
 	
-	public void setParam(String name, int ... values){
+	public void setUniformi(String name, int ... values){
 		if(values != null){
 			int param = getUniform(name);
 			switch(values.length){
@@ -65,7 +65,7 @@ public class Program {
 		}
 	}
 	
-	public void setParam(String name, float ... values){
+	public void setUniformf(String name, float ... values){
 		if(values != null){
 			int param = getUniform(name);
 			switch(values.length){

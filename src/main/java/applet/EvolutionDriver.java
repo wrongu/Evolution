@@ -4,7 +4,7 @@ import java.awt.Dimension;
 import java.nio.FloatBuffer;
 
 import environment.Environment;
-import environment.TestEnvironment;
+import environment.RandomFoodEnvironment;
 import graphics.opengl.RenderGL;
 
 import javax.swing.JFrame;
@@ -13,6 +13,8 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
+
+import bio.organisms.SimpleCircleOrganism;
 
 //import ann.DrawGraph;
 
@@ -49,16 +51,16 @@ public class EvolutionDriver implements Runnable {
 	
 	private void initEnvironment(){
 
-//		// initialize everything
-//		env = new RandomFoodEnvironment(1.0, 0L);
-//		// INITIAL POPULATION
-//		for(int i=0; i<10; i++){
-//			double x = 60. * Math.cos(2*Math.PI*i/10.);
-//			double y = 60. * Math.sin(2*Math.PI*i/10.);
-//			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
-//		}
-		env = new TestEnvironment(0L);
-		((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
+		// initialize everything
+		env = new RandomFoodEnvironment(1.0, 0L);
+		// INITIAL POPULATION
+		for(int i=0; i<1; i++){
+			double x = 60. * Math.cos(2*Math.PI*i/10.);
+			double y = 60. * Math.sin(2*Math.PI*i/10.);
+			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
+		}
+//		env = new TestEnvironment(0L);
+//		((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
 	}
 	
 	public void run(){

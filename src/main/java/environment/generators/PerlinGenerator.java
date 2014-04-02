@@ -1,11 +1,15 @@
 package environment.generators;
 
+import java.util.Random;
+
 import graphics.RandomGeneratorVisualizer;
 
 public class PerlinGenerator implements IGenerator {
+	
+	public static final int TABLE_SIZE = 256;
 
-	/** the seed used for random number generation */
-	private long seed;
+	/** a table with some power-of-two (usually 256) entries used as a sort random index lookup */
+	private int[] random_table;
 	/** layers of generation, each half resolution of the last */
 	private int octaves;
 	/** how large the largest grid unit is. The 2nd octave is half as large, 3rd is 1/4 as large, etc.. */
@@ -33,13 +37,26 @@ public class PerlinGenerator implements IGenerator {
 	public PerlinGenerator(int octaves, double scale, long s, Filter f){
 		this.octaves = octaves;
 		this.scale = scale;
-		this.seed = s;
 		this.filter = f;
+		this.random_table = new int[TABLE_SIZE];
+		this.shuffle_table(s);
 	}
-
+	
+	private void shuffle_table(long seed){
+		// set things in order
+		for(int i=0; i<TABLE_SIZE; i++) random_table[i] = i;
+		// scramble everything
+		Random r = new Random(seed);
+		for(int i=0; i<TABLE_SIZE; i++){
+			int temp = random_table[i];
+			int swap = r.nextInt(TABLE_SIZE);
+			random_table[i] = random_table[swap];
+			random_table[swap] = temp;
+		}
+	}
 	
 	public void setSeed(long s) {
-		this.seed = s;
+		this.shuffle_table(s);
 	}
 
 	private static double interp(double a, double b, double bias){
@@ -48,44 +65,50 @@ public class PerlinGenerator implements IGenerator {
 		return a + smooth * (b - a);
 	}
 	
-	private double noise3d(int x, int y, int z, int seed)
+	private int table_modulo(int i){
+		int ret = (i % TABLE_SIZE);
+		if(ret < 0) ret += TABLE_SIZE;
+		return ret;
+	}
+	
+	private double pseudo_random2d(int x, int y)
 	{
-		// pseudo-random number generation guaranteed to be the same for a given
-		// tuple of (x, y, z, seed)
-		int n = (1619 * x + 31337 * y + 52591 * z
-				+ 1013 * seed) & 0x7fffffff;
-		n = (n>>13)^n;
-		n = (n * (n*n*60493+19990303) + 1376312589) & 0x7fffffff;
-		return 1.0 - (double)n/1073741824;
+		// pseudo-random-number in [0,1) using lookup in the table
+		int i = table_modulo(x);
+		i = table_modulo(random_table[i] + y);
+		return (double) random_table[i] / (double) TABLE_SIZE;
 	}
 
 	public double terrainValue(double x, double y) {
 		double value = 0.;
-		double max = 0.;
+		double max = 2.0 - Math.pow(2.0, -(this.octaves-1));
 		for(int o=0; o < this.octaves; o++){
 			// the width of a single cell of this octave is proportional to 2^o (but reversed so 0th octave is coarsest-detail)
-			int octave_factor = 1 << (this.octaves - o - 1);
+			double octave_factor = 1 << (this.octaves - o - 1);
 			// the amplitude of this octave is inversely proportaional to the size
 			// (this makes low-frequency noise stronger and high-frequency less strong)
-			double amplitude = 1. / ((double) octave_factor);
-			max += amplitude;
+			double amplitude = 1. / octave_factor;
 			// convert coordinates to the worldspace of the RNG
 			// (scale gets finer as octaves go up)
-			double cell_width = this.scale / octave_factor;
-			// get nearest (floor) x and y grid positions.
-			// note that the modular division makes the topology toroidal (repeats in both x and y)
+			double cell_width = this.scale * amplitude;
+			// get nearest (floor) x and y grid positions on this octave.
 			int xlo = ((int) Math.floor(x / cell_width));
 			int ylo = ((int) Math.floor(y / cell_width));
 			int xhi = xlo+1, yhi = ylo+1;
+			// get random gradient direction for each corner (pseudo-random in that it is 
+			// always the same for a given permutation of arguments)
+			double d00 = 2. * Math.PI * pseudo_random2d(xlo, ylo);
+			double d01 = 2. * Math.PI * pseudo_random2d(xlo, yhi);
+			double d10 = 2. * Math.PI * pseudo_random2d(xhi, ylo);
+			double d11 = 2. * Math.PI * pseudo_random2d(xhi, yhi);
 			// xoff and yoff are in [0,1), and are the coordinates within the grid cell of the point (x,y)
 			double xoff = x / cell_width - (double) xlo;
 			double yoff = y / cell_width - (double) ylo;
-			// get random value for each corner (pseudo-random in that it is 
-			// always the same for a given permutation of arguments)
-			double c00 = noise3d(xlo, ylo, o, (int) this.seed);
-			double c01 = noise3d(xlo, yhi, o, (int) this.seed);
-			double c10 = noise3d(xhi, ylo, o, (int) this.seed);
-			double c11 = noise3d(xhi, yhi, o, (int) this.seed);
+			// compute the effect of each corner's gradient on (x,y)
+			double c00 = Math.cos(d00) * xoff + Math.sin(d00) * yoff;
+			double c01 = Math.cos(d01) * xoff + Math.sin(d01) * (yoff-1.);
+			double c10 = Math.cos(d10) * (xoff-1.) + Math.sin(d10) * yoff;
+			double c11 = Math.cos(d11) * (xoff-1.) + Math.sin(d11) * (yoff-1.);
 			// smoothly interpolate
 			double bottom = interp(c00, c10, xoff);
 			double top = interp(c01, c11, xoff);
@@ -99,11 +122,28 @@ public class PerlinGenerator implements IGenerator {
 		else
 			return zero_to_one;
 	}
+	
+	public int[] getTable(){
+		return this.random_table;
+	}
+	
+	public double getScale(){
+		return scale;
+	}
+
+	public int getOctaves() {
+		return octaves;
+	}
+	
+	public static abstract class Filter{
+		/** given a value in [0, 1], return a value between [0,1] (presumably with some transformation applied) */
+		public abstract double applyFilter(double val);
+	}
 
 	public static void main(String[] args){
 		// TESTING / VISUALIZING
 		int oct = 8;
-		PerlinGenerator gen = new PerlinGenerator(oct, 30., 0L, new Filter(){
+		PerlinGenerator gen = new PerlinGenerator(oct, 60., 0L, new Filter(){
 			@Override
 			public double applyFilter(double val) {
 //				return val;
@@ -111,10 +151,5 @@ public class PerlinGenerator implements IGenerator {
 			}
 		});
 		RandomGeneratorVisualizer.display(gen, 300, oct);
-	}
-	
-	public static abstract class Filter{
-		/** given a value in [0, 1], return a value between [0,1] (presumably with some transformation applied) */
-		public abstract double applyFilter(double val);
 	}
 }

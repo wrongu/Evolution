@@ -40,6 +40,7 @@ public class Shader {
 			// check compilation
 			if(glGetShader(shader, GL_COMPILE_STATUS) == GL_FALSE){
 				System.err.println("error compiling shader from " + source);
+				System.err.println(glGetShaderInfoLog(shader, 1024));
 				glDeleteShader(shader);
 				return 0;
 			}
