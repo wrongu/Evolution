@@ -55,7 +55,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 
 	public SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
 		super(e, null, init_energy, x, y);
-		body = new VeryTinyCar(DEFAULT_MASS, 10.0, x, y, e.getRandom().nextDouble());
+		body = new VeryTinyCar(DEFAULT_MASS, 0.0, x, y, e.getRandom().nextDouble());
 		range = DEFAULT_RANGE;
 	}
 
