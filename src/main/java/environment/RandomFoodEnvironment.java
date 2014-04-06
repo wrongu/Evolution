@@ -13,20 +13,20 @@ import environment.physics.PointMass;
  *
  */
 public class RandomFoodEnvironment extends Environment {
-	
+
 	private IGenerator generator;
 	private double food_energy;
-	
+
 	public RandomFoodEnvironment(double energy_per_unit_food, long seed){
 		super(seed);
 		this.food_energy = energy_per_unit_food;
 		this.generator = new PerlinGenerator(4, 20., this.getRandom().nextLong());
 	}
-	
+
 	@Override
 	public void update(double dt){
 		super.update(dt);
-		
+
 		for(Chunk c : this.grid) {
 			for(AbstractOrganism o : c){
 				double base_value = this.generator.terrainValue(o.getX(), o.getY());
@@ -35,16 +35,7 @@ public class RandomFoodEnvironment extends Environment {
 				o.feed(food);
 			}
 		}
-	}
 
-	@Override
-	protected void doCollisions() {
-		for(Chunk c : this.grid){
-			for(AbstractOrganism a : c){
-				for(AbstractOrganism b : this.getNearbyAsym(a, 2*PointMass.DEFAULT_RADIUS)){
-					a.collide(b);
-				}
-			}
-		}
+		doCollisions();
 	}
 }

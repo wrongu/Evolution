@@ -15,7 +15,7 @@ import environment.physics.VeryTinyCar;
 import static org.lwjgl.opengl.GL11.*;
 
 public class SimpleCircleOrganism extends AbstractOrganism {
-	
+
 	public static final double DEFAULT_MASS = 5.0;
 	public static final double DEFAULT_RANGE = 10;
 
@@ -26,13 +26,13 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public static final double CHATTER_RANGE = 300;
 	public static final double ENERGY_PER_ATTACK = 0.5;
 	public static final double MITOSIS_THRESHOLD = 0.97;
-	
+
 	// Action strengths.
 	public static final double OOMPH_STRENGTH = 1.5;
 	public static final double TURN_STRENGTH = 0.15;
 	public static final double CHATTER_STRENGTH = 1;
 	public static final double ATTACK_STRENGTH = 1;
-	
+
 	// Sense sensitivities.
 	public static final double SPEED_SENSITIVITY = 1;
 	public static final double TURN_SENSITIVITY = 1;
@@ -43,30 +43,19 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
 	private static final double DRAW_SMOOTHNESS = 10;
 	private static final double TAIL_LENGTH_PER_SPEED = 0.3;
-	
+
 	// Turning directions
 	private static enum DIRECTION {CW, CCW};
 
 	private VeryTinyCar body;
 	/** the "reach" of the organism for attack, mate, touch, etc. */
 	private double range;
-//	/** orientation in radians. zero is along positive x. */
-//	private double direction;
-	/** effort exerted to move forward */
-//	private double oomph;
-//	/** current rotational speed */
-//	private double omega;
-//	/** effort exerted to turn */
-	private double twist_ccw, twist_cw;
 	/** chatter signal strength */
 	private double chatter;
 
 	public SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
 		super(e, null, init_energy, x, y);
-//		direction = e.getRandom().nextDouble()*Math.PI*2;
-		body = new VeryTinyCar(DEFAULT_MASS, x, y, e.getRandom().nextDouble());
-//		oomph = omega = 0.;
-		twist_ccw = twist_cw = 0.;
+		body = new VeryTinyCar(DEFAULT_MASS, 10.0, x, y, e.getRandom().nextDouble());
 		range = DEFAULT_RANGE;
 	}
 
@@ -105,11 +94,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		glColor4f(r, g, 0f, 1.0f);
 		double[] pos = body.getPos();
 		double[] d = body.getDir();
-//		double dx = Math.cos(direction);
-//		double dy = Math.sin(direction);
 		double tail = TAIL_LENGTH_PER_SPEED*Math.max(body.getSpeed(),0);
-//		double vx = body.getVX();
-//		double vy = body.getVY();
 		glBegin(GL_QUADS);
 		{
 			glVertex2d(pos[0] + 2*d[0], pos[1] + 2*d[1]);
@@ -130,42 +115,32 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 		glEnd();
 	}
-	
+
 	@Override
 	public void preUpdatePhysics() {
-		// TODO factor out spinning point physics
-		// rotational movement update
-//		direction += omega;
-//		omega += (twist_ccw - twist_cw);
-//		omega *= 0.8; // rotational viscosity
-//		// linear movement update
-//		oomph *= 0.001; // TESTING
-//		this.body.addForce(oomph * Math.cos(direction), oomph * Math.sin(direction));
+		// nothing to be done since VeryTinyCar handles it all
 	}
-	
+
 	@Override
 	public void updatePhysics(double dt) {
 		this.body.update(dt);
-//		double[] pos = body.getPos();
-//		this.pos_x = pos[0];
-//		this.pos_y = pos[1];
 	}
 
 	@Override
 	public void collide(AbstractOrganism other) {
-//		if(other instanceof SimpleCircleOrganism){
-//			this.body.collide(((SimpleCircleOrganism) other).body);
-//		}
+		if(other instanceof SimpleCircleOrganism){
+			this.body.collide(((SimpleCircleOrganism) other).body);
+		}
 	}
-	
+
 	public void addExternalForce(double fx, double fy){
 		this.body.addForce(new double[]{fx, fy});
 	}
-	
+
 	public double getX() {
 		return body.getPosX();
 	}
-	
+
 	public double getY() {
 		return body.getPosY();
 	}
@@ -211,9 +186,9 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 	}
 	private class Twist extends IOutput{
-		
+
 		private DIRECTION dir;
-		
+
 		public Twist(DIRECTION dir) {
 			super(SimpleCircleOrganism.this, ENERGY_PER_TURN, "Turn");
 			this.dir = dir;
@@ -259,5 +234,5 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 			// TODO
 		}
 	}
-	
+
 }

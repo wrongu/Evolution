@@ -17,11 +17,11 @@ import org.lwjgl.opengl.Display;
 //import ann.DrawGraph;
 
 public class EvolutionDriver implements Runnable {
-	
+
 	public static final int APPLET_WIDTH = 800, APPLET_HEIGHT = 600;
 	public static final int MAX_FPS = 60;
 	public static final long TICK_MS = 100;
-	
+
 	private Environment env;
 	private Canvas canvas;
 	// input stuff
@@ -36,38 +36,38 @@ public class EvolutionDriver implements Runnable {
 	private long second_timer;
 	private int fps, frame_counter;
 	private boolean paused, sp_down, mouse_hold, first_frame;
-	
+
 	public EvolutionDriver(Canvas c){
-		
+
 		second_timer = 0L;
 		fps = MAX_FPS;
 		frame_counter = 0;
 		paused = true; sp_down = false; mouse_hold = false; first_frame = true;
-		
+
 		initEnvironment();
 	}
-	
+
 	private void initEnvironment(){
 
-//		// initialize everything
-//		env = new RandomFoodEnvironment(1.0, 0L);
-//		// INITIAL POPULATION
-//		for(int i=0; i<10; i++){
-//			double x = 60. * Math.cos(2*Math.PI*i/10.);
-//			double y = 60. * Math.sin(2*Math.PI*i/10.);
-//			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
-//		}
+		//		// initialize everything
+		//		env = new RandomFoodEnvironment(1.0, 0L);
+		//		// INITIAL POPULATION
+		//		for(int i=0; i<10; i++){
+		//			double x = 60. * Math.cos(2*Math.PI*i/10.);
+		//			double y = 60. * Math.sin(2*Math.PI*i/10.);
+		//			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
+		//		}
 		env = new TestEnvironment(0L, false);
 		((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
 	}
-	
+
 	public void run(){
 		// env.bindInput(mouse_buttons, mouse_move); // TestEnvironments only
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
 		RenderGL renderpanel = new RenderGL(canvas, env, APPLET_WIDTH, APPLET_HEIGHT);
 		renderpanel.bindInputs(direction_keys, mouse_move, mouse_buttons);
-		
+
 		try {
 			Mouse.create();
 			Keyboard.create();
@@ -75,9 +75,9 @@ public class EvolutionDriver implements Runnable {
 		catch (LWJGLException e) {
 			e.printStackTrace();
 		}
-		
+
 		long time = System.currentTimeMillis();
-		
+
 		// run simulation
 		while(!Display.isCloseRequested()){
 			long now = System.currentTimeMillis();
@@ -94,10 +94,10 @@ public class EvolutionDriver implements Runnable {
 			}
 			Display.sync(MAX_FPS);
 		}
-		
+
 		renderpanel.destroy();
 	}
-	
+
 	public void checkInput(RenderGL renderer){
 		// up direction
 		if(Keyboard.isKeyDown(Keyboard.KEY_W)) direction_keys[UP] = true;
@@ -122,10 +122,10 @@ public class EvolutionDriver implements Runnable {
 		} else{
 			sp_down = false;
 		}
-		
+
 		// TESTING - 'M' for mutate (TestEnvironment and PointRodOrganisms ONLY
 		//if(Keyboard.isKeyDown(Keyboard.KEY_M)) env.mutateTestGene();
-		
+
 		// mouse movement
 		FloatBuffer mouseCoords = renderer.screenToWorldCoordinates(Mouse.getX(), Mouse.getY());
 		mouse_move[0] = (int) mouseCoords.get();
@@ -133,11 +133,11 @@ public class EvolutionDriver implements Runnable {
 		if(Mouse.isButtonDown(0)) mouse_buttons[0] = 1;
 		else mouse_buttons[0] = 0;
 		mouse_buttons[1] = Mouse.getDWheel();
-		
+
 		if(mouse_buttons[0] != 1)
 			mouse_hold = false;
 	}
-	
+
 	private void updateFPS(long now){
 		frame_counter++;
 		if(now - second_timer > 1000){
@@ -147,7 +147,7 @@ public class EvolutionDriver implements Runnable {
 			//System.out.println(fps);
 		}
 	}
-	
+
 	public static void main(String[] args){
 		// create JFrame with a canvas
 		JFrame window = new JFrame("Evolution App");
@@ -157,9 +157,9 @@ public class EvolutionDriver implements Runnable {
 		window.getContentPane().add(canvas);
 		window.setIgnoreRepaint(true);
 		window.pack();
-		
+
 		window.setVisible(true);
-		
+
 		EvolutionDriver driver = new EvolutionDriver(canvas);
 		driver.run();
 		window.dispose();

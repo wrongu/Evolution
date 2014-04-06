@@ -43,6 +43,8 @@ public class TestEnvironment extends Environment {
 //				} catch(Exception e){}
 			}
 		}
+		
+		doCollisions();
 	}
 
 	public void space_press(boolean isPressed) {
@@ -52,12 +54,6 @@ public class TestEnvironment extends Environment {
 	public void bindInput(int[] mouse_buttons, int[] mouse_move) {
 		this.mouse_buttons = mouse_buttons;
 		this.mouse_in = mouse_move;
-	}
-
-	@Override
-	protected void doCollisions() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	// TESTING ONLY
