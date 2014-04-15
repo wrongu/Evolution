@@ -60,7 +60,6 @@ public class RenderPanel extends JPanel implements MouseListener, MouseMotionLis
 		public void run(){
 			while(true){
 				if(render instanceof TestEnvironment){
-					if(mouseIsDown) ((TestEnvironment) render).mouse_move(mx, my);
 					if(spaceIsDown) ((TestEnvironment) render).space_press(spaceIsDown);
 				}
 				repaint();

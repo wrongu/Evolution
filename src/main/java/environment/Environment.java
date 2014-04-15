@@ -1,5 +1,6 @@
 package environment;
 
+import environment.physics.PointMass;
 import graphics.IDrawable;
 import graphics.opengl.IDrawableGL;
 
@@ -170,11 +171,11 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 	public HashSet<AbstractOrganism> getNearbyAsym(AbstractOrganism o, double r) {
 		
 		HashSet<AbstractOrganism> orgos = new HashSet<AbstractOrganism>();
-		double gridX = (o.getX()/Chunk.SIZE);
-		double gridY = (o.getY()/Chunk.SIZE);
+		int gridX = (int)Math.floor(o.getX()/Chunk.SIZE);
+		int gridY = (int)Math.floor(o.getY()/Chunk.SIZE);
 		double gridR = r/Chunk.SIZE;
 		HashSet<Chunk> nearChunks = grid.getAllWithinAsym(gridX, gridY, gridR);
-		Chunk homeChunk = grid.get((int)gridX, (int)gridY);
+		Chunk homeChunk = grid.get(gridX, gridY);
 		nearChunks.remove(homeChunk);
 		
 		for(Chunk c : nearChunks) {
@@ -189,6 +190,10 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 		return orgos;
 	}
 	
+	public int getOrganismCount(){
+		return grid.getCount();
+	}
+	
 	/**
 	 * get boundaries of this environment
 	 * @return double array (xmin, ymin, xmax, ymax) of environment's bounding area
@@ -201,6 +206,15 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 		return tickNumber;
 	}
 	
-	protected abstract void doCollisions();
+	protected void doCollisions(){
+		for(Chunk c : this.grid){
+			for(AbstractOrganism a : c){
+				// TODO remove dependency on PointMass
+				for(AbstractOrganism b : this.getNearbyAsym(a, 2*PointMass.DEFAULT_RADIUS)){
+					a.collide(b);
+				}
+			}
+		}
+	}
 	
 }

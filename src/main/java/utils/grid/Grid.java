@@ -4,13 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
-
-import environment.Environment;
-import bio.genetics.Gene;
 import bio.organisms.AbstractOrganism;
-import bio.organisms.brain.IOutput;
-import bio.organisms.brain.ISense;
 
 /**
  * A wrapper for a HashMap<HashCoords,Chunk> object. Contains
@@ -42,12 +36,13 @@ public class Grid implements Iterable<Chunk> {
 	 * map to null or an empty Chunk.
 	 */
 	public void removeEmpties() {
+		LinkedList<Chunk> to_remove = new LinkedList<Chunk>();
 		for(Iterator<Chunk> i = map.values().iterator(); i.hasNext(); ) {
 			Chunk chunk = i.next();
-			if( chunk == null || chunk.isEmpty() ) {
-				i.remove();
-			}
+			if( chunk == null) i.remove();
+			else if(chunk.isEmpty()) to_remove.add(chunk);
 		}
+		for(Chunk rem : to_remove) removeChunk(rem.getGridX(), rem.getGridY());
 	}
 	
 	/**
@@ -75,8 +70,12 @@ public class Grid implements Iterable<Chunk> {
 		return c;
 	}
 	
+	public int getChunkCount() {
+		return map.values().size();
+	}
+	
 	/**
-	 * Returns the value at coordinates (x,y).
+	 * Returns the Chunk at coordinates (x,y).
 	 * 
 	 * @param x
 	 * @param y
@@ -105,7 +104,6 @@ public class Grid implements Iterable<Chunk> {
 	 */
 	public void clear() {
 		map.clear();
-//		orgos.clear();
 	}
 
 	/**
@@ -122,9 +120,6 @@ public class Grid implements Iterable<Chunk> {
 	 * 
 	 * TODO: Check so you don't go over boundaries, or add in buffer
 	 * in the Environment class.
-	 * 
-	 * TODO: Needs to be tested with a visualizer to make sure it works
-	 * correctly.
 	 * 
 	 * @param x
 	 * @param y
@@ -233,7 +228,7 @@ public class Grid implements Iterable<Chunk> {
 	}
 	
 	/**
-	 * Returns the chunks within the bounding box [x_1,x_2] x [y_1,y_2],
+	 * Returns the chunks intersecting the bounding box [x_1,x_2] x [y_1,y_2],
 	 * in interval notation.
 	 * 
 	 * @param x_1
@@ -269,11 +264,13 @@ public class Grid implements Iterable<Chunk> {
 			}
 		}
 		
+		chunks.remove(null);
+		
 		return chunks;
 	}
 	
 	/**
-	 * As getAllWithin, but returns only the Chunks which lie not left of
+	 * As getAllWithin, but returns only the Chunks which lie not left of and
 	 * not under the original position. To be used with mutual interactions
 	 * between entities to avoid duplicate effects.
 	 * 
@@ -376,7 +373,6 @@ public class Grid implements Iterable<Chunk> {
 	 * to different chunks if necessary.
 	 */
 	public void updateChunks() {
-		
 		LinkedList<AbstractOrganism> toAdd = new LinkedList<AbstractOrganism>();
 		
 		for(Chunk c : map.values()) {
@@ -384,9 +380,9 @@ public class Grid implements Iterable<Chunk> {
 				AbstractOrganism o = i.next();
 				int o_x = (int)(o.getX()/Chunk.SIZE);
 				int o_y = (int)(o.getY()/Chunk.SIZE);
-				if(!(o_x == c.getGridX() & o_y == c.getGridY())) {
-					i.remove();
+				if(!(o_x == c.getGridX() && o_y == c.getGridY())) {
 					toAdd.add(o);
+					i.remove();
 				}
 			}
 		}
@@ -408,6 +404,15 @@ public class Grid implements Iterable<Chunk> {
 			map.put(coords, chunk);
 		}
 		return chunk;
+	}
+	
+	@Override
+	public String toString(){
+		String ret = "";
+		for(Chunk ch : this){
+			ret += ch + "\n";
+		}
+		return ret;
 	}
 	
 	// TESTING

@@ -409,8 +409,8 @@ public class DigraphGene extends Gene<PointRodOrganism> {
 			if(parent.is_joint)
 				angle += (clamp_radians(root.rest_low) + clamp_radians(root.rest_high)) / 2.0;
 			// compute x and y positions based on parent's position
-			double x = parent.last_instance.getX() + l * Math.cos(angle);
-			double y = parent.last_instance.getY() + l * Math.sin(angle);
+			double x = parent.last_instance.getPosX() + l * Math.cos(angle);
+			double y = parent.last_instance.getPosY() + l * Math.sin(angle);
 			// set the position
 			next.initPosition(x, y);
 		}
