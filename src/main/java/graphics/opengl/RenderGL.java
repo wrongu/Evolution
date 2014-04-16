@@ -16,7 +16,6 @@ import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 
-
 import environment.Environment;
 import environment.RandomFoodEnvironment;
 import environment.generators.PerlinGenerator;

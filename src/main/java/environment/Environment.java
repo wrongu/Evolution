@@ -92,7 +92,7 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 
 		// second (before real physics update), check for collisions
 		// TODO faster than O(o^2) collision checks
-		doCollisions();
+		//doCollisions();
 		
 		// next, prepare physics updates
 		for(Chunk c : grid)

@@ -33,6 +33,12 @@
 			<artifactId>vecmath</artifactId>
 			<version>1.3.1</version>
 		</dependency>
+		<!-- Apache's Configuration Library -->
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.10</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

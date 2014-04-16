@@ -4,17 +4,19 @@ import java.awt.Dimension;
 import java.nio.FloatBuffer;
 
 import environment.Environment;
+import environment.RandomFoodEnvironment;
 import environment.TestEnvironment;
 import graphics.opengl.RenderGL;
 
 import javax.swing.JFrame;
 
+import org.apache.commons.configuration.Configuration;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
-//import ann.DrawGraph;
+import bio.organisms.SimpleCircleOrganism;
 
 public class EvolutionDriver implements Runnable {
 
@@ -36,29 +38,40 @@ public class EvolutionDriver implements Runnable {
 	private long second_timer;
 	private int fps, frame_counter;
 	private boolean paused, sp_down, mouse_hold, first_frame;
+	public Configuration config;
 
 	public EvolutionDriver(Canvas c){
-
 		second_timer = 0L;
 		fps = MAX_FPS;
 		frame_counter = 0;
 		paused = true; sp_down = false; mouse_hold = false; first_frame = true;
-
+		
+		if(!Config.load("default"))
+			System.exit(1);
+		else
+			config = Config.instance;
+		
 		initEnvironment();
 	}
 
 	private void initEnvironment(){
-
-		//		// initialize everything
-		//		env = new RandomFoodEnvironment(1.0, 0L);
-		//		// INITIAL POPULATION
-		//		for(int i=0; i<10; i++){
-		//			double x = 60. * Math.cos(2*Math.PI*i/10.);
-		//			double y = 60. * Math.sin(2*Math.PI*i/10.);
-		//			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
-		//		}
-		env = new TestEnvironment(0L, false);
-		((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
+		String type = config.getString("ENV_TYPE");
+		if(type.equals("RandomFoodEnvironment")){
+			// initialize everything
+			env = new RandomFoodEnvironment(config.getDouble("ENV_FOOD"), config.getLong("SEED"));
+			// INITIAL POPULATION
+			for(int i=0; i<10; i++){
+				double x = 60. * Math.cos(2*Math.PI*i/10.);
+				double y = 60. * Math.sin(2*Math.PI*i/10.);
+				env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
+			}		
+		} else if(type.equals("TestEnvironment")){
+			env = new TestEnvironment(config.getLong("SEED"), false);
+			((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
+		} else{
+			System.err.println("'" + type + "' is not a valid environment name. exiting!");
+			System.exit(1);
+		}
 	}
 
 	public void run(){
