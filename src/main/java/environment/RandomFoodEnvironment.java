@@ -38,7 +38,5 @@ public class RandomFoodEnvironment extends Environment {
 				o.feed(food);
 			}
 		}
-
-		doCollisions();
 	}
 }

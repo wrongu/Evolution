@@ -4,8 +4,9 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class Shader {
 	
@@ -23,10 +24,15 @@ public class Shader {
 	
 	private static int loadShader(String source, int shaderType){
 		try{
+			InputStream istream = Thread.currentThread().getContextClassLoader().getResourceAsStream(source);
+			if(istream == null){
+				System.err.println("Could not load "+source);
+				return 0;
+			}
 			// opengl has its own shader language. So, in another file (sepecified by 'source'),
 			//	there is a program written in that language. We read it into a stringbuilder
 			//	then build the shader and compile it from that stringbuilder.
-			BufferedReader buff = new BufferedReader(new FileReader(source));
+			BufferedReader buff = new BufferedReader(new InputStreamReader(istream));
 			StringBuilder builder = new StringBuilder();
 			String line;
 			while((line = buff.readLine()) != null)

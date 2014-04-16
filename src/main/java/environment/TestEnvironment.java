@@ -43,8 +43,6 @@ public class TestEnvironment extends Environment {
 //				} catch(Exception e){}
 			}
 		}
-		
-		doCollisions();
 	}
 
 	public void space_press(boolean isPressed) {
