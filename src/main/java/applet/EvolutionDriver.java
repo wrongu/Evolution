@@ -1,6 +1,8 @@
 package applet;
 import java.awt.Canvas;
 import java.awt.Dimension;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.nio.FloatBuffer;
 
 import environment.Environment;
@@ -35,14 +37,14 @@ public class EvolutionDriver implements Runnable {
 	// variables for tracking fps
 	private long second_timer;
 	private int fps, frame_counter;
-	private boolean paused, sp_down, mouse_hold, first_frame;
+	private boolean paused, sp_down, mouse_hold, first_frame, shutdown_flag;
 
 	public EvolutionDriver(Canvas c){
 
 		second_timer = 0L;
 		fps = MAX_FPS;
 		frame_counter = 0;
-		paused = true; sp_down = false; mouse_hold = false; first_frame = true;
+		paused = true; sp_down = false; mouse_hold = false; first_frame = true; shutdown_flag = false;
 		canvas = c;
 		
 		initEnvironment();
@@ -80,7 +82,7 @@ public class EvolutionDriver implements Runnable {
 		long time = System.currentTimeMillis();
 
 		// run simulation
-		while(!Display.isCloseRequested()){
+		while(!(Display.isCloseRequested() || shutdown_flag)){
 			long now = System.currentTimeMillis();
 			double dt = ((double) (now - time)) / (double) TICK_MS;
 			checkInput(renderpanel);
@@ -95,7 +97,6 @@ public class EvolutionDriver implements Runnable {
 			}
 			Display.sync(MAX_FPS);
 		}
-
 		renderpanel.destroy();
 	}
 
@@ -148,6 +149,27 @@ public class EvolutionDriver implements Runnable {
 			//System.out.println(fps);
 		}
 	}
+	
+	private class WindowHandler implements WindowListener{
+
+		public void windowClosing(WindowEvent event) {
+			shutdown_flag = true;
+		}
+
+		public void windowDeactivated(WindowEvent event) {
+			paused = true;
+		}
+
+		public void windowIconified(WindowEvent event) {
+			paused = true;
+		}
+
+		public void windowClosed(WindowEvent event) {}
+		public void windowOpened(WindowEvent event) {}
+		public void windowActivated(WindowEvent event) {}
+		public void windowDeiconified(WindowEvent event) {}
+		
+	}
 
 	public static void main(String[] args){
 		// create JFrame with a canvas
@@ -158,10 +180,10 @@ public class EvolutionDriver implements Runnable {
 		window.getContentPane().add(canvas);
 		window.setIgnoreRepaint(true);
 		window.pack();
-
 		window.setVisible(true);
 
 		EvolutionDriver driver = new EvolutionDriver(canvas);
+		window.addWindowListener(driver.new WindowHandler());
 		driver.run();
 		window.dispose();
 	}
