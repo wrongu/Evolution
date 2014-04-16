@@ -1,6 +1,8 @@
 package applet;
 import java.awt.Canvas;
 import java.awt.Dimension;
+import java.io.File;
+import java.net.URISyntaxException;
 import java.nio.FloatBuffer;
 
 import environment.Environment;
@@ -76,7 +78,6 @@ public class EvolutionDriver implements Runnable {
 	}
 
 	public void run(){
-		// env.bindInput(mouse_buttons, mouse_move); // TestEnvironments only
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
 		RenderGL renderpanel = new RenderGL(canvas, env, APPLET_WIDTH, APPLET_HEIGHT);
@@ -136,9 +137,6 @@ public class EvolutionDriver implements Runnable {
 		} else{
 			sp_down = false;
 		}
-
-		// TESTING - 'M' for mutate (TestEnvironment and PointRodOrganisms ONLY
-		//if(Keyboard.isKeyDown(Keyboard.KEY_M)) env.mutateTestGene();
 
 		// mouse movement
 		FloatBuffer mouseCoords = renderer.screenToWorldCoordinates(Mouse.getX(), Mouse.getY());
