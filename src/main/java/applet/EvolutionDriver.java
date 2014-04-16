@@ -43,7 +43,8 @@ public class EvolutionDriver implements Runnable {
 		fps = MAX_FPS;
 		frame_counter = 0;
 		paused = true; sp_down = false; mouse_hold = false; first_frame = true;
-
+		canvas = c;
+		
 		initEnvironment();
 	}
 
