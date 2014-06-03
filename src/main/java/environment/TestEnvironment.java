@@ -10,6 +10,7 @@ public class TestEnvironment extends Environment {
 	public final double GRAVITY = 0.1;
 	public final double MOUSE_CONSTANT = 0.5;
 	public final static double SIZE = 1000.;
+	public final static double FOOD_RADIUS = 2*SimpleCircleOrganism.DEFAULT_RANGE;
 
 	private int[] mouse_in;
 	private int[] mouse_buttons;
@@ -19,7 +20,7 @@ public class TestEnvironment extends Environment {
 	public TestEnvironment(long seed, boolean keep_alive){
 		super(SIZE, SIZE, Topology.TORUS, seed);
 		for(int i = 0; i < 200; i++)
-			grid.add(new SimpleCircleOrganism(this, 1000.0, (getRandom().nextDouble() - 0.5)*SIZE, (getRandom().nextDouble() - 0.5)*SIZE));
+			grid.add(new SimpleCircleOrganism(this, 1.0, (getRandom().nextDouble() - 0.5)*SIZE, (getRandom().nextDouble() - 0.5)*SIZE));
 		this.keep_alive = keep_alive;
 	}
 

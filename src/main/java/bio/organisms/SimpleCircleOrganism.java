@@ -20,8 +20,8 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public static final double DEFAULT_RANGE = 10;
 
 	// Energy constants for actions
-	public static final double ENERGY_PER_OOMPH = 0.1;
-	public static final double ENERGY_PER_TURN = 0.5;
+	public static final double ENERGY_PER_OOMPH = 0.03;
+	public static final double ENERGY_PER_TURN = 0.01;
 	public static final double ENERGY_PER_CHATTER = 0.01;
 	public static final double CHATTER_RANGE = 300;
 	public static final double ENERGY_PER_ATTACK = 0.5;
@@ -40,6 +40,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public static final double ENERGY_SENSITIVITY = 1;
 	public static final double TOUCH_SENSITIVITY = 1;
 
+	// Graphics
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
 	private static final double DRAW_SMOOTHNESS = 10;
 	private static final double TAIL_LENGTH_PER_SPEED = 0.3;
@@ -89,8 +90,8 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 
 	@Override
 	public void glDraw(){
-		float r = (float) Math.exp(-energy);
-		float g = 1-r;
+		float g = (float)energy;
+		float r = 1-g;
 		glColor4f(r, g, 0f, 1.0f);
 		double[] pos = body.getPos();
 		double[] d = body.getDir();
