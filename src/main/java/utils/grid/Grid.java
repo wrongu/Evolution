@@ -270,9 +270,10 @@ public class Grid implements Iterable<Chunk> {
 	}
 	
 	/**
-	 * As getAllWithin, but returns only the Chunks which lie not left of and
-	 * not under the original position. To be used with mutual interactions
-	 * between entities to avoid duplicate effects.
+	 * As getAllWithin. Returns all Chunks which are potentially within a distance r
+	 * of the given Chunk c, but whose coordinates are, lexigraphically
+	 * speaking, larger than (x_0,y_0). To be used for mutual
+	 * interactions to avoid duplicate effects.
 	 * 
 	 * @param x_0
 	 * @param y_0
@@ -283,7 +284,7 @@ public class Grid implements Iterable<Chunk> {
 		
 		HashSet<Chunk> values = new HashSet<Chunk>();
 		r += ROOT_2;
-		int x_L = (int)Math.floor(x_0);
+		int x_L = (int)Math.floor(x_0 - r);
 		int x_U = (int)Math.ceil(x_0 + r);
 		int y_L = (int)Math.floor(y_0);
 		int y_U = (int)Math.ceil(y_0 + r);
@@ -300,11 +301,18 @@ public class Grid implements Iterable<Chunk> {
 		}
 		
 		for(int i = 0; i < x_range - 1; i++) {
-			for(int j = 0; j < y_range - 1; j++) {
+			for(int j = 1; j < y_range - 1; j++) {
 				if(cornerMarkers[i][j] & cornerMarkers[i+1][j] & cornerMarkers[i][j+1] & cornerMarkers[i+1][j+1]) {
 					coords.set(i + x_L, j + y_L);
 					values.add(map.get(coords));
 				}
+			}
+		}
+		int j = 0;
+		for(int i = (int)(x_0) - x_L; i < x_range - 1; i++) {
+			if(cornerMarkers[i][j] & cornerMarkers[i+1][j] & cornerMarkers[i][j+1] & cornerMarkers[i+1][j+1]) {
+				coords.set(i + x_L, j + y_L);
+				values.add(map.get(coords));
 			}
 		}
 		
@@ -316,9 +324,9 @@ public class Grid implements Iterable<Chunk> {
 	
 	/**
 	 * Get all Chunks which are potentially within a distance r
-	 * of the given Chunk c, but lie not below and not to the
-	 * left of c. To be used for mutual interactions to avoid
-	 * duplicate effects.
+	 * of the given Chunk c, but whose coordinates are, lexigraphically
+	 * speaking, larger than those of c. To be used for mutual
+	 * interactions to avoid duplicate effects.
 	 * 
 	 * @param c
 	 * @param r
@@ -431,8 +439,8 @@ public class Grid implements Iterable<Chunk> {
 		// Print out number of chunks.
 		System.out.println("Number of chunks = " + grid.map.size());
 		
-		// Get nearby test.
-		HashSet<Chunk> nearbyChunks = grid.getAllWithinAsym(grid.get(0,0),0.5);
+		// Get nearby test. 
+		HashSet<Chunk> nearbyChunks = grid.getAllWithinAsym(0,0,1);
 		System.out.println("Number of nearby chunks = " + nearbyChunks.size());
 		for(Chunk c : nearbyChunks) {
 			System.out.println("Coords: x = " + c.getGridX() + "   y = " + c.getGridY());

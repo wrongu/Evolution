@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.nio.FloatBuffer;
 
 import environment.Environment;
+import environment.RandomFoodEnvironment;
 import environment.TestEnvironment;
 import graphics.opengl.RenderGL;
 
@@ -57,8 +58,11 @@ public class EvolutionDriver implements Runnable {
 //			double y = 60. * Math.sin(2*Math.PI*i/10.);
 //			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
 //		}
-		env = new TestEnvironment(0L, false);
-		((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
+		
+		env = new RandomFoodEnvironment(1,0L);
+		
+//		env = new TestEnvironment(0L, false);
+//		((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
 	}
 	
 	public void run(){
@@ -90,7 +94,7 @@ public class EvolutionDriver implements Runnable {
 				first_frame = false;
 				mouse_hold = true;
 				env.update(dt);
-				if(env.getOrganismCount() == 0) break;
+//				if(env.getOrganismCount() == 0) break;
 			}
 			Display.sync(MAX_FPS);
 		}
