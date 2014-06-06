@@ -27,7 +27,7 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 //	protected List<AbstractOrganism> organisms;
 	// TODO make grid more abstract
 	protected Grid<AbstractOrganism> grid;
-	private List<AbstractOrganism> next_organisms;
+	protected List<AbstractOrganism> next_organisms;
 
 	protected Topology topology;
 	protected double width, height;
@@ -76,7 +76,7 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 			grid.add(baby);
 		next_organisms = new LinkedList<AbstractOrganism>();
 		
-		for(Iterator<AbstractOrganism> i = grid.iterator(); i.hasNext(); ) {
+		for(Iterator<AbstractOrganism> i = grid.iterator(); i.hasNext();) {
 			AbstractOrganism o = i.next();
 			if(! o.is_alive()){
 				i.remove();

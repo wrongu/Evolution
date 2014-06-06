@@ -43,7 +43,7 @@ public class Grid<T extends Entity> implements Iterable<T> {
 	 */
 	public void removeEmpties() {
 		
-		map.remove(null);
+//		map.remove(null);
 		for(Iterator<Chunk> i = map.values().iterator(); i.hasNext(); ) {
 			Chunk c = i.next();
 			if(c.isEmpty()) {
@@ -427,7 +427,7 @@ public class Grid<T extends Entity> implements Iterable<T> {
 		}
 		
 		public boolean hasNext() {
-			return hasNextChunk || iObj.hasNext();
+			return hasNextChunk || (iObj != null && iObj.hasNext());
 		}
 		
 		public T next() {
