@@ -1,28 +1,26 @@
 package environment;
 
-import environment.physics.PointMass;
 import graphics.IDrawable;
 import graphics.opengl.IDrawableGL;
 
 import java.awt.Graphics2D;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import utils.grid.Chunk;
 import utils.grid.Grid;
+import applet.Config;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.Entity;
 
 public abstract class Environment implements IDrawable, IDrawableGL {
 
 	public static enum Topology {INFINITE, TORUS, SPHERE};
-	public static final double TIME_STEP = 0.1;
-	public static final int GRID_SIZE = 20;
+	private static final double TIME_STEP = Config.instance.getDouble("DT_TIMESTEP"); // must be held constant for deterministic simulation
+	public static final int GRID_SIZE = Config.instance.getInt("CHUNK_SIZE");
 	
-	private static final int TICKS_PER_EMPTY = 1;
+	private static final int TICKS_PER_EMPTY = Config.instance.getInt("CLEANUP_EVERY");
 
 //	protected List<AbstractOrganism> organisms;
 	// TODO make grid more abstract
@@ -34,9 +32,8 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 	protected Random seedRand;
 	private long tickNumber;
 
-	// TODO factor out physics separately
-	public static double FRICTION = 0.1;
-	public static double VISCOSITY = 0.000;
+	public static double FRICTION = Config.instance.getDouble("FRICTION");
+	public static double VISCOSITY = Config.instance.getDouble("VISCOSITY");
 
 	public Environment(long seed){
 		this(0D, 0D, Topology.INFINITE, seed);
@@ -59,12 +56,10 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 		next_organisms.add(orgo);
 	}
 
-	public void update(double dt){
+	public void update(){
 		System.out.println("Tick #: " + tickNumber + " Organism count: " + grid.getCount());
-		// TODO remove dt entirely?
-		// The environment is no longer pseudo-randomly deterministic if we let dt
-		// depend on computer speeds.
-		dt = TIME_STEP;
+
+		double dt = TIME_STEP;
 		
 		// if it is time to do so, clean out the Grid.
 		if(tickNumber % TICKS_PER_EMPTY == 0) {

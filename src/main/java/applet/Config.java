@@ -54,4 +54,8 @@ public class Config {
 		
 		return true;
 	}
+	
+	static{
+		Config.load("default.config");
+	}
 }

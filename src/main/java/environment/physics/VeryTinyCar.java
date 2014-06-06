@@ -2,12 +2,14 @@ package environment.physics;
 
 import javax.vecmath.Vector2d;
 
+import applet.Config;
+
 public class VeryTinyCar extends PhysicalObject {
 	
-	public static final double DEFAULT_MASS = 1;
+	public static final double DEFAULT_MASS = Config.instance.getDouble("VTC_MASS");
 	
-	private static final double FORWARD_RESISTANCE = 0.4;
-	private static final double REVERSE_RESISTANCE = 5*FORWARD_RESISTANCE;
+	private static final double FORWARD_RESISTANCE = Config.instance.getDouble("VTC_FWD_RESIST");
+	private static final double REVERSE_RESISTANCE = Config.instance.getDouble("VTC_REV_RESIST");
 //	private static final double TURN_RESTORATION = 10;
 	private static final double ADDFORCE_BUFFER = 0.00000000000001;// Prevents divide by zero errors in addForce. Must by > 0.
 	

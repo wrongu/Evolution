@@ -12,7 +12,6 @@ import graphics.opengl.RenderGL;
 
 import javax.swing.JFrame;
 
-import org.apache.commons.configuration.Configuration;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -24,7 +23,7 @@ public class EvolutionDriver implements Runnable {
 
 	public static final int APPLET_WIDTH = 800, APPLET_HEIGHT = 600;
 	public static final int MAX_FPS = 60;
-	public static final long TICK_MS = 100;
+	public static final long TICK_MS = Config.instance.getLong("TICK");
 
 	private Environment env;
 	private Canvas canvas;
@@ -40,7 +39,6 @@ public class EvolutionDriver implements Runnable {
 	private long second_timer;
 	private int fps, frame_counter;
 	private boolean paused, sp_down, mouse_hold, first_frame, shutdown_flag;
-	public Configuration config;
 
 	public EvolutionDriver(Canvas c){
 		second_timer = 0L;
@@ -48,20 +46,15 @@ public class EvolutionDriver implements Runnable {
 		frame_counter = 0;
 		paused = true; sp_down = false; mouse_hold = false; first_frame = true; shutdown_flag = false;
 		canvas = c;
-		// load static configuration
-		if(!Config.load("default"))
-			System.exit(1);
-		else
-			config = Config.instance;
 		
 		initEnvironment();
 	}
 
 	private void initEnvironment(){
-		String type = config.getString("ENV_TYPE");
+		String type = Config.instance.getString("ENV_TYPE");
 		if(type.equals("RandomFoodEnvironment")){
 			// initialize everything
-			env = new RandomFoodEnvironment(config.getDouble("ENV_FOOD"), config.getLong("SEED"));
+			env = new RandomFoodEnvironment(Config.instance.getDouble("ENV_FOOD"), Config.instance.getLong("SEED"));
 			// INITIAL POPULATION
 			for(int i=0; i<10; i++){
 				double x = 60. * Math.cos(2*Math.PI*i/10.);
@@ -69,7 +62,7 @@ public class EvolutionDriver implements Runnable {
 				env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
 			}		
 		} else if(type.equals("TestEnvironment")){
-			env = new TestEnvironment(config.getLong("SEED"), false);
+			env = new TestEnvironment(Config.instance.getLong("SEED"), false);
 			((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
 		} else{
 			System.err.println("'" + type + "' is not a valid environment name. exiting!");
@@ -104,7 +97,7 @@ public class EvolutionDriver implements Runnable {
 			if(first_frame || !paused || (mouse_buttons[0] == 1 && !mouse_hold)){
 				first_frame = false;
 				mouse_hold = true;
-				env.update(dt);
+				env.update();
 //				if(env.getOrganismCount() == 0) break;
 			}
 			Display.sync(MAX_FPS);
@@ -166,11 +159,11 @@ public class EvolutionDriver implements Runnable {
 		}
 
 		public void windowDeactivated(WindowEvent event) {
-			if(config.getBoolean("PAUSE_ON_CLOSE")) paused = true;
+			if(Config.instance.getBoolean("PAUSE_ON_CLOSE")) paused = true;
 		}
 
 		public void windowIconified(WindowEvent event) {
-			if(config.getBoolean("PAUSE_ON_CLOSE")) paused = true;
+			if(Config.instance.getBoolean("PAUSE_ON_CLOSE")) paused = true;
 		}
 
 		public void windowClosed(WindowEvent event) {}
