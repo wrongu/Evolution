@@ -3,8 +3,9 @@ package utils.grid;
 import java.util.HashSet;
 
 import bio.organisms.AbstractOrganism;
+import bio.organisms.Entity;
 
-public class Chunk extends HashSet<AbstractOrganism> {
+public class Chunk<T extends Entity> extends HashSet<T> {
 	
 	private static final long serialVersionUID = -1953294672491456887L;
 

@@ -4,12 +4,12 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 import bio.organisms.brain.ISense;
 import bio.organisms.brain.IOutput;
 import environment.Environment;
-
 import environment.physics.VeryTinyCar;
 // DRAWING
 import static org.lwjgl.opengl.GL11.*;
@@ -150,7 +150,9 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	private class Listen implements ISense{
 		public double doSense(Environment e, AbstractOrganism o) {
 			// query environment for nearby organisms
-			HashSet<AbstractOrganism> talkers = e.getNearby(o, CHATTER_RANGE, true);
+			LinkedList<AbstractOrganism> talkers = e.getInDisk(o.getX(), o.getY(), CHATTER_RANGE);
+			talkers.remove(o);
+			
 			double signal = 0;
 			for(AbstractOrganism orgo : talkers) {
 				if(orgo instanceof SimpleCircleOrganism) {

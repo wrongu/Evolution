@@ -3,6 +3,7 @@ package environment;
 import utils.grid.Chunk;
 import bio.genetics.Gene;
 import bio.organisms.AbstractOrganism;
+import bio.organisms.Entity;
 import bio.organisms.SimpleCircleOrganism;
 
 public class TestEnvironment extends Environment {
@@ -27,23 +28,22 @@ public class TestEnvironment extends Environment {
 	public void update(double dt){
 		super.update(dt);
 
-		for(Chunk c : grid) {
-			for(AbstractOrganism ao : c){
-				if(keep_alive) ao.feed(10.0);
-				if(mouse_buttons[0] != 0) {
-					double dist = Math.hypot((mouse_in[0] - ao.getX()), (mouse_in[1] - ao.getY()));
-					if(ao instanceof SimpleCircleOrganism)
-						((SimpleCircleOrganism) ao).addExternalForce(MOUSE_CONSTANT*(mouse_in[0] - ao.getX()) / dist, MOUSE_CONSTANT*(mouse_in[1] - ao.getY())/ dist);
-				}
-
-//				try{
-//					if(spaceIsPressed)
-//						ao.getFirstMuscle().act(0.2);
-//					else
-//						ao.getFirstMuscle().act(0.0);
-//				} catch(Exception e){}
+		for(AbstractOrganism ao : grid) {
+			if(keep_alive) ((AbstractOrganism)ao).feed(10.0);
+			if(mouse_buttons[0] != 0) {
+				double dist = Math.hypot((mouse_in[0] - ao.getX()), (mouse_in[1] - ao.getY()));
+				if(ao instanceof SimpleCircleOrganism)
+					((SimpleCircleOrganism) ao).addExternalForce(MOUSE_CONSTANT*(mouse_in[0] - ao.getX()) / dist, MOUSE_CONSTANT*(mouse_in[1] - ao.getY())/ dist);
 			}
+
+			//				try{
+			//					if(spaceIsPressed)
+			//						ao.getFirstMuscle().act(0.2);
+			//					else
+			//						ao.getFirstMuscle().act(0.0);
+			//				} catch(Exception e){}
 		}
+
 	}
 
 	public void space_press(boolean isPressed) {

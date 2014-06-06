@@ -2,6 +2,7 @@ package environment;
 
 import utils.grid.Chunk;
 import bio.organisms.AbstractOrganism;
+import bio.organisms.Entity;
 import bio.organisms.SimpleCircleOrganism;
 import environment.generators.IGenerator;
 import environment.generators.PerlinGenerator;
@@ -36,14 +37,12 @@ public class RandomFoodEnvironment extends Environment {
 	public void update(double dt){
 		super.update(dt);
 
-		for(Chunk c : this.grid) {
-			for(AbstractOrganism o : c){
-				double base_value = this.generator.terrainValue(o.getX(), o.getY());
-				// TODO - is food continuous or is it randomly all-or-nothing?
-				double food = this.seedRand.nextDouble() < base_value ? food_energy : 0.0;
-				int numberNearby = getNearby(o,food_radius,false).size();
-				o.feed(food/numberNearby);
-			}
+		for(AbstractOrganism o : grid) {
+			double base_value = this.generator.terrainValue(o.getX(), o.getY());
+			// TODO - is food continuous or is it randomly all-or-nothing?
+			double food = this.seedRand.nextDouble() < base_value ? food_energy : 0.0;
+			int numberNearby = grid.getInDisk(o.getX(), o.getY(), food_radius).size();
+			o.feed(food/numberNearby);
 		}
 	}
 }
