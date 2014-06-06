@@ -76,15 +76,13 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 			grid.add(baby);
 		next_organisms = new LinkedList<AbstractOrganism>();
 		
-//		for(Chunk c : grid) {
-//			for(Iterator<Entity> i = c.iterator(); i.hasNext(); ) {
-//				AbstractOrganism o = (AbstractOrganism)i.next();
-//				if(! o.is_alive()){
-//					i.remove();
-//					o.print_energy_stats();
-//				}
-//			}
-//		}
+		for(Iterator<AbstractOrganism> i = grid.iterator(); i.hasNext(); ) {
+			AbstractOrganism o = i.next();
+			if(! o.is_alive()){
+				i.remove();
+				o.print_energy_stats();
+			}
+		}
 		
 		// first, process inputs and prepare outputs
 		for(AbstractOrganism o : grid) {

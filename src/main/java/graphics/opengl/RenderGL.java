@@ -174,15 +174,15 @@ public class RenderGL {
 						fPerlin = Shader.fromSource("shaders/perlin.frag", GL_FRAGMENT_SHADER);
 						
 						// create programs from the shaders
-						pPerlin = Program.createProgram(vNoop, fPerlin);
-						pPerlin.begin();
-						{
-							pPerlin.setUniformi("octaves", gen.getOctaves());
-							pPerlin.setUniformi("t_size", PerlinGenerator.TABLE_SIZE);
-							pPerlin.setUniformf("scale", (float) gen.getScale());
-							pPerlin.setUniformi("table", 0); // bind to TEXTURE0
-						}
-						pPerlin.end();
+//						pPerlin = Program.createProgram(vNoop, fPerlin);
+//						pPerlin.begin();
+//						{
+//							pPerlin.setUniformi("octaves", gen.getOctaves());
+//							pPerlin.setUniformi("t_size", PerlinGenerator.TABLE_SIZE);
+//							pPerlin.setUniformf("scale", (float) gen.getScale());
+//							pPerlin.setUniformi("table", 0); // bind to TEXTURE0
+//						}
+//						pPerlin.end();
 						
 						// create texture for perlin table
 						perlin_table_tex = glGenTextures();

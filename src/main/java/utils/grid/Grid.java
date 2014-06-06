@@ -168,7 +168,8 @@ public class Grid<T extends Entity> implements Iterable<T> {
 				
 				if(markersR[i][j] & markersR[i+1][j] & markersR[i][j+1] & markersR[i+1][j+1]) {
 					Chunk c = map.get(coords);
-					ents.addAll(c);
+					if(c != null)
+						ents.addAll(c);
 				} else if(markersS[i][j] & markersS[i+1][j] & markersS[i][j+1] & markersS[i+1][j+1]) {
 					Chunk c = map.get(coords);
 					if(c != null) {
