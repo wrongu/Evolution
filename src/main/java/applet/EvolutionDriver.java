@@ -105,7 +105,7 @@ public class EvolutionDriver implements Runnable {
 				first_frame = false;
 				mouse_hold = true;
 				env.update(dt);
-				if(env.getOrganismCount() == 0) break;
+//				if(env.getOrganismCount() == 0) break;
 			}
 			Display.sync(MAX_FPS);
 		}

@@ -13,7 +13,7 @@ import bio.organisms.brain.IOutput;
 import bio.organisms.brain.ISense;
 import environment.Environment;
 
-public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism, Object>{
+public abstract class AbstractOrganism extends Entity implements IGeneCarrier<AbstractOrganism, Object>{
 	
 	protected Gene<? extends AbstractOrganism> gene;
 	protected IBrain brain;
@@ -35,6 +35,8 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 		this.outputs = this.createOutputs();
 		this.brain = BrainFactory.newDumberBrain(senses.size(), outputs.size(), this, e.getRandom());
 		energy_drains = new HashMap<String, Double>();
+		this.x = x;
+		this.y = y;
 	}
 	
 	protected abstract List<ISense> createSenses();
@@ -127,8 +129,5 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 	public boolean is_alive(){
 		return this.energy > 0.0;
 	}
-	
-	public abstract double getX();
-	public abstract double getY();
 	
 }

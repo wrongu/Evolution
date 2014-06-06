@@ -14,17 +14,19 @@ import java.util.Random;
 import utils.grid.Chunk;
 import utils.grid.Grid;
 import bio.organisms.AbstractOrganism;
+import bio.organisms.Entity;
 
 public abstract class Environment implements IDrawable, IDrawableGL {
 
 	public static enum Topology {INFINITE, TORUS, SPHERE};
 	public static final double TIME_STEP = 0.1;
+	public static final int GRID_SIZE = 20;
 	
 	private static final int TICKS_PER_EMPTY = 1;
 
 //	protected List<AbstractOrganism> organisms;
 	// TODO make grid more abstract
-	protected Grid grid;
+	protected Grid<AbstractOrganism> grid;
 	private List<AbstractOrganism> next_organisms;
 
 	protected Topology topology;
@@ -41,7 +43,7 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 	}
 
 	public Environment(double w, double h, Topology t, long seed){
-		grid = new Grid();
+		grid = new Grid<AbstractOrganism>(GRID_SIZE);
 		next_organisms = new LinkedList<AbstractOrganism>();
 		width = w;
 		height = h;
@@ -73,21 +75,18 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 		for(AbstractOrganism baby : next_organisms)
 			grid.add(baby);
 		next_organisms = new LinkedList<AbstractOrganism>();
-		for(Chunk c : grid) {
-			for(Iterator<AbstractOrganism> i = c.iterator(); i.hasNext(); ) {
-				AbstractOrganism o = i.next();
-				if(! o.is_alive()){
-					i.remove();
-					o.print_energy_stats();
-				}
+		
+		for(Iterator<AbstractOrganism> i = grid.iterator(); i.hasNext(); ) {
+			AbstractOrganism o = i.next();
+			if(! o.is_alive()){
+				i.remove();
+				o.print_energy_stats();
 			}
 		}
 		
 		// first, process inputs and prepare outputs
-		for(Chunk c : grid) {
-			for(AbstractOrganism o : c) {
+		for(AbstractOrganism o : grid) {
 				o.thinkAndAct();
-			}
 		}
 
 		// second (before real physics update), check for collisions
@@ -95,13 +94,11 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 		//doCollisions();
 		
 		// next, prepare physics updates
-		for(Chunk c : grid)
-			for(AbstractOrganism o : c)
+		for(AbstractOrganism o : grid)
 				o.preUpdatePhysics();
 		
 		// finally, update the physics engine
-		for(Chunk c : grid)
-			for(AbstractOrganism o : c)
+		for(AbstractOrganism o : grid)
 				o.updatePhysics(dt);
 		
 		// update grid structure.
@@ -111,83 +108,40 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 	}
 	
 	public void draw(Graphics2D g, float sx, float sy, float scx, float scy) {
-		for(Chunk c : grid)
-			for(AbstractOrganism o : c)
+		for(AbstractOrganism o : grid)
 				o.draw(g, sx, sy, scx, scy);
 	}
 
 	public void glDraw() {
 		// TODO - draw some sort of background?
-		for(Chunk c : grid)
-			for(AbstractOrganism o : c)
-				o.glDraw();
+		// TODO - ONLY RENDER THOSE ORGANISMS IN THE VIEWING BOX USING grid.getInBox(...)!
+		for(AbstractOrganism o : grid)
+			o.glDraw();
 	}
 
 	/**
-	 * Returns a HashSet of AbstractOrganisms which are
-	 * approximately within a radius r of (x,y), world
-	 * coordinates. Further checking is necessary to ensure
-	 * that all organisms are actually within r.
+	 * Returns a LinkedList of AbstractOrganisms which are
+	 * within a radius r of (x,y). 
 	 * 
 	 * @param x
 	 * @param y
 	 * @param r
 	 * @return
 	 */
-	public HashSet<AbstractOrganism> getNearby(double x, double y, double r) {
-		
-		HashSet<AbstractOrganism> orgos = new HashSet<AbstractOrganism>();
-		
-		for(Chunk c : grid.getAllWithin(x/Chunk.SIZE, y/Chunk.SIZE, r/Chunk.SIZE)) {
-			orgos.addAll(c);
+	public LinkedList<AbstractOrganism> getInDisk(double x, double y, double r) {
+		LinkedList<AbstractOrganism> orgs = new LinkedList<AbstractOrganism>();
+		for(Entity o : grid.getInDisk(x,y,r)) {
+			orgs.add((AbstractOrganism)o);
 		}
-		
-		return orgos;
+		return orgs;
 	}
 	
-	public HashSet<AbstractOrganism> getNearby(AbstractOrganism o, double r, boolean exclude_self) {
-		
-		HashSet<AbstractOrganism> orgos = new HashSet<AbstractOrganism>();
-		double gridX = (o.getX()/Chunk.SIZE);
-		double gridY = (o.getY()/Chunk.SIZE);
-		double gridR = r/Chunk.SIZE;
-		
-		for(Chunk c : grid.getAllWithin(gridX, gridY, gridR)) {
-			orgos.addAll(c);
+	public LinkedList<AbstractOrganism> getInDiskMut(double x, double y, double r) {
+		LinkedList<AbstractOrganism> orgs = new LinkedList<AbstractOrganism>();
+		for(Entity o : grid.getInDiskMut(x,y,r)) {
+			orgs.add((AbstractOrganism)o);
 		}
-		
-		if(exclude_self) orgos.remove(o);
-		
-		return orgos;
-	}
-	
-	/**
-	 * To be used with mutual interactions.
-	 * 
-	 * @param o
-	 * @param r
-	 * @return
-	 */
-	public HashSet<AbstractOrganism> getNearbyAsym(AbstractOrganism o, double r) {
-		
-		HashSet<AbstractOrganism> orgos = new HashSet<AbstractOrganism>();
-		int gridX = (int)Math.floor(o.getX()/Chunk.SIZE);
-		int gridY = (int)Math.floor(o.getY()/Chunk.SIZE);
-		double gridR = r/Chunk.SIZE;
-		HashSet<Chunk> nearChunks = grid.getAllWithinAsym(gridX, gridY, gridR);
-		Chunk homeChunk = grid.get(gridX, gridY);
-		nearChunks.remove(homeChunk);
-		
-		for(Chunk c : nearChunks) {
-			orgos.addAll(c);
-		}
-		for(AbstractOrganism org : homeChunk) {
-			if(org.getY() > o.getY() || (org.getY() == o.getY() && org.getX() > o.getX()) ) {
-				orgos.add(org);
-			}
-		}
-		
-		return orgos;
+		return orgs;
 	}
 	
 	public int getOrganismCount(){
@@ -206,15 +160,15 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 		return tickNumber;
 	}
 	
-	protected void doCollisions(){
-		for(Chunk c : this.grid){
-			for(AbstractOrganism a : c){
-				// TODO remove dependency on PointMass
-				for(AbstractOrganism b : this.getNearbyAsym(a, 2*PointMass.DEFAULT_RADIUS)){
-					a.collide(b);
-				}
-			}
-		}
-	}
+//	protected void doCollisions(){
+//		for(Chunk c : this.grid){
+//			for(AbstractOrganism a : c){
+//				// TODO remove dependency on PointMass
+//				for(AbstractOrganism b : this.getNearbyAsym(a, 2*PointMass.DEFAULT_RADIUS)){
+//					a.collide(b);
+//				}
+//			}
+//		}
+//	}
 	
 }
