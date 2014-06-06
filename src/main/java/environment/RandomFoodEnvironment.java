@@ -38,9 +38,8 @@ public class RandomFoodEnvironment extends Environment {
 		super.update(dt);
 
 		for(AbstractOrganism o : grid) {
-			double base_value = this.generator.terrainValue(o.getX(), o.getY());
-			// TODO - is food continuous or is it randomly all-or-nothing?
-			double food = this.seedRand.nextDouble() < base_value ? food_energy : 0.0;
+			double food = this.generator.terrainValue(o.getX(), o.getY())*food_energy;
+//			double food = this.seedRand.nextDouble() < base_value ? food_energy : 0.0;
 			int numberNearby = grid.getInDisk(o.getX(), o.getY(), food_radius).size();
 			o.feed(food/numberNearby);
 		}
