@@ -1,8 +1,6 @@
 package environment;
 
-import bio.genetics.Gene;
 import bio.organisms.AbstractOrganism;
-import bio.organisms.Entity;
 import bio.organisms.SimpleCircleOrganism;
 
 public class TestEnvironment extends Environment {
@@ -24,8 +22,8 @@ public class TestEnvironment extends Environment {
 		this.keep_alive = keep_alive;
 	}
 
-	public void update(double dt){
-		super.update(dt);
+	public void update(){
+		super.update();
 
 		for(AbstractOrganism ao : grid) {
 			if(keep_alive) ((AbstractOrganism)ao).feed(10.0);

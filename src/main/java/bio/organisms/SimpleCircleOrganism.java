@@ -3,10 +3,10 @@ package bio.organisms;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import applet.Config;
 import bio.organisms.brain.ISense;
 import bio.organisms.brain.IOutput;
 import environment.Environment;
@@ -16,29 +16,29 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class SimpleCircleOrganism extends AbstractOrganism {
 
-	public static final double DEFAULT_MASS = 5.0;
-	public static final double DEFAULT_RANGE = 10;
+	public static final double DEFAULT_MASS = Config.instance.getDouble("SCO_MASS");
+	public static final double DEFAULT_RANGE = Config.instance.getDouble("SCO_EFFECT_RANGE");
 
 	// Energy constants for actions
-	public static final double ENERGY_PER_OOMPH = 0.03;
-	public static final double ENERGY_PER_TURN = 0.01;
-	public static final double ENERGY_PER_CHATTER = 0.01;
-	public static final double CHATTER_RANGE = 300;
-	public static final double ENERGY_PER_ATTACK = 0.5;
-	public static final double MITOSIS_THRESHOLD = 0.97;
+	public static final double ENERGY_PER_OOMPH = Config.instance.getDouble("SCO_ENERGY_PER_OOMPH");
+	public static final double ENERGY_PER_TURN = Config.instance.getDouble("SCO_ENERGY_PER_TURN");
+	public static final double ENERGY_PER_CHATTER = Config.instance.getDouble("SCO_ENERGY_PER_CHATTER");
+	public static final double CHATTER_RANGE = Config.instance.getDouble("SCO_CHATTER_RANGE");
+	public static final double ENERGY_PER_ATTACK = Config.instance.getDouble("SCO_ENERGY_PER_ATTACK");
+	public static final double MITOSIS_THRESHOLD = Config.instance.getDouble("SCO_MITOSIS_THRESHOLD");
 
 	// Action strengths.
-	public static final double OOMPH_STRENGTH = 1.5;
-	public static final double TURN_STRENGTH = 0.15;
-	public static final double CHATTER_STRENGTH = 1;
-	public static final double ATTACK_STRENGTH = 1;
+	public static final double OOMPH_STRENGTH = Config.instance.getDouble("SCO_OOMPH_STRENGTH");
+	public static final double TURN_STRENGTH = Config.instance.getDouble("SCO_TURN_STRENGTH");
+	public static final double CHATTER_STRENGTH = Config.instance.getDouble("SCO_CHATTER_STRENGTH");
+	public static final double ATTACK_STRENGTH = Config.instance.getDouble("SCO_ATTACK_STRENGTH");
 
 	// Sense sensitivities.
-	public static final double SPEED_SENSITIVITY = 1;
-	public static final double TURN_SENSITIVITY = 1;
-	public static final double LISTEN_SENSITIVITY = 1;
-	public static final double ENERGY_SENSITIVITY = 1;
-	public static final double TOUCH_SENSITIVITY = 1;
+	public static final double SPEED_SENSITIVITY = Config.instance.getDouble("SCO_SPEED_SENSITIVITY");
+	public static final double TURN_SENSITIVITY = Config.instance.getDouble("SCO_TURN_SENSITIVITY");
+	public static final double LISTEN_SENSITIVITY = Config.instance.getDouble("SCO_LISTEN_SENSITIVITY");
+	public static final double ENERGY_SENSITIVITY = Config.instance.getDouble("SCO_ENERGY_SENSITIVITY");
+	public static final double TOUCH_SENSITIVITY = Config.instance.getDouble("SCO_TOUCH_SENSITIVITY");
 
 	// Graphics
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);

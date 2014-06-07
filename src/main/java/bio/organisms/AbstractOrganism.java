@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import applet.Config;
 import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
 import bio.organisms.brain.BrainFactory;
@@ -33,7 +34,7 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 		this.env = e;
 		this.senses = this.createSenses();
 		this.outputs = this.createOutputs();
-		this.brain = BrainFactory.newDumbestBrain(senses.size(), outputs.size(), this, e.getRandom());
+		this.brain = BrainFactory.newBrain(Config.instance.getString("BRAIN_TYPE"), senses.size(), outputs.size(), this, e.getRandom());
 		energy_drains = new HashMap<String, Double>();
 		this.x = x;
 		this.y = y;

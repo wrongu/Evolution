@@ -17,13 +17,13 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
-//import ann.DrawGraph;
+import bio.organisms.SimpleCircleOrganism;
 
 public class EvolutionDriver implements Runnable {
 
 	public static final int APPLET_WIDTH = 800, APPLET_HEIGHT = 600;
 	public static final int MAX_FPS = 60;
-	public static final long TICK_MS = 100;
+	public static final long TICK_MS = Config.instance.getLong("TICK");
 
 	private Environment env;
 	private Canvas canvas;
@@ -41,7 +41,6 @@ public class EvolutionDriver implements Runnable {
 	private boolean paused, sp_down, mouse_hold, first_frame, shutdown_flag;
 
 	public EvolutionDriver(Canvas c){
-
 		second_timer = 0L;
 		fps = MAX_FPS;
 		frame_counter = 0;
@@ -52,25 +51,26 @@ public class EvolutionDriver implements Runnable {
 	}
 
 	private void initEnvironment(){
-
-		//		// initialize everything
-		//		env = new RandomFoodEnvironment(1.0, 0L);
-		//		// INITIAL POPULATION
-		//		for(int i=0; i<10; i++){
-		//			double x = 60. * Math.cos(2*Math.PI*i/10.);
-		//			double y = 60. * Math.sin(2*Math.PI*i/10.);
-		//			env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
-		//		}
-		
-		env = new RandomFoodEnvironment(1,0L);
-		
-		//		env = new TestEnvironment(0L, false);
-		//		((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
-
+		String type = Config.instance.getString("ENV_TYPE");
+		if(type.equals("RandomFoodEnvironment")){
+			// initialize everything
+			env = new RandomFoodEnvironment(Config.instance.getDouble("ENV_FOOD"), Config.instance.getLong("SEED"));
+			// INITIAL POPULATION
+			for(int i=0; i<10; i++){
+				double x = 60. * Math.cos(2*Math.PI*i/10.);
+				double y = 60. * Math.sin(2*Math.PI*i/10.);
+				env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
+			}		
+		} else if(type.equals("TestEnvironment")){
+			env = new TestEnvironment(Config.instance.getLong("SEED"), false);
+			((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
+		} else{
+			System.err.println("'" + type + "' is not a valid environment name. exiting!");
+			System.exit(1);
+		}
 	}
 
 	public void run(){
-		// env.bindInput(mouse_buttons, mouse_move); // TestEnvironments only
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
 		RenderGL renderpanel = new RenderGL(canvas, env, APPLET_WIDTH, APPLET_HEIGHT);
@@ -97,7 +97,7 @@ public class EvolutionDriver implements Runnable {
 			if(first_frame || !paused || (mouse_buttons[0] == 1 && !mouse_hold)){
 				first_frame = false;
 				mouse_hold = true;
-				env.update(dt);
+				env.update();
 //				if(env.getOrganismCount() == 0) break;
 			}
 			Display.sync(MAX_FPS);
@@ -130,9 +130,6 @@ public class EvolutionDriver implements Runnable {
 			sp_down = false;
 		}
 
-		// TESTING - 'M' for mutate (TestEnvironment and PointRodOrganisms ONLY
-		//if(Keyboard.isKeyDown(Keyboard.KEY_M)) env.mutateTestGene();
-
 		// mouse movement
 		FloatBuffer mouseCoords = renderer.screenToWorldCoordinates(Mouse.getX(), Mouse.getY());
 		mouse_move[0] = (int) mouseCoords.get();
@@ -162,11 +159,11 @@ public class EvolutionDriver implements Runnable {
 		}
 
 		public void windowDeactivated(WindowEvent event) {
-			paused = true;
+			if(Config.instance.getBoolean("PAUSE_ON_CLOSE")) paused = true;
 		}
 
 		public void windowIconified(WindowEvent event) {
-			paused = true;
+			if(Config.instance.getBoolean("PAUSE_ON_CLOSE")) paused = true;
 		}
 
 		public void windowClosed(WindowEvent event) {}

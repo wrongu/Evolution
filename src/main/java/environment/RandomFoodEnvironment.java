@@ -1,7 +1,6 @@
 package environment;
 
 import bio.organisms.AbstractOrganism;
-import bio.organisms.Entity;
 import bio.organisms.SimpleCircleOrganism;
 import environment.generators.IGenerator;
 import environment.generators.PerlinGenerator;
@@ -35,13 +34,12 @@ public class RandomFoodEnvironment extends Environment {
 	}
 	
 	@Override
-	public void update(double dt){
-		super.update(dt);
-		
-		// Feed organisms
+
+	public void update(){
+		super.update();
+
 		for(AbstractOrganism o : grid) {
 			double food = this.generator.terrainValue(o.getX(), o.getY())*food_energy;
-//			double food = this.seedRand.nextDouble() < base_value ? food_energy : 0.0;
 			int numberNearby = grid.getInDisk(o.getX(), o.getY(), food_radius).size();
 //			if(numberNearby == 0) {
 //				System.out.println("WE HAVE PROBREMS:");
