@@ -27,7 +27,7 @@ public class DumbestBrain implements IBrain {
 	// Energy constants
 	public static final double NEURON_ENERGY = 0.01; // Upkeep per neuron.
 	public static final double FIRING_ENERGY = 0.01; // Energy to fire each neuron.
-	private static final double OUTPUT_TEMPERMENT = 1; // Strength of temperOutput() method.
+	private static final double OUTPUT_TEMPERMENT = 10; // Strength of temperOutput() method.
 	
 	// Weight matrix and state vectors
 	private int i, s, o;

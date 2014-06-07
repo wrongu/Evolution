@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import utils.grid.Chunk;
 import utils.grid.Grid;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.Entity;

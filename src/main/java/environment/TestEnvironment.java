@@ -1,6 +1,5 @@
 package environment;
 
-import utils.grid.Chunk;
 import bio.genetics.Gene;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.Entity;

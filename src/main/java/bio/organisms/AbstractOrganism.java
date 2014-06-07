@@ -33,7 +33,7 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 		this.env = e;
 		this.senses = this.createSenses();
 		this.outputs = this.createOutputs();
-		this.brain = BrainFactory.newDumberBrain(senses.size(), outputs.size(), this, e.getRandom());
+		this.brain = BrainFactory.newDumbestBrain(senses.size(), outputs.size(), this, e.getRandom());
 		energy_drains = new HashMap<String, Double>();
 		this.x = x;
 		this.y = y;
@@ -45,6 +45,9 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	public void feed(double food_energy){
 		assert(food_energy >= 0.0);
 		this.energy += food_energy;
+		if(Double.isNaN(food_energy) || Double.isInfinite(food_energy)){
+			System.out.println(Double.isNaN(food_energy) ? "FOOD NAN" : "FOOD INF");
+		}
 	}
 	
 	public final void thinkAndAct(){

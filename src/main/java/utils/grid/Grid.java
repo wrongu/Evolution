@@ -61,8 +61,8 @@ public class Grid<T extends Entity> implements Iterable<T> {
 	public void add(T orgo) {
 		
 		// Compute the appropriate chunk coordinates of the AbstractOrganism.
-		int x = (int)(orgo.getX()/CHUNK_SIZE);
-		int y = (int)(orgo.getY()/CHUNK_SIZE);
+		int x = (int)Math.floor(orgo.getX()/CHUNK_SIZE);
+		int y = (int)Math.floor(orgo.getY()/CHUNK_SIZE);
 		coords.set(x,y);
 		
 		// Add organism to chunk.
@@ -79,8 +79,8 @@ public class Grid<T extends Entity> implements Iterable<T> {
 	 */
 	public void add(Collection<T> ents) {
 		for(T e : ents) {
-			int x = (int)(e.getX()/CHUNK_SIZE);
-			int y = (int)(e.getY()/CHUNK_SIZE);
+			int x = (int)Math.floor(e.getX()/CHUNK_SIZE);
+			int y = (int)Math.floor(e.getY()/CHUNK_SIZE);
 			coords.set(x, y);
 			
 			Chunk c = summonChunk(x,y);
@@ -140,10 +140,10 @@ public class Grid<T extends Entity> implements Iterable<T> {
 		r /= CHUNK_SIZE;
 		double s = r + ROOT_2;
 		
-		int x_L = (int)Math.floor(x - s);
-		int x_U = (int)Math.ceil(x + s);
-		int y_L = (int)Math.floor(y - s);
-		int y_U = (int)Math.ceil(y + s);
+		int x_L = (int)(Math.floor(x - s));
+		int x_U = (int)(Math.ceil(x + s));
+		int y_L = (int)(Math.floor(y - s));
+		int y_U = (int)(Math.ceil(y + s));
 		int x_range = x_U - x_L + 1;
 		int y_range = y_U - y_L + 1;
 		boolean[][] markersR = new boolean[x_range][y_range];
@@ -166,11 +166,11 @@ public class Grid<T extends Entity> implements Iterable<T> {
 				
 				coords.set(i + x_L, j + y_L);
 				
-				if(markersR[i][j] & markersR[i+1][j] & markersR[i][j+1] & markersR[i+1][j+1]) {
+				if(markersR[i][j] && markersR[i+1][j] && markersR[i][j+1] && markersR[i+1][j+1]) {
 					Chunk c = map.get(coords);
 					if(c != null)
 						ents.addAll(c);
-				} else if(markersS[i][j] & markersS[i+1][j] & markersS[i][j+1] & markersS[i+1][j+1]) {
+				} else if(markersS[i][j] && markersS[i+1][j] && markersS[i][j+1] && markersS[i+1][j+1]) {
 					Chunk c = map.get(coords);
 					if(c != null) {
 						// Check individual organisms
@@ -339,8 +339,8 @@ public class Grid<T extends Entity> implements Iterable<T> {
 		for(Chunk c : map.values()) {
 			for(Iterator<T> i = c.iterator(); i.hasNext(); ) {
 				T o = i.next();
-				int o_x = (int)(o.getX()/CHUNK_SIZE);
-				int o_y = (int)(o.getY()/CHUNK_SIZE);
+				int o_x = (int)Math.floor(o.getX()/CHUNK_SIZE);
+				int o_y = (int)Math.floor(o.getY()/CHUNK_SIZE);
 				if(!(o_x == c.getGridX() && o_y == c.getGridY())) {
 					toAdd.add(o);
 					i.remove();
@@ -534,40 +534,35 @@ public class Grid<T extends Entity> implements Iterable<T> {
 	// TESTING
 	public static void main(String[] args) {
 		
-		// Initialize grid and put in some chunks to start.
-		System.out.print("Initializing...");
-		Grid<Entity> grid = new Grid<Entity>(20);
-		for(int i = -5; i <= 5; i++) {
-			for(int j = -5; j <= 5; j++) {
-				grid.add(new Entity(Math.signum(i)*i*i*grid.getChunkSize()/10, Math.signum(j)*j*j*grid.getChunkSize()/10, null));
-			}
-		}
-//		grid.add(new Entity(grid.getChunkSize(), 0, null));
-		System.out.println("done.");
-		
-		// Print out number of chunks.
-		System.out.println("Number of chunks = " + grid.map.size());
-		
-		// Get nearby test. 
-//		LinkedList<Entity> nearby = grid.getInDiskMut(0,0.1,2*Chunk.SIZE + 1);
-//		System.out.println("Number of nearby entities = " + nearby.size());
-//		for(Entity o : nearby) {
-//			System.out.println("Coords: x = " + o.getX()/Chunk.SIZE + "   y = " + o.getY()/Chunk.SIZE);
-//		}
-		
-		for(Iterator<Entity> it = grid.iterator(); it.hasNext(); ) {
-			Entity e = it.next();
-			if(e.getX() == 0 && e.getY() == 0) {
-				it.remove();
-			}
-		}
-		
-		// Iterator test.
-		System.out.println("Entities:");
+		Grid<Entity> grid = new Grid<Entity>(1);
 		int counter = 0;
-		for(Entity e : grid) {
-			counter++;
-			System.out.println("Entity #" + counter + ": x = " + e.getX()/grid.getChunkSize() + "  y = " + e.getY()/grid.getChunkSize());
+		
+		while(true) {
+			System.out.println();
+			System.out.println("Frame #: " + ++counter);
+			
+			// Reset grid.
+			grid.clear();
+			for(double x = -10; x <= 10; x += 0.25) {
+				for(double y = -10; y <= 10; y += 0.25) {
+					grid.add(new Entity(x,y,null));
+				}
+			}
+			
+			// Place an entity randomly on the grid.
+			Entity ent = new Entity(-9*Math.random(), -9*Math.random(), null);
+			grid.add(ent);
+			System.out.println("Random entity position: x = " + ent.getX() + " y = " + ent.getY());
+			
+			// Call getInDisk...
+			LinkedList<Entity> nearby = grid.getInDisk(ent.getX(), ent.getY(), 1);
+			//...and print results.
+			System.out.println("# nearby: " + nearby.size());
+			int entitycounter = 0;
+			for(Entity e : nearby) {
+				System.out.println("Entity " + ++entitycounter + ": x = " + e.getX() + " y = " + e.getY());
+			}
+			
 		}
 	}
 	

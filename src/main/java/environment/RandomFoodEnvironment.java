@@ -1,6 +1,5 @@
 package environment;
 
-import utils.grid.Chunk;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.Entity;
 import bio.organisms.SimpleCircleOrganism;
@@ -17,7 +16,7 @@ public class RandomFoodEnvironment extends Environment {
 
 	private IGenerator generator;
 	private double food_energy;
-	private static final double SPAWN_RATE = 0.1;
+	private static final double SPAWN_RATE = 0.01;
 	private static final double SPAWN_RADIUS = 50;
 
 	private double food_radius = 2*SimpleCircleOrganism.DEFAULT_RANGE;
@@ -44,6 +43,11 @@ public class RandomFoodEnvironment extends Environment {
 			double food = this.generator.terrainValue(o.getX(), o.getY())*food_energy;
 //			double food = this.seedRand.nextDouble() < base_value ? food_energy : 0.0;
 			int numberNearby = grid.getInDisk(o.getX(), o.getY(), food_radius).size();
+//			if(numberNearby == 0) {
+//				System.out.println("WE HAVE PROBREMS:");
+//				o.print_energy_stats();
+//				System.out.println("Coords: x = " + o.getX() + "  y = " + o.getY());
+//			}
 			o.feed(food/numberNearby);
 		}
 		

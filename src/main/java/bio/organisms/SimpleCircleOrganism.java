@@ -72,7 +72,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 
 	protected List<IOutput> createOutputs(){
-		return Arrays.asList(new Accelerate(), new Twist(DIRECTION.CW), new Twist(DIRECTION.CCW), new Mitosis(), new Chatter());
+		return Arrays.asList(new Accelerate(), new Twist(DIRECTION.CW), new Twist(DIRECTION.CCW)/*,new Mitosis(), new Chatter()*/);
 	}
 
 	@Override
@@ -90,6 +90,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 
 	@Override
 	public void glDraw(){
+		
 		float g = (float)energy;
 		float r = 1-g;
 		glColor4f(r, g, 0f, 1.0f);
@@ -215,6 +216,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		@Override
 		protected void sub_act(double energy) {
 			if(energy > MITOSIS_THRESHOLD){
+				System.out.println("mitosis: "+energy);
 				env.addOrganism(beget(env, null));
 			}
 		}

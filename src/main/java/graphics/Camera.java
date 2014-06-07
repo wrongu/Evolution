@@ -7,7 +7,7 @@ public class Camera {
 	public static final double ZOOM_MIN = 0.01;
 	public static final double ZOOM_MAX = 100.0;
 	
-	public static final double SCROLL_EASE = 4.0;
+	public static final double SCROLL_EASE = 5.0;
 	public static final double ZOOM_EASE = 3.0;
 	
 	public double x, y;
