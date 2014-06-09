@@ -26,7 +26,7 @@ public class Camera {
 	}
 	
 	public void zoom(double dz){
-		double new_zoom = zoom + dz;
+		double new_zoom = zoom * Math.exp(dz);
 		if(new_zoom < ZOOM_MIN) new_zoom = ZOOM_MIN;
 		if(new_zoom > ZOOM_MAX) new_zoom = ZOOM_MAX;
 		double ratio = new_zoom / zoom;

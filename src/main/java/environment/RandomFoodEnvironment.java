@@ -24,9 +24,9 @@ public class RandomFoodEnvironment extends Environment {
 		super(seed);
 		this.food_energy = energy_per_unit_food;
 		this.generator = new PerlinGenerator(4, 20., this.getRandom().nextLong());
-		for(int i = 0; i < 100; i++) {
-			grid.add(new SimpleCircleOrganism(this, 1.0, (getRandom().nextDouble() - 0.5)*500, (getRandom().nextDouble() - 0.5)*500));
-		}
+//		for(int i = 0; i < 100; i++) {
+//			grid.add(new SimpleCircleOrganism(this, 1.0, (getRandom().nextDouble() - 0.5)*500, (getRandom().nextDouble() - 0.5)*500));
+//		}
 	}
 	
 	public IGenerator getGenerator(){
