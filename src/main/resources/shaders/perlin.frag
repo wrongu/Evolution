@@ -5,6 +5,7 @@ uniform int t_size;
 uniform float scale;
 uniform sampler1D table;
 
+in vec2 world_coordinate;
 out vec4 color;
 
 int table_modulo(int i){

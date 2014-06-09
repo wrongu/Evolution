@@ -1,6 +1,9 @@
 package graphics.opengl;
 
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.*;
 
 public class Program {
 	
@@ -22,6 +25,14 @@ public class Program {
 		glLinkProgram(id);
 		glValidateProgram(id);
 		
+
+		System.out.println(glGetProgramInfoLog(id, 1024));
+		
+		int status = glGetProgram(id, GL_LINK_STATUS);
+		if(status == GL_FALSE){
+			System.err.println("Linking error");
+		}
+		
 		return new Program(id);
 	}
 	
@@ -31,11 +42,11 @@ public class Program {
 				Shader.fromSource(fSource, GL_FRAGMENT_SHADER));
 	}
 	
-	public void begin(){
+	public void use(){
 		glUseProgram(glId);
 	}
 	
-	public void end(){
+	public void unuse(){
 		glUseProgram(0);
 	}
 	

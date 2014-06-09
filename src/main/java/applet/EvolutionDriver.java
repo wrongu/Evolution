@@ -8,7 +8,6 @@ import java.nio.FloatBuffer;
 import environment.Environment;
 import environment.RandomFoodEnvironment;
 import environment.TestEnvironment;
-import graphics.Camera;
 import graphics.opengl.RenderGL;
 
 import javax.swing.JFrame;
@@ -80,6 +79,7 @@ public class EvolutionDriver implements Runnable {
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
 		RenderGL renderpanel = new RenderGL(canvas, env, APPLET_WIDTH, APPLET_HEIGHT);
+		renderpanel.bindInputs(direction_keys, mouse_buttons);
 
 		try {
 			Mouse.create();
@@ -93,7 +93,8 @@ public class EvolutionDriver implements Runnable {
 		while(!(Display.isCloseRequested() || shutdown_flag)){
 			long now = System.currentTimeMillis();
 			checkInput(renderpanel);
-			moveCamera(renderpanel.getCamera());
+
+			renderpanel.moveCamera();
 			renderpanel.redraw();
 			updateFPS(now);
 			if(first_frame || !paused || (mouse_buttons[0] == 1 && !mouse_hold)){
@@ -144,17 +145,6 @@ public class EvolutionDriver implements Runnable {
 			mouse_hold = false;
 	}
 	
-	private void moveCamera(Camera c){
-		double dx = 0., dy = 0., dz = 0.;
-		if(direction_keys[RIGHT]) dx += 0.1;
-		if(direction_keys[LEFT])  dx -= 0.1;
-		if(direction_keys[UP])    dy += 0.1;
-		if(direction_keys[DOWN])  dy -= 0.1;
-		dz = (double) mouse_buttons[1] * 0.0005;
-		c.shift(dx, dy);
-		c.zoom(dz);
-	}
-
 	private void updateFPS(long now){
 		frame_counter++;
 		if(now - second_timer > 1000){
