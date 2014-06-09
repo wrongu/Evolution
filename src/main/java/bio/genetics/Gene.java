@@ -8,12 +8,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import applet.Config;
+
 import environment.Environment;
 
 public abstract class Gene<T> {
 	
 	/** The maximum rate of change for mutation rates (+/-) */
-	private static final double META_MUTATION_RATE = 0.01;
+	private static final double META_MUTATION_RATE = Config.instance.getDouble("METAMUTATION");
 	
 	/** A Gene subclass may specify multiple named mutation rates which change according to
 	 * the meta mutation-rate */

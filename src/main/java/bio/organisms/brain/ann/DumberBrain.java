@@ -12,6 +12,7 @@ import org.jblas.ranges.RangeUtils;
 import environment.Environment;
 import environment.RandomFoodEnvironment;
 
+import applet.Config;
 import bio.genetics.Gene;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.SimpleCircleOrganism;
@@ -20,8 +21,8 @@ import bio.organisms.brain.IBrain;
 public class DumberBrain  implements IBrain {
 	
 	// Energy constants
-	public static final double NEURON_ENERGY = 0.01; // Upkeep per neuron.
-	public static final double FIRING_ENERGY = 0.01; // Energy to fire each neuron.
+	public static final double NEURON_ENERGY = Config.instance.getDouble("DUMBER_UPKEEP"); // Upkeep per neuron.
+	public static final double FIRING_ENERGY = Config.instance.getDouble("DUMBER_FIRE"); // Energy to fire each neuron.
 
 	// necessary matrices
 	private int i, s, o;

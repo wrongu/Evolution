@@ -7,15 +7,18 @@ public class Camera {
 	public static final double ZOOM_MIN = 0.01;
 	public static final double ZOOM_MAX = 100.0;
 	
-	private static final double ZOOM_EASE = 5.0;
-	private static final double TRANSLATE_EASE = 5.0;
-	
-	public double x, y, x_target, y_target;
-	public double zoom, zoom_target;
+
+	public static final double EASE = 4.0;
+
+	public double x_target, y_target;
+	public double zoom_target;
+	private double x, y, zoom;
 	
 	public Camera(){
-		x = y = x_target = y_target = 0.0;
-		zoom = zoom_target = 1.0;
+		x_target = y_target = 0.0;
+		zoom_target = 1.0;
+		x = y = 0.0;
+		zoom = 1.0;
 	}
 	
 	public void shift(double dx, double dy){
@@ -24,15 +27,20 @@ public class Camera {
 	}
 	
 	public void zoom(double dz){
-		zoom_target += dz;
-		if(zoom_target < ZOOM_MIN) zoom_target = ZOOM_MIN;
-		if(zoom_target > ZOOM_MAX) zoom_target = ZOOM_MAX;
+
+		double new_zoom = zoom_target + dz;
+		if(new_zoom < ZOOM_MIN) new_zoom = ZOOM_MIN;
+		if(new_zoom > ZOOM_MAX) new_zoom = ZOOM_MAX;
+		double ratio = new_zoom / zoom_target;
+		x_target *= ratio;
+		y_target *= ratio;
+		zoom_target = new_zoom;
 	}
 	
 	public void glSetView(){
-		x += (x_target - x) / TRANSLATE_EASE;
-		y += (y_target - y) / TRANSLATE_EASE;
-		zoom += (zoom_target - zoom) / ZOOM_EASE;
+		x += (x_target - x) / EASE;
+		y += (y_target - y) / EASE;
+		zoom += (zoom_target - zoom) / EASE;
 		glTranslated(x, y, 0.0);
 		glScaled(zoom, zoom, 1.0);
 	}

@@ -15,7 +15,6 @@ import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 
-
 import environment.Environment;
 import environment.RandomFoodEnvironment;
 import environment.generators.PerlinGenerator;
@@ -101,41 +100,6 @@ public class RenderGL {
 	}
 
 	private void initShaders(){
-		FBOEnabled = GLContext.getCapabilities().GL_EXT_framebuffer_object;
-		if(FBOEnabled){
-			// create shaders and their associated program
-			{
-				vNoop = Shader.fromSource("shaders/shader.vert", GL_VERTEX_SHADER);
-
-				if(theEnvironment instanceof RandomFoodEnvironment){
-					if(((RandomFoodEnvironment) theEnvironment).getGenerator() instanceof PerlinGenerator){
-						gen = (PerlinGenerator) ((RandomFoodEnvironment) theEnvironment).getGenerator();
-						fPerlin = Shader.fromSource("shaders/perlin.frag", GL_FRAGMENT_SHADER);
-						
-//						// create programs from the shaders
-//						pPerlin = Program.createProgram(vNoop, fPerlin);
-//						pPerlin.begin();
-//						{
-//							pPerlin.setUniformi("octaves", gen.getOctaves());
-//							pPerlin.setUniformi("t_size", PerlinGenerator.TABLE_SIZE);
-//							pPerlin.setUniformf("scale", (float) gen.getScale());
-//							pPerlin.setUniformi("table", 0); // bind to TEXTURE0
-//						}
-//						pPerlin.end();
-//						
-//						// create texture for perlin table
-//						perlin_table_tex = glGenTextures();
-//						glActiveTexture(GL_TEXTURE0);
-//						glBindTexture(GL_TEXTURE_1D, perlin_table_tex);
-//						IntBuffer tablebuffer = ByteBuffer.allocateDirect(PerlinGenerator.TABLE_SIZE*Integer.SIZE).asIntBuffer();
-//						tablebuffer.put(gen.getTable(), 0, PerlinGenerator.TABLE_SIZE);
-//						glTexImage1D(GL_TEXTURE_1D, 0, GL_ALPHA16, PerlinGenerator.TABLE_SIZE, 0, GL_RED, GL_UNSIGNED_INT, tablebuffer);
-					}
-				}
-			}
-		} else{
-			System.err.println("FBO not available");
-		}
 	}
 
 	public void destroy(){

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import applet.Config;
 import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
 import bio.organisms.brain.BrainFactory;
@@ -13,7 +14,7 @@ import bio.organisms.brain.IOutput;
 import bio.organisms.brain.ISense;
 import environment.Environment;
 
-public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism, Object>{
+public abstract class AbstractOrganism extends Entity implements IGeneCarrier<AbstractOrganism, Object>{
 	
 	protected Gene<? extends AbstractOrganism> gene;
 	protected IBrain brain;
@@ -33,8 +34,10 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 		this.env = e;
 		this.senses = this.createSenses();
 		this.outputs = this.createOutputs();
-		this.brain = BrainFactory.newDumberBrain(senses.size(), outputs.size(), this, e.getRandom());
+		this.brain = BrainFactory.newBrain(Config.instance.getString("BRAIN_TYPE"), senses.size(), outputs.size(), this, e.getRandom());
 		energy_drains = new HashMap<String, Double>();
+		this.x = x;
+		this.y = y;
 	}
 	
 	protected abstract List<ISense> createSenses();
@@ -43,6 +46,9 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 	public void feed(double food_energy){
 		assert(food_energy >= 0.0);
 		this.energy += food_energy;
+		if(Double.isNaN(food_energy) || Double.isInfinite(food_energy)){
+			System.out.println(Double.isNaN(food_energy) ? "FOOD NAN" : "FOOD INF");
+		}
 	}
 	
 	public final void thinkAndAct(){
@@ -127,8 +133,5 @@ public abstract class AbstractOrganism implements IGeneCarrier<AbstractOrganism,
 	public boolean is_alive(){
 		return this.energy > 0.0;
 	}
-	
-	public abstract double getX();
-	public abstract double getY();
 	
 }
