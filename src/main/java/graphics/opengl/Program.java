@@ -5,6 +5,8 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
+import java.nio.FloatBuffer;
+
 public class Program {
 	
 	private int glId;
@@ -95,6 +97,13 @@ public class Program {
 			default:
 				break;
 			}
+		}
+	}
+	
+	public void setUniformMat4(String name, FloatBuffer values){
+		if(values != null){
+			int param = getUniform(name);
+			glUniformMatrix4(param, false, values);
 		}
 	}
 	

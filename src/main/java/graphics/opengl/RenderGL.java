@@ -1,6 +1,8 @@
 package graphics.opengl;
 
 import java.awt.Canvas;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -34,6 +36,9 @@ public class RenderGL {
 	private double camera_sensitivity;
 	boolean fbo_enabled;
 	
+	// allocate once
+	FloatBuffer mProj;
+	
 	// specific buffers
 	int screenquad_vbo, screenquad_vao;
 	
@@ -60,19 +65,23 @@ public class RenderGL {
 		}
 		// initialize opengl
 		camera = new Camera();
+		mProj = BufferUtils.createFloatBuffer(16);
 		initGL();
 	}
 
 	public synchronized void redraw(){
 		clearAll();
+		camera.ease();
 		// in case screen size changed
 		width = Display.getWidth();
 		height = Display.getHeight();
 		updateAspectRatio();
 		// start drawing new frame
-		//camera.glSetView();
 		pDebug.use();
 		{
+			camera.projection(width, height).store(mProj);
+			mProj.flip();
+			pDebug.setUniformMat4("projection", mProj);
 			glBindVertexArray(screenquad_vao);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 		}
@@ -88,12 +97,12 @@ public class RenderGL {
 
 	public void moveCamera() {
 		double dx = 0.0, dy = 0.0;
-		if(keyboard[0]) dy -= camera_sensitivity;
-		if(keyboard[1]) dy += camera_sensitivity;
-		if(keyboard[2]) dx += camera_sensitivity;
-		if(keyboard[3]) dx -= camera_sensitivity;
+		if(keyboard[0]) dy += camera_sensitivity;
+		if(keyboard[1]) dy -= camera_sensitivity;
+		if(keyboard[2]) dx -= camera_sensitivity;
+		if(keyboard[3]) dx += camera_sensitivity;
 		camera.shift(dx, dy);
-		camera.zoom((double) mouse_buttons[1] * 0.0005 * camera_sensitivity);
+		camera.zoom((double) mouse_buttons[1] * 0.005 * camera_sensitivity);
 	}
 
 	private void initGL(){
@@ -143,9 +152,9 @@ public class RenderGL {
 		screenquad_vbo = glGenBuffers();
 		FloatBuffer triangle = BufferUtils.createFloatBuffer(9);
 		triangle.put(new float[]{
-				 0.0f,  0.5f,  0.0f,
-				-0.5f, -0.5f,  0.0f,
-				 0.5f, -0.5f,  0.0f
+				 0.0f,  50f,  0.0f,
+				-50f, -50f,  0.0f,
+				 50f, -50f,  0.0f
 		});
 		triangle.flip();
 //		screen_corners.put(-1f); screen_corners.put(-1f);
@@ -165,8 +174,13 @@ public class RenderGL {
 	}
 
 	public void destroy(){
+		// clean up opengl state
+		if(screenquad_vao != 0) glDeleteVertexArrays(screenquad_vao);
+		if(screenquad_vbo != 0) glDeleteBuffers(screenquad_vbo);
+		if(pDebug != null) pDebug.destroy();
 		// destroy lwjgl display
 		Display.destroy();
+		
 	}
 
 	public FloatBuffer screenToWorldCoordinates(int sx, int sy){
