@@ -85,4 +85,9 @@ public class Camera {
 		matrix.m31 = -y;
 		return matrix;
 	}
+	
+	public Matrix4f inverse_projection(float viewport_width, float viewport_height){
+		Matrix4f proj = this.projection(viewport_width, viewport_height);
+		return (Matrix4f) proj.invert();
+	}
 }

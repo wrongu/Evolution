@@ -27,12 +27,14 @@ public class Program {
 		glLinkProgram(id);
 		glValidateProgram(id);
 		
-
+		System.out.println("Shader linking output:");
 		System.out.println(glGetProgramInfoLog(id, 1024));
 		
 		int status = glGetProgram(id, GL_LINK_STATUS);
 		if(status == GL_FALSE){
 			System.err.println("Linking error");
+			glDeleteProgram(id);
+			return null;
 		}
 		
 		return new Program(id);

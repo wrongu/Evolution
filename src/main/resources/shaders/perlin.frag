@@ -6,7 +6,6 @@ uniform float scale;
 uniform sampler1D table;
 
 in vec2 world_coordinate;
-out vec4 color;
 
 int table_modulo(int i){
 	int ret = (i % t_size);
@@ -34,16 +33,16 @@ void main(){
 		float factor = float(1 << (octaves - o - 1));
 		float amp = 1.0 / factor;
 		float width = scale * amp;
-		int xlo = int(floor(gl_Position.x/width));
-		int ylo = int(floor(gl_Position.y/width));
+		int xlo = int(floor(world_coordinate.x/width));
+		int ylo = int(floor(world_coordinate.y/width));
 		// get the gradient directions
 		float d00 = 6.283185307 * pseudo_rand2(xlo,ylo);
 		float d01 = 6.283185307 * pseudo_rand2(xlo,ylo+1);
 		float d10 = 6.283185307 * pseudo_rand2(xlo+1,ylo);
 		float d11 = 6.283185307 * pseudo_rand2(xlo+1,ylo+1);
 		// get offsets internal to cell for interpolation
-		float xoff = gl_Position.x / width - xlo;
-		float yoff = gl_Position.y / width - ylo;
+		float xoff = world_coordinate.x / width - xlo;
+		float yoff = world_coordinate.y / width - ylo;
 		// dot product for effect of gradient on point
 		float c00 = cos(d00) * xoff + sin(d00) * yoff;
 		float c01 = cos(d01) * xoff + sin(d01) * (yoff-1.0);
@@ -56,5 +55,5 @@ void main(){
 	}
 	val = (val + max_amp) / (2*max_amp);
 	val = clamp(val, 0.0, 1.0);
-	color = vec4(0.0, 0.5, 0.5, 1.0);
+	gl_FragColor = vec4(val, val, val, 1.0);
 }

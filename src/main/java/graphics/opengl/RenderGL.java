@@ -18,11 +18,14 @@ import org.lwjgl.BufferUtils;
 import applet.Config;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
 import environment.Environment;
+import environment.RandomFoodEnvironment;
+import environment.generators.PerlinGenerator;
 import graphics.Camera;
 
 public class RenderGL {
@@ -41,9 +44,10 @@ public class RenderGL {
 	
 	// specific buffers
 	int screenquad_vbo, screenquad_vao;
+	int perlin_lookup_tex;
 	
 	// debugging
-	Program pDebug;
+	Program pPerlin;
 
 	public RenderGL(Canvas canvas, Environment env, int w, int h){
 		// set up panel with respect to the evolution app
@@ -75,17 +79,19 @@ public class RenderGL {
 		// in case screen size changed
 		width = Display.getWidth();
 		height = Display.getHeight();
-		updateAspectRatio();
+		glViewport(0, 0, width, height);
 		// start drawing new frame
-		pDebug.use();
+		pPerlin.use();
 		{
 			camera.projection(width, height).store(mProj);
 			mProj.flip();
-			pDebug.setUniformMat4("projection", mProj);
+			pPerlin.setUniformMat4("projection", mProj);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
 			glBindVertexArray(screenquad_vao);
-			glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDrawArrays(GL_QUADS, 0, 4);
 		}
-		pDebug.unuse();
+		pPerlin.unuse();
 		// update the display (i.e. swap buffers, etc)
 		Display.update();
 	}
@@ -106,8 +112,8 @@ public class RenderGL {
 	}
 
 	private void initGL(){
-		
-		updateAspectRatio();
+
+		glViewport(0, 0, width, height);
 		// 2d, so save time by not depth-testing
 		glDisable(GL_DEPTH_TEST);
 		// set up line anti-aliasing
@@ -117,31 +123,43 @@ public class RenderGL {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		// background clear color is black
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		// load and compile shaders
-		initGLShaders();
 		// initialize GL buffers
 		initGLBuffers();
+		// load and compile shaders
+		initGLShaders();
 		// necessary if using FBOs/textures
 		glEnable(GL_TEXTURE_2D);
-	}
-
-	private void updateAspectRatio(){
-//		// no projection; set it to the identity matrix
-//		glMatrixMode(GL_PROJECTION);
-//		glLoadIdentity();
-//		double ar = (double) width / (double) height;
-//		glOrtho(- ar * initHeight/2,  ar * initHeight/2, -initHeight/2, initHeight/2, -1, 1);
-//		// set mode to modelview since this is where all drawing will be done
-//		glMatrixMode(GL_MODELVIEW);
-		glViewport(0, 0, width, height);
 	}
 
 	private void initGLShaders(){
 		fbo_enabled = GLContext.getCapabilities().GL_EXT_framebuffer_object;
 		if(fbo_enabled){
 			Shader vNoop = Shader.fromSource("shaders/noop.vert", GL_VERTEX_SHADER);
-			Shader fDebug = Shader.fromSource("shaders/debug.frag", GL_FRAGMENT_SHADER);
-			pDebug = Program.createProgram(vNoop, fDebug);
+			Shader fPerlin = Shader.fromSource("shaders/perlin.frag", GL_FRAGMENT_SHADER);
+			pPerlin = Program.createProgram(vNoop, fPerlin);
+			// set uniforms
+			pPerlin.use();
+			{
+				RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
+				PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
+				pPerlin.setUniformi("octaves", pg.getOctaves());
+				pPerlin.setUniformi("t_size",  PerlinGenerator.TABLE_SIZE);
+				pPerlin.setUniformf("scale", (float) pg.getScale());
+				pPerlin.setUniformi("table", 0); // using GL_TEXTURE0
+				
+				IntBuffer table = ByteBuffer.allocateDirect(4*PerlinGenerator.TABLE_SIZE).order(ByteOrder.nativeOrder()).asIntBuffer();
+				table.put(pg.getTable()); table.flip();
+				// create perlin lookup texture
+				perlin_lookup_tex = glGenTextures();
+//				glEnable(GL_TEXTURE_1D);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
+				// the use of GL_RED here is basically saying that there is only 1 channel of data (as opposed to RGB which has 3)
+				glTexImage1D(GL_TEXTURE_1D, 0, GL11.GL_RED, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_UNSIGNED_SHORT, table);
+				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			}
 			exitOnGLError("Shader compilation");
 		} else{
 			System.err.println("FBO not available");
@@ -150,37 +168,31 @@ public class RenderGL {
 
 	private void initGLBuffers() {
 		screenquad_vbo = glGenBuffers();
-		FloatBuffer triangle = BufferUtils.createFloatBuffer(9);
-		triangle.put(new float[]{
-				 0.0f,  50f,  0.0f,
-				-50f, -50f,  0.0f,
-				 50f, -50f,  0.0f
+		FloatBuffer screen_corners = BufferUtils.createFloatBuffer(12);
+		screen_corners.put(new float[]{
+				-350f,  350f, 0f,
+				-350f, -350f, 0f,
+				 350f, -350f, 0f,
+				 350f,  350f, 0f
 		});
-		triangle.flip();
-//		screen_corners.put(-1f); screen_corners.put(-1f);
-//		screen_corners.put( 1f); screen_corners.put(-1f);
-//		screen_corners.put(-1f); screen_corners.put( 1f);
-//		screen_corners.put(-1f); screen_corners.put( 1f);
-//		screen_corners.put( 1f); screen_corners.put(-1f);
-//		screen_corners.put( 1f); screen_corners.put( 1f);
+		screen_corners.flip();
 		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
-		glBufferData(GL_ARRAY_BUFFER, triangle, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, screen_corners, GL_STATIC_DRAW);
 		
 		screenquad_vao = glGenVertexArrays();
 		glBindVertexArray(screenquad_vao);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
-		glVertexAttribPointer(0, 3, GL_FLOAT, false, 12, 0);
+		glVertexAttribPointer(0, 4, GL_FLOAT, false, 12, 0);
 	}
 
 	public void destroy(){
 		// clean up opengl state
 		if(screenquad_vao != 0) glDeleteVertexArrays(screenquad_vao);
 		if(screenquad_vbo != 0) glDeleteBuffers(screenquad_vbo);
-		if(pDebug != null) pDebug.destroy();
+		if(pPerlin != null) pPerlin.destroy();
 		// destroy lwjgl display
 		Display.destroy();
-		
 	}
 
 	public FloatBuffer screenToWorldCoordinates(int sx, int sy){
