@@ -35,11 +35,11 @@ public class Camera {
 	
 	public void zoom(double dz){
 		// zoom and check bounds
-		double new_zoom = zoom_target + dz;
+		double new_zoom = zoom_target * (1.0 - dz);
 		if(new_zoom < ZOOM_MIN) new_zoom = ZOOM_MIN;
 		if(new_zoom > ZOOM_MAX) new_zoom = ZOOM_MAX;
 		// because scale is applied after translation,
-		// we need to undo this effect with extra translation
+		// we need to compensate with extra translation
 		double ratio = new_zoom / zoom_target;
 		x_target /= ratio;
 		y_target /= ratio;
