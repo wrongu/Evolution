@@ -127,6 +127,13 @@ public class PerlinGenerator implements IGenerator {
 		return this.random_table;
 	}
 	
+	public float[] getTableNormalized(){
+		float[] normalized = new float[TABLE_SIZE];
+		for(int i=0; i<random_table.length; i++)
+			normalized[i] = (float) random_table[i] / (float) TABLE_SIZE;
+		return normalized;
+	}
+	
 	public double getScale(){
 		return scale;
 	}

@@ -40,7 +40,7 @@ public class RenderGL {
 	boolean fbo_enabled;
 	
 	// allocate once
-	FloatBuffer mProj;
+	FloatBuffer mProjInv;
 	
 	// specific buffers
 	int screenquad_vbo, screenquad_vao;
@@ -69,7 +69,7 @@ public class RenderGL {
 		}
 		// initialize opengl
 		camera = new Camera();
-		mProj = BufferUtils.createFloatBuffer(16);
+		mProjInv = BufferUtils.createFloatBuffer(16);
 		initGL();
 	}
 
@@ -83,13 +83,12 @@ public class RenderGL {
 		// start drawing new frame
 		pPerlin.use();
 		{
-			camera.projection(width, height).store(mProj);
-			mProj.flip();
-			pPerlin.setUniformMat4("projection", mProj);
+			camera.inverse_projection(width, height).store(mProjInv);
+			mProjInv.flip();
+			pPerlin.setUniformMat4("inverse_projection", mProjInv);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
-			glBindVertexArray(screenquad_vao);
-			glDrawArrays(GL_QUADS, 0, 4);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		pPerlin.unuse();
 		// update the display (i.e. swap buffers, etc)
@@ -134,7 +133,7 @@ public class RenderGL {
 	private void initGLShaders(){
 		fbo_enabled = GLContext.getCapabilities().GL_EXT_framebuffer_object;
 		if(fbo_enabled){
-			Shader vNoop = Shader.fromSource("shaders/noop.vert", GL_VERTEX_SHADER);
+			Shader vNoop = Shader.fromSource("shaders/screenToWorld.vert", GL_VERTEX_SHADER);
 			Shader fPerlin = Shader.fromSource("shaders/perlin.frag", GL_FRAGMENT_SHADER);
 			pPerlin = Program.createProgram(vNoop, fPerlin);
 			// set uniforms
@@ -143,23 +142,24 @@ public class RenderGL {
 				RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
 				PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
 				pPerlin.setUniformi("octaves", pg.getOctaves());
-				pPerlin.setUniformi("t_size",  PerlinGenerator.TABLE_SIZE);
+				pPerlin.setUniformf("t_size",  (float) PerlinGenerator.TABLE_SIZE);
 				pPerlin.setUniformf("scale", (float) pg.getScale());
 				pPerlin.setUniformi("table", 0); // using GL_TEXTURE0
-				
-				IntBuffer table = ByteBuffer.allocateDirect(4*PerlinGenerator.TABLE_SIZE).order(ByteOrder.nativeOrder()).asIntBuffer();
-				table.put(pg.getTable()); table.flip();
+				FloatBuffer table = BufferUtils.createFloatBuffer(PerlinGenerator.TABLE_SIZE);
+				table.put(pg.getTableNormalized()); table.flip();
 				// create perlin lookup texture
 				perlin_lookup_tex = glGenTextures();
-//				glEnable(GL_TEXTURE_1D);
+				glEnable(GL_TEXTURE_1D); // TODO test if this can be removed
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
 				// the use of GL_RED here is basically saying that there is only 1 channel of data (as opposed to RGB which has 3)
-				glTexImage1D(GL_TEXTURE_1D, 0, GL11.GL_RED, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_UNSIGNED_SHORT, table);
+				glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_FLOAT, table);
 				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			}
+			pPerlin.unuse();
 			exitOnGLError("Shader compilation");
 		} else{
 			System.err.println("FBO not available");
@@ -170,10 +170,12 @@ public class RenderGL {
 		screenquad_vbo = glGenBuffers();
 		FloatBuffer screen_corners = BufferUtils.createFloatBuffer(12);
 		screen_corners.put(new float[]{
-				-350f,  350f, 0f,
-				-350f, -350f, 0f,
-				 350f, -350f, 0f,
-				 350f,  350f, 0f
+				-1.0f, -1.0f,
+				 1.0f, -1.0f,
+				-1.0f,  1.0f,
+				-1.0f,  1.0f,
+				 1.0f, -1.0f,
+				 1.0f,  1.0f
 		});
 		screen_corners.flip();
 		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
@@ -183,13 +185,14 @@ public class RenderGL {
 		glBindVertexArray(screenquad_vao);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
-		glVertexAttribPointer(0, 4, GL_FLOAT, false, 12, 0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
 	}
 
 	public void destroy(){
 		// clean up opengl state
 		if(screenquad_vao != 0) glDeleteVertexArrays(screenquad_vao);
 		if(screenquad_vbo != 0) glDeleteBuffers(screenquad_vbo);
+		if(perlin_lookup_tex != 0) glDeleteTextures(perlin_lookup_tex);
 		if(pPerlin != null) pPerlin.destroy();
 		// destroy lwjgl display
 		Display.destroy();

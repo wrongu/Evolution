@@ -1,5 +1,6 @@
 package environment;
 
+import applet.Config;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.SimpleCircleOrganism;
 import environment.generators.IGenerator;
@@ -23,7 +24,9 @@ public class RandomFoodEnvironment extends Environment {
 	public RandomFoodEnvironment(double energy_per_unit_food, long seed){
 		super(seed);
 		this.food_energy = energy_per_unit_food;
-		this.generator = new PerlinGenerator(4, 20., this.getRandom().nextLong());
+		int perlin_octaves = Config.instance.getInt("PERLIN_OCTAVES");
+		double perlin_scale = Config.instance.getDouble("PERLIN_SCALE");
+		this.generator = new PerlinGenerator(perlin_octaves, perlin_scale, this.getRandom().nextLong());
 		for(int i = 0; i < 100; i++) {
 			grid.add(new SimpleCircleOrganism(this, 1.0, (getRandom().nextDouble() - 0.5)*500, (getRandom().nextDouble() - 0.5)*500));
 		}

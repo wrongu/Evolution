@@ -1,27 +1,24 @@
-#version 130
+#version 330
 
 uniform int octaves;
-uniform int t_size;
+uniform float t_size;
 uniform float scale;
 uniform sampler1D table;
 
 in vec2 world_coordinate;
+out vec4 gl_FragColor;
 
-int table_modulo(int i){
-	int ret = (i % t_size);
-	if(ret < 0) ret += t_size;
-	return ret;
+float pseudo_rand2(float x, float y){
+	// equivalent to the RNG algorithm from the java source (PerlinGenerator.java)
+	x = mod(x, t_size) / t_size;
+	y = mod(y, t_size) / t_size;
+	float w = texture(table, x) + y;
+	return texture(table, w);
 }
 
-float pseudo_rand2(int x, int y){
-	// copy of the RNG algorithm from the java source (PerlinGenerator.java)
-	int i = table_modulo(x);
-	i = table_modulo(int(texture(table, float(i) / float(t_size))) + y);
-	return float(int(texture(table, float(i) / float(t_size)))) / float(t_size);
-}
-
-float lerp(float a, float b, float bbias){
-	return bbias*bbias*(bbias*a + b);
+float lerp(float a, float b, float bias){
+	float s = bias * bias * (3.0 - 2.0 * bias);
+	return a + (b - a) * s;
 }
 
 void main(){
@@ -33,8 +30,8 @@ void main(){
 		float factor = float(1 << (octaves - o - 1));
 		float amp = 1.0 / factor;
 		float width = scale * amp;
-		int xlo = int(floor(world_coordinate.x/width));
-		int ylo = int(floor(world_coordinate.y/width));
+		float xlo = floor(world_coordinate.x / width);
+		float ylo = floor(world_coordinate.y / width);
 		// get the gradient directions
 		float d00 = 6.283185307 * pseudo_rand2(xlo,ylo);
 		float d01 = 6.283185307 * pseudo_rand2(xlo,ylo+1);
@@ -53,7 +50,8 @@ void main(){
 		float top = lerp(c01, c11, xoff);
 		val += amp * lerp(bottom, top, yoff);
 	}
+	// map from [-1,1] to [0,1]
 	val = (val + max_amp) / (2*max_amp);
-	val = clamp(val, 0.0, 1.0);
+	val = clamp(val, 0.0, 1.0);	
 	gl_FragColor = vec4(val, val, val, 1.0);
 }
