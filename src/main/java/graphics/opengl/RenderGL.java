@@ -33,7 +33,6 @@ public class RenderGL {
 	private Environment theEnvironment;
 	private Camera camera;
 	private int width, height;
-	private float aspect;
 	private boolean[] keyboard;
 	private int[] mouse_buttons;
 	private double camera_sensitivity;
@@ -54,19 +53,21 @@ public class RenderGL {
 		theEnvironment = env;
 		width = w;
 		height = h;
-		aspect = (float) w / (float) h;
 		camera_sensitivity = Config.instance.getDouble("CAMERA_SENSETIVITY");
 		// initialize lwjgl display
 		try {
 			Display.setParent(canvas);
 			Display.setVSyncEnabled(true);
 			Display.setTitle("Evolution Sim");
-			Display.create();			
+			ContextAttribs contextAtrributes = new ContextAttribs(3, 2).withForwardCompatible(true).withProfileCore(true);
+			PixelFormat pf = new PixelFormat();
+			Display.create(pf, contextAtrributes);
 		}
 		catch (LWJGLException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
+		exitOnGLError("Context creation");
 		// initialize opengl
 		camera = new Camera();
 		mProjInv = BufferUtils.createFloatBuffer(16);
