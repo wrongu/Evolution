@@ -1,18 +1,22 @@
-#version 120
+#version 150
 
 uniform int octaves;
 uniform float t_size;
 uniform float scale;
 uniform sampler1D table;
 
-varying vec2 world_coordinate;
+//varying vec2 world_coordinate;
+in vec2 world_coordinate;
+out vec4 glFragColor;
 
 float pseudo_rand2(float x, float y){
 	// equivalent to the RNG algorithm from the java source (PerlinGenerator.java)
 	x = mod(x, t_size) / t_size;
 	y = mod(y, t_size) / t_size;
-	float w = texture1D(table, x).r + y;
-	return texture1D(table, w).r;
+//	float w = texture1D(table, x).r + y;
+//	return texture1D(table, w).r;
+	float w = texture(table, x).r + y;
+	return texture(table, w).r;
 }
 
 float lerp(float a, float b, float bias){
@@ -56,6 +60,7 @@ void main(){
 	// map from [-1,1] to [0,1]
 	val = (val + max_amp) / (2*max_amp);
 	val = clamp(val, 0.0, 1.0);	
-	val = floor(val * 8.0) / 8.0;
-	gl_FragColor = vec4(0.0, val, 0.2, 1.0);
+//	val = val > 0.25 ? 4/3*(val - 0.25) : 0;
+//	val = val*val;
+	glFragColor = vec4(val, val, val, 1.0);
 }
