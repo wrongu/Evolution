@@ -62,6 +62,7 @@ public class RenderGL {
 			ContextAttribs contextAtrributes = new ContextAttribs(3, 2).withForwardCompatible(true).withProfileCore(true);
 			PixelFormat pf = new PixelFormat();
 			Display.create(pf, contextAtrributes);
+			exitOnGLError("context setup");
 		}
 		catch (LWJGLException e) {
 			e.printStackTrace();
@@ -132,39 +133,33 @@ public class RenderGL {
 	}
 
 	private void initGLShaders(){
-		fbo_enabled = GLContext.getCapabilities().GL_EXT_framebuffer_object;
-		if(fbo_enabled){
-			Shader vNoop = Shader.fromSource("shaders/screenToWorld.vert", GL_VERTEX_SHADER);
-			Shader fPerlin = Shader.fromSource("shaders/perlin.frag", GL_FRAGMENT_SHADER);
-			pPerlin = Program.createProgram(vNoop, fPerlin);
-			// set uniforms
-			pPerlin.use();
-			{
-				RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
-				PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
-				pPerlin.setUniformi("octaves", pg.getOctaves());
-				pPerlin.setUniformf("t_size",  (float) PerlinGenerator.TABLE_SIZE);
-				pPerlin.setUniformf("scale", (float) pg.getScale());
-				pPerlin.setUniformi("table", 0); // using GL_TEXTURE0
-				FloatBuffer table = BufferUtils.createFloatBuffer(PerlinGenerator.TABLE_SIZE);
-				table.put(pg.getTableNormalized()); table.flip();
-				// create perlin lookup texture
-				perlin_lookup_tex = glGenTextures();
-				glEnable(GL_TEXTURE_1D); // TODO test if this can be removed
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
-				// the use of GL_RED here is basically saying that there is only 1 channel of data (as opposed to RGB which has 3)
-				glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_FLOAT, table);
-				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			}
-			pPerlin.unuse();
-			exitOnGLError("Shader compilation");
-		} else{
-			System.err.println("FBO not available");
+		Shader vNoop = Shader.fromSource("shaders/screenToWorld.vert", GL_VERTEX_SHADER);
+		Shader fPerlin = Shader.fromSource("shaders/perlin.frag", GL_FRAGMENT_SHADER);
+		pPerlin = Program.createProgram(vNoop, fPerlin);
+		// set uniforms
+		pPerlin.use();
+		{
+			RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
+			PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
+			pPerlin.setUniformi("octaves", pg.getOctaves());
+			pPerlin.setUniformf("t_size",  (float) PerlinGenerator.TABLE_SIZE);
+			pPerlin.setUniformf("scale", (float) pg.getScale());
+			pPerlin.setUniformi("table", 0); // using GL_TEXTURE0
+			FloatBuffer table = BufferUtils.createFloatBuffer(PerlinGenerator.TABLE_SIZE);
+			table.put(pg.getTableNormalized()); table.flip();
+			// create perlin lookup texture
+			perlin_lookup_tex = glGenTextures();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
+			// the use of GL_RED here is basically saying that there is only 1 channel of data (as opposed to RGB which has 3)
+			glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_FLOAT, table);
+			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		}
+		pPerlin.unuse();
+		exitOnGLError("Shader compilation");
 	}
 
 	private void initGLBuffers() {
