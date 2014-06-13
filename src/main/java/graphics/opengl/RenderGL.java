@@ -1,8 +1,6 @@
 package graphics.opengl;
 
 import java.awt.Canvas;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -10,10 +8,12 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.util.glu.GLU;
+import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.BufferUtils;
+
+import bio.organisms.SimpleCircleOrganism;
 
 import applet.Config;
 
@@ -39,14 +39,15 @@ public class RenderGL {
 	boolean fbo_enabled;
 	
 	// allocate once
-	FloatBuffer mProjInv;
+	FloatBuffer mat4x4;
 	
 	// specific buffers
 	int screenquad_vbo, screenquad_vao;
-	int perlin_lookup_tex;
+	int organism_shell_vbo, organisms_vao;
 	
-	// debugging
-	Program pPerlin;
+	// Shaders and programs
+	Program pPerlin, pOrganisms;
+	int perlin_lookup_tex;
 
 	public RenderGL(Canvas canvas, Environment env, int w, int h){
 		// set up panel with respect to the evolution app
@@ -68,10 +69,9 @@ public class RenderGL {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		exitOnGLError("Context creation");
 		// initialize opengl
 		camera = new Camera();
-		mProjInv = BufferUtils.createFloatBuffer(16);
+		mat4x4 = BufferUtils.createFloatBuffer(16);
 		initGL();
 	}
 
@@ -85,14 +85,35 @@ public class RenderGL {
 		// start drawing new frame
 		pPerlin.use();
 		{
-			camera.inverse_projection(width, height).store(mProjInv);
-			mProjInv.flip();
-			pPerlin.setUniformMat4("inverse_projection", mProjInv);
+			glBindVertexArray(screenquad_vao);
+			camera.inverse_projection(width, height).store(mat4x4);
+			mat4x4.flip();
+			pPerlin.setUniformMat4("inverse_projection", mat4x4);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		pPerlin.unuse();
+		pOrganisms.use();
+		{
+			glBindVertexArray(organisms_vao);
+			float[] coordinates = new float[]{
+				0f, 0f, 0f,
+				20f, 10f, 1f,
+				10f, -10f, 2f
+			};
+			camera.projection(width, height).store(mat4x4);
+			mat4x4.flip();
+			pOrganisms.setUniformMat4("projection", mat4x4);
+			for(int o=0; o<coordinates.length / 3; ++o){
+				int i = 3*o;
+				modelMatrix(coordinates[i], coordinates[i+1], 0f, mat4x4);
+				pOrganisms.setUniformMat4("model", mat4x4);
+				pOrganisms.setUniformf("energy", coordinates[i+2]);
+				glDrawArrays(GL_LINE_LOOP, 0, Config.instance.getInt("CIRCLE_SUBDIVISIONS"));
+			}
+		}
+		pOrganisms.unuse();
 		// update the display (i.e. swap buffers, etc)
 		Display.update();
 	}
@@ -133,9 +154,7 @@ public class RenderGL {
 	}
 
 	private void initGLShaders(){
-		Shader vNoop = Shader.fromSource("shaders/screenToWorld.vert", GL_VERTEX_SHADER);
-		Shader fPerlin = Shader.fromSource("shaders/perlin.frag", GL_FRAGMENT_SHADER);
-		pPerlin = Program.createProgram(vNoop, fPerlin);
+		pPerlin = Program.createProgram("shaders/screenToWorld.vert", "shaders/perlin.frag");
 		// set uniforms
 		pPerlin.use();
 		{
@@ -159,10 +178,15 @@ public class RenderGL {
 			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		}
 		pPerlin.unuse();
+		
+		pOrganisms = Program.createProgram("shaders/worldToScreen.vert", "shaders/energyColor.frag");
 		exitOnGLError("Shader compilation");
 	}
 
 	private void initGLBuffers() {
+		/////////////////
+		// SCREEN-QUAD //
+		/////////////////
 		screenquad_vbo = glGenBuffers();
 		FloatBuffer screen_corners = BufferUtils.createFloatBuffer(12);
 		screen_corners.put(new float[]{
@@ -182,6 +206,28 @@ public class RenderGL {
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
+		
+		///////////////
+		// ORGANISMS //
+		///////////////
+		organism_shell_vbo = glGenBuffers();
+		int subdivisions = Config.instance.getInt("CIRCLE_SUBDIVISIONS");
+		FloatBuffer orgo_shell = BufferUtils.createFloatBuffer(2*subdivisions);
+		float w = (float) SimpleCircleOrganism.DEFAULT_RANGE / 2f;
+		for(int i=0; i<subdivisions; i++){
+			double angle = i * 2d * Math.PI / subdivisions;
+			orgo_shell.put(w * (float) Math.cos(angle)); // x
+			orgo_shell.put(w * (float) Math.sin(angle)); // y
+		}
+		orgo_shell.flip();
+		glBindBuffer(GL_ARRAY_BUFFER, organism_shell_vbo);
+		glBufferData(GL_ARRAY_BUFFER, orgo_shell, GL_STATIC_DRAW);
+		
+		organisms_vao = glGenVertexArrays();
+		glBindVertexArray(organisms_vao);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, organism_shell_vbo);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
 	}
 
 	public void destroy(){
@@ -192,6 +238,21 @@ public class RenderGL {
 		if(pPerlin != null) pPerlin.destroy();
 		// destroy lwjgl display
 		Display.destroy();
+	}
+	
+	private void modelMatrix(float tx, float ty, float rz, FloatBuffer dest){
+		Matrix4f mat = new Matrix4f();
+		Matrix4f.setIdentity(mat);
+		float c = (float) Math.cos(rz);
+		float s = (float) Math.sin(rz);
+		mat.m00 = c;
+		mat.m01 = s;
+		mat.m10 = -s;
+		mat.m11 = c;
+		mat.m30 = tx;
+		mat.m31 = ty;
+		mat.store(dest);
+		dest.flip();
 	}
 
 	public FloatBuffer screenToWorldCoordinates(int sx, int sy){
