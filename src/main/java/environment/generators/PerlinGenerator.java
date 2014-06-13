@@ -2,6 +2,8 @@ package environment.generators;
 
 import java.util.Random;
 
+import applet.Config;
+
 import graphics.RandomGeneratorVisualizer;
 
 public class PerlinGenerator implements IGenerator {
@@ -65,12 +67,21 @@ public class PerlinGenerator implements IGenerator {
 		return a + smooth * (b - a);
 	}
 	
+	/**
+	 * this allows indices of the table to "wrap around" the edges.
+	 * @param i any integer
+	 * @return i mapped to [0,TABLE_SIZE) using wrap-around (modulus)
+	 */
 	private int table_modulo(int i){
 		int ret = (i % TABLE_SIZE);
 		if(ret < 0) ret += TABLE_SIZE;
 		return ret;
 	}
 	
+	/**
+	 * get a pseudo-random number in [0,1) based on the lookup table, x, and y
+	 * @return
+	 */
 	private double pseudo_random2d(int x, int y)
 	{
 		// pseudo-random-number in [0,1) using lookup in the table
@@ -118,7 +129,7 @@ public class PerlinGenerator implements IGenerator {
 		// map from [-max, max] to [0,1]
 		double zero_to_one = (value + max) / (2*max);
 		if(this.filter != null)
-			return this.filter.applyFilter(zero_to_one);
+			return this.filter.applyFilter(zero_to_one, x, y);
 		else
 			return zero_to_one;
 	}
@@ -144,17 +155,16 @@ public class PerlinGenerator implements IGenerator {
 	
 	public static abstract class Filter{
 		/** given a value in [0, 1], return a value between [0,1] (presumably with some transformation applied) */
-		public abstract double applyFilter(double val);
+		public abstract double applyFilter(double val, double x, double y);
 	}
 
 	public static void main(String[] args){
 		// TESTING / VISUALIZING
-		int oct = 8;
-		PerlinGenerator gen = new PerlinGenerator(oct, 60., 0L, new Filter(){
+		int oct = 1;
+		PerlinGenerator gen = new PerlinGenerator(oct, 60., Config.instance.getLong("SEED"), new Filter(){
 			@Override
-			public double applyFilter(double val) {
-//				return val;
-				return PerlinGenerator.interp(0,1,val);
+			public double applyFilter(double val, double x, double y) {
+				return Math.floor(val * 16.0) / 16.0;
 			}
 		});
 		RandomGeneratorVisualizer.display(gen, 300, oct);

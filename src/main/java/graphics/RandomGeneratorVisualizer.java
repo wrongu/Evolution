@@ -41,13 +41,16 @@ public class RandomGeneratorVisualizer {
 			Color failcolor = Color.red;
 			for(int x=0; x<this.width; x++){
 				for(int y=0; y<this.height; y++){
-					float val = (float) this.gen.terrainValue(x, y);
+					int xcoord = x-this.width/2;
+					int ycoord = y-this.height/2;
+					float val = (float) this.gen.terrainValue(xcoord,ycoord);
+					if(xcoord*ycoord == 0) val = 1.0f;
 					try{
 						Color c = new Color(val, val, val);
-						img.setRGB(x, y, c.getRGB());
+						img.setRGB(x, this.height-1-y, c.getRGB());
 					} catch (Exception e){
 						System.out.println("pixel "+x+","+y+" failed with color value "+val);
-						img.setRGB(x, y, failcolor.getRGB());
+						img.setRGB(x, this.height-1-y, failcolor.getRGB());
 					}
 				}
 			}

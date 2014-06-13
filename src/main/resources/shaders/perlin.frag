@@ -13,8 +13,6 @@ float pseudo_rand2(float x, float y){
 	// equivalent to the RNG algorithm from the java source (PerlinGenerator.java)
 	x = mod(x, t_size) / t_size;
 	y = mod(y, t_size) / t_size;
-//	float w = texture1D(table, x).r + y;
-//	return texture1D(table, w).r;
 	float w = texture(table, x).r + y;
 	return texture(table, w).r;
 }
@@ -60,7 +58,6 @@ void main(){
 	// map from [-1,1] to [0,1]
 	val = (val + max_amp) / (2*max_amp);
 	val = clamp(val, 0.0, 1.0);	
-//	val = val > 0.25 ? 4/3*(val - 0.25) : 0;
-//	val = val*val;
+	val = floor(val * 16.0) / 16.0;
 	glFragColor = vec4(val, val, val, 1.0);
 }
