@@ -1,6 +1,11 @@
 package graphics.opengl;
 
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.*;
+
+import java.nio.FloatBuffer;
 
 public class Program {
 	
@@ -22,6 +27,16 @@ public class Program {
 		glLinkProgram(id);
 		glValidateProgram(id);
 		
+		System.out.println("Shader linking output:");
+		System.out.println(glGetProgramInfoLog(id, 1024));
+		
+		int status = glGetProgram(id, GL_LINK_STATUS);
+		if(status == GL_FALSE){
+			System.err.println("Linking error");
+			glDeleteProgram(id);
+			return null;
+		}
+		
 		return new Program(id);
 	}
 	
@@ -31,11 +46,11 @@ public class Program {
 				Shader.fromSource(fSource, GL_FRAGMENT_SHADER));
 	}
 	
-	public void begin(){
+	public void use(){
 		glUseProgram(glId);
 	}
 	
-	public void end(){
+	public void unuse(){
 		glUseProgram(0);
 	}
 	
@@ -84,6 +99,13 @@ public class Program {
 			default:
 				break;
 			}
+		}
+	}
+	
+	public void setUniformMat4(String name, FloatBuffer values){
+		if(values != null){
+			int param = getUniform(name);
+			glUniformMatrix4(param, false, values);
 		}
 	}
 	

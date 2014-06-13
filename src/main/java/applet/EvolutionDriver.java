@@ -79,7 +79,7 @@ public class EvolutionDriver implements Runnable {
 		// opengl must be initialized in the same thread where it is used, so we need to create and
 		//	add the RenderGL here.
 		RenderGL renderpanel = new RenderGL(canvas, env, APPLET_WIDTH, APPLET_HEIGHT);
-		renderpanel.bindInputs(direction_keys, mouse_move, mouse_buttons);
+		renderpanel.bindInputs(direction_keys, mouse_buttons);
 
 		try {
 			Mouse.create();
@@ -89,14 +89,12 @@ public class EvolutionDriver implements Runnable {
 			e.printStackTrace();
 		}
 
-		long time = System.currentTimeMillis();
-
 		// run simulation
 		while(!(Display.isCloseRequested() || shutdown_flag)){
 			long now = System.currentTimeMillis();
-			double dt = ((double) (now - time)) / (double) TICK_MS;
 			checkInput(renderpanel);
-			renderpanel.moveCamera(dt);
+
+			renderpanel.moveCamera();
 			renderpanel.redraw();
 			updateFPS(now);
 			if(first_frame || !paused || (mouse_buttons[0] == 1 && !mouse_hold)){
@@ -146,7 +144,7 @@ public class EvolutionDriver implements Runnable {
 		if(mouse_buttons[0] != 1)
 			mouse_hold = false;
 	}
-
+	
 	private void updateFPS(long now){
 		frame_counter++;
 		if(now - second_timer > 1000){

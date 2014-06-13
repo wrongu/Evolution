@@ -1,27 +1,25 @@
-#version 130
+#version 150
 
 uniform int octaves;
-uniform int t_size;
+uniform float t_size;
 uniform float scale;
 uniform sampler1D table;
 
-out vec4 color;
+//varying vec2 world_coordinate;
+in vec2 world_coordinate;
+out vec4 glFragColor;
 
-int table_modulo(int i){
-	int ret = (i % t_size);
-	if(ret < 0) ret += t_size;
-	return ret;
+float pseudo_rand2(float x, float y){
+	// equivalent to the RNG algorithm from the java source (PerlinGenerator.java)
+	x = mod(x, t_size) / t_size;
+	y = mod(y, t_size) / t_size;
+	float w = texture(table, x).r + y;
+	return texture(table, w).r;
 }
 
-float pseudo_rand2(int x, int y){
-	// copy of the RNG algorithm from the java source (PerlinGenerator.java)
-	int i = table_modulo(x);
-	i = table_modulo(int(texture(table, float(i) / float(t_size))) + y);
-	return float(int(texture(table, float(i) / float(t_size)))) / float(t_size);
-}
-
-float lerp(float a, float b, float bbias){
-	return bbias*bbias*(bbias*a + b);
+float lerp(float a, float b, float bias){
+	float s = bias * bias * (3.0 - 2.0 * bias);
+	return a + (b - a) * s;
 }
 
 void main(){
@@ -30,19 +28,23 @@ void main(){
 	// which converges to 2 (but will be short of 2 since it's finite)
 	float max_amp = 2.0 - pow(2.0, float(1-octaves));
 	for(int o=0; o<octaves; o++){
-		float factor = float(1 << (octaves - o - 1));
+		int pow = octaves-o-1;
+		float factor = 1.0;
+		while(pow-- > 0) factor *= 2.0;
+		// version 120 doesn't allow bitwise operators, otherwise we would just do:
+		//float factor = float(1 << (octaves - o - 1));
 		float amp = 1.0 / factor;
 		float width = scale * amp;
-		int xlo = int(floor(gl_Position.x/width));
-		int ylo = int(floor(gl_Position.y/width));
+		float xlo = floor(world_coordinate.x / width);
+		float ylo = floor(world_coordinate.y / width);
 		// get the gradient directions
 		float d00 = 6.283185307 * pseudo_rand2(xlo,ylo);
 		float d01 = 6.283185307 * pseudo_rand2(xlo,ylo+1);
 		float d10 = 6.283185307 * pseudo_rand2(xlo+1,ylo);
 		float d11 = 6.283185307 * pseudo_rand2(xlo+1,ylo+1);
 		// get offsets internal to cell for interpolation
-		float xoff = gl_Position.x / width - xlo;
-		float yoff = gl_Position.y / width - ylo;
+		float xoff = world_coordinate.x / width - xlo;
+		float yoff = world_coordinate.y / width - ylo;
 		// dot product for effect of gradient on point
 		float c00 = cos(d00) * xoff + sin(d00) * yoff;
 		float c01 = cos(d01) * xoff + sin(d01) * (yoff-1.0);
@@ -53,7 +55,9 @@ void main(){
 		float top = lerp(c01, c11, xoff);
 		val += amp * lerp(bottom, top, yoff);
 	}
+	// map from [-1,1] to [0,1]
 	val = (val + max_amp) / (2*max_amp);
-	val = clamp(val, 0.0, 1.0);
-	color = vec4(0.0, 0.5, 0.5, 1.0);
+	val = clamp(val, 0.0, 1.0);	
+	val = floor(val * 16.0) / 16.0;
+	glFragColor = vec4(val, val, val, 1.0);
 }

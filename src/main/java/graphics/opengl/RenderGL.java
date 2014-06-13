@@ -1,20 +1,28 @@
 package graphics.opengl;
 
 import java.awt.Canvas;
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.util.glu.GLU;
+import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.BufferUtils;
+
+import bio.organisms.AbstractOrganism;
+import bio.organisms.SimpleCircleOrganism;
+
+import applet.Config;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.*;
 
 import environment.Environment;
 import environment.RandomFoodEnvironment;
@@ -26,193 +34,220 @@ public class RenderGL {
 	private Environment theEnvironment;
 	private Camera camera;
 	private int width, height;
-	private double initHeight;
 	private boolean[] keyboard;
 	private int[] mouse_buttons;
-
-	// opengl is a state machine that gives us references to its objects as ints.
-	private int drawList; // list mode
-
-	// TODO - implement checks for FBOEnabled
-	private static boolean FBOEnabled; 
-	private Shader vNoop, fPerlin;
-	private Program pPerlin;
-	private int perlin_table_tex;
-	private PerlinGenerator gen;
+	private double camera_sensitivity;
+	boolean fbo_enabled;
+	
+	// allocate once
+	FloatBuffer mat4x4;
+	
+	// specific buffers
+	int screenquad_vbo, screenquad_vao;
+	int organism_shell_vbo, organisms_vao;
+	
+	// Shaders and programs
+	Program pPerlin, pOrganisms;
+	int perlin_lookup_tex;
 
 	public RenderGL(Canvas canvas, Environment env, int w, int h){
 		// set up panel with respect to the evolution app
 		theEnvironment = env;
 		width = w;
 		height = h;
-		initHeight = (double) h;
+		camera_sensitivity = Config.instance.getDouble("CAMERA_SENSETIVITY");
 		// initialize lwjgl display
 		try {
 			Display.setParent(canvas);
-			Display.create();
+			Display.setVSyncEnabled(true);
+			Display.setTitle("Evolution Sim");
+			ContextAttribs contextAtrributes = new ContextAttribs(3, 2).withForwardCompatible(true).withProfileCore(true);
+			PixelFormat pf = new PixelFormat();
+			Display.create(pf, contextAtrributes);
+			exitOnGLError("context setup");
 		}
 		catch (LWJGLException e) {
 			e.printStackTrace();
+			System.exit(1);
 		}
 		// initialize opengl
 		camera = new Camera();
+		mat4x4 = BufferUtils.createFloatBuffer(16);
 		initGL();
 	}
 
 	public synchronized void redraw(){
+		clearAll();
+		camera.ease();
 		// in case screen size changed
 		width = Display.getWidth();
 		height = Display.getHeight();
-		glWindowSize();
-		// start list compilation and write all draw() operations to that list
-		glNewList(drawList, GL_COMPILE);
+		glViewport(0, 0, width, height);
+		// start drawing new frame
+		pPerlin.use();
 		{
-			// move camera (i.e. do glTranslate to move the objects on the screen, as if the camera were moving)
-			camera.glSetView();
-			if(pPerlin != null){
-				pPerlin.begin();
-				{
-					this.renderFullScreenQuadInWorld();
-				}
-				pPerlin.end();
+			glBindVertexArray(screenquad_vao);
+			camera.inverse_projection(width, height).store(mat4x4);
+			mat4x4.flip();
+			pPerlin.setUniformMat4("inverse_projection", mat4x4);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+		pPerlin.unuse();
+		pOrganisms.use();
+		{
+			glBindVertexArray(organisms_vao);
+			camera.projection(width, height).store(mat4x4);
+			mat4x4.flip();
+			pOrganisms.setUniformMat4("projection", mat4x4);
+			for(AbstractOrganism o : theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)))){
+				modelMatrix((float) o.getX(), (float) o.getY(), 0f, mat4x4);
+				pOrganisms.setUniformMat4("model", mat4x4);
+				pOrganisms.setUniformf("energy",(float) o.getEnergy());
+				glDrawArrays(GL_LINE_LOOP, 0, Config.instance.getInt("CIRCLE_SUBDIVISIONS"));
 			}
-			theEnvironment.glDraw();
 		}
-		glEndList();
-
-		/* 
-		 * At this point, all drawing is queued up on lists. 
-		 * all that's left to render them is a call to glCallList
-		 */
-		
-		{
-			clearGraphics();
-			glCallList(drawList);
-		}
-
+		pOrganisms.unuse();
 		// update the display (i.e. swap buffers, etc)
 		Display.update();
 	}
 
-	private void renderFullScreenQuadInWorld(){
-		glColor3f(0,1,1);
-		FloatBuffer bottomLeft = screenToWorldCoordinates(0, 0);
-		FloatBuffer topRight = screenToWorldCoordinates(width, height);
-		float xlo = bottomLeft.get();
-		float ylo = bottomLeft.get();
-		float xhi = topRight.get();
-		float yhi = topRight.get();
-		glBegin(GL_QUADS);
-		{
-			glVertex2f(xlo, ylo);
-			glVertex2f(xhi, ylo);
-			glVertex2f(xhi, yhi);
-			glVertex2f(xlo, yhi);
-		}
-		glEnd();
-	}
-
-	private void clearGraphics(){
+	private void clearAll(){
 		// clear screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		// clear modelview matrix
-		glLoadIdentity();
 	}
 
-	public void moveCamera(double dt) {
+	public void moveCamera() {
 		double dx = 0.0, dy = 0.0;
-		if(keyboard[0]) dy -= .1*dt;
-		if(keyboard[1]) dy += .1*dt;
-		if(keyboard[2]) dx += .1*dt;
-		if(keyboard[3]) dx -= .1*dt;
+		if(keyboard[0]) dy += camera_sensitivity;
+		if(keyboard[1]) dy -= camera_sensitivity;
+		if(keyboard[2]) dx -= camera_sensitivity;
+		if(keyboard[3]) dx += camera_sensitivity;
 		camera.shift(dx, dy);
-		camera.zoom((double) mouse_buttons[1] * 0.0005);
+		camera.zoom((double) mouse_buttons[1] * 0.005 * camera_sensitivity);
 	}
 
 	private void initGL(){
-		glWindowSize();
-		// opengl works fastest when it has compilation lists to work from. note that in redraw(), we set up the list to compile,
-		//	then do all drawing (which really just fills the list with commands), then do glCallList, which executes all drawing
-		// 	at once and lets opengl do all its own optimizations.
-		drawList = glGenLists(1);
+
+		glViewport(0, 0, width, height);
 		// 2d, so save time by not depth-testing
 		glDisable(GL_DEPTH_TEST);
-		// set up line antialiasing
+		// set up line anti-aliasing
 		glEnable(GL_LINE_SMOOTH);
 		// allow standard alpha blending
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		// background clear color is black
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		// initialize GL buffers
+		initGLBuffers();
 		// load and compile shaders
 		initGLShaders();
+		// necessary if using FBOs/textures
 		glEnable(GL_TEXTURE_2D);
 	}
 
-	private void glWindowSize(){
-		// no projection; set it to the identity matrix
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		double ar = (double) width / (double) height;
-		glOrtho(- ar * initHeight/2,  ar * initHeight/2, -initHeight/2, initHeight/2, -1, 1);
-		// set mode to modelview since this is where all drawing will be done
-		glMatrixMode(GL_MODELVIEW);
-		glViewport(0, 0, width, height);
+	private void initGLShaders(){
+		pPerlin = Program.createProgram("shaders/screenToWorld.vert", "shaders/perlin.frag");
+		// set uniforms
+		pPerlin.use();
+		{
+			RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
+			PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
+			pPerlin.setUniformi("octaves", pg.getOctaves());
+			pPerlin.setUniformf("t_size",  (float) PerlinGenerator.TABLE_SIZE);
+			pPerlin.setUniformf("scale", (float) pg.getScale());
+			pPerlin.setUniformi("table", 0); // using GL_TEXTURE0
+			FloatBuffer table = BufferUtils.createFloatBuffer(PerlinGenerator.TABLE_SIZE);
+			table.put(pg.getTableNormalized()); table.flip();
+			// create perlin lookup texture
+			perlin_lookup_tex = glGenTextures();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
+			// the use of GL_RED here is basically saying that there is only 1 channel of data (as opposed to RGB which has 3)
+			glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_FLOAT, table);
+			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		}
+		pPerlin.unuse();
+		
+		pOrganisms = Program.createProgram("shaders/worldToScreen.vert", "shaders/energyColor.frag");
+		exitOnGLError("Shader compilation");
 	}
 
-	private void initGLShaders(){
-		FBOEnabled = GLContext.getCapabilities().GL_EXT_framebuffer_object;
-		if(FBOEnabled){
-			// create shaders and their associated program
-			{
-				vNoop = Shader.fromSource("shaders/shader.vert", GL_VERTEX_SHADER);
-
-				if(theEnvironment instanceof RandomFoodEnvironment){
-					if(((RandomFoodEnvironment) theEnvironment).getGenerator() instanceof PerlinGenerator){
-						gen = (PerlinGenerator) ((RandomFoodEnvironment) theEnvironment).getGenerator();
-						fPerlin = Shader.fromSource("shaders/perlin.frag", GL_FRAGMENT_SHADER);
-						
-						// create programs from the shaders
-//						pPerlin = Program.createProgram(vNoop, fPerlin);
-//						pPerlin.begin();
-//						{
-//							pPerlin.setUniformi("octaves", gen.getOctaves());
-//							pPerlin.setUniformi("t_size", PerlinGenerator.TABLE_SIZE);
-//							pPerlin.setUniformf("scale", (float) gen.getScale());
-//							pPerlin.setUniformi("table", 0); // bind to TEXTURE0
-//						}
-//						pPerlin.end();
-						
-						// create texture for perlin table
-						perlin_table_tex = glGenTextures();
-						glActiveTexture(GL_TEXTURE0);
-						glBindTexture(GL_TEXTURE_1D, perlin_table_tex);
-						IntBuffer tablebuffer = ByteBuffer.allocateDirect(PerlinGenerator.TABLE_SIZE*Integer.SIZE).asIntBuffer();
-						tablebuffer.put(gen.getTable(), 0, PerlinGenerator.TABLE_SIZE);
-						glTexImage1D(GL_TEXTURE_1D, 0, GL_ALPHA16, PerlinGenerator.TABLE_SIZE, 0, GL_RED, GL_UNSIGNED_INT, tablebuffer);
-					}
-				}
-			}
-		} else{
-			System.err.println("FBO not available");
+	private void initGLBuffers() {
+		/////////////////
+		// SCREEN-QUAD //
+		/////////////////
+		screenquad_vbo = glGenBuffers();
+		FloatBuffer screen_corners = BufferUtils.createFloatBuffer(12);
+		screen_corners.put(new float[]{
+				-1.0f, -1.0f,
+				 1.0f, -1.0f,
+				-1.0f,  1.0f,
+				-1.0f,  1.0f,
+				 1.0f, -1.0f,
+				 1.0f,  1.0f
+		});
+		screen_corners.flip();
+		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
+		glBufferData(GL_ARRAY_BUFFER, screen_corners, GL_STATIC_DRAW);
+		
+		screenquad_vao = glGenVertexArrays();
+		glBindVertexArray(screenquad_vao);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
+		
+		///////////////
+		// ORGANISMS //
+		///////////////
+		organism_shell_vbo = glGenBuffers();
+		int subdivisions = Config.instance.getInt("CIRCLE_SUBDIVISIONS");
+		FloatBuffer orgo_shell = BufferUtils.createFloatBuffer(2*subdivisions);
+		float w = (float) SimpleCircleOrganism.DEFAULT_RANGE / 2f;
+		for(int i=0; i<subdivisions; i++){
+			double angle = i * 2d * Math.PI / subdivisions;
+			orgo_shell.put(w * (float) Math.cos(angle)); // x
+			orgo_shell.put(w * (float) Math.sin(angle)); // y
 		}
+		orgo_shell.flip();
+		glBindBuffer(GL_ARRAY_BUFFER, organism_shell_vbo);
+		glBufferData(GL_ARRAY_BUFFER, orgo_shell, GL_STATIC_DRAW);
+		
+		organisms_vao = glGenVertexArrays();
+		glBindVertexArray(organisms_vao);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, organism_shell_vbo);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
 	}
 
 	public void destroy(){
-		// destroy shaders
-		if(vNoop != null)  vNoop.destroy();
-		if(fPerlin != null) fPerlin.destroy();
-		// destroy programs
+		// clean up opengl state
+		if(screenquad_vao != 0) glDeleteVertexArrays(screenquad_vao);
+		if(screenquad_vbo != 0) glDeleteBuffers(screenquad_vbo);
+		if(perlin_lookup_tex != 0) glDeleteTextures(perlin_lookup_tex);
 		if(pPerlin != null) pPerlin.destroy();
-		// destroy textures
-		if(perlin_table_tex != 0) glDeleteTextures(perlin_table_tex);
 		// destroy lwjgl display
 		Display.destroy();
 	}
-
-	public void bindInputs(boolean[] direction_keys, int[] mouse_move, int[] mouse_buttons) {
-		keyboard = direction_keys;
-		this.mouse_buttons = mouse_buttons;
+	
+	private void modelMatrix(float tx, float ty, float rz, FloatBuffer dest){
+		Matrix4f mat = new Matrix4f();
+		Matrix4f.setIdentity(mat);
+		float c = (float) Math.cos(rz);
+		float s = (float) Math.sin(rz);
+		mat.m00 = c;
+		mat.m01 = s;
+		mat.m10 = -s;
+		mat.m11 = c;
+		mat.m30 = tx;
+		mat.m31 = ty;
+		mat.store(dest);
+		dest.flip();
 	}
 
 	public FloatBuffer screenToWorldCoordinates(int sx, int sy){
@@ -227,5 +262,22 @@ public class RenderGL {
 		glReadPixels(sx, sy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, winZ);
 		GLU.gluUnProject((float) sx, (float) sy, winZ.get(), modelview, projection, viewport, position);
 		return position; 
+	}
+	
+	public void bindInputs(boolean[] keyboard, int[] mouse){
+		this.keyboard = keyboard;
+		this.mouse_buttons = mouse;
+	}
+	
+	private void exitOnGLError(String errorMessage) {
+		int errorValue = GL11.glGetError();
+		
+		if (errorValue != GL11.GL_NO_ERROR) {
+			String errorString = GLU.gluErrorString(errorValue);
+			System.err.println("ERROR - " + errorMessage + ": " + errorString);
+			
+			if (Display.isCreated()) Display.destroy();
+			System.exit(-1);
+		}
 	}
 }

@@ -48,10 +48,6 @@ public class Config {
 			return false;
 		}
 		
-		System.out.println("Loaded configuration!");
-		Iterator<String> itr = instance.getKeys();
-		while(itr.hasNext()) System.out.println("'"+itr.next()+"'");
-		
 		return true;
 	}
 	

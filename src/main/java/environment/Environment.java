@@ -57,7 +57,9 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 	}
 
 	public void update(){
-		System.out.println("Tick #: " + tickNumber + " Organism count: " + grid.getCount());
+		boolean debug = tickNumber % 100 == 0;
+		if(debug)
+			System.out.println("Tick #: " + tickNumber + " Organism count: " + grid.getCount());
 
 		double dt = TIME_STEP;
 		
@@ -78,11 +80,20 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 				o.print_energy_stats();
 			}
 		}
-		
+		// debugging
+		double avg_energy = 0.0;
+		int n_org = 0;
 		// first, process inputs and prepare outputs
 		for(AbstractOrganism o : grid) {
 				o.thinkAndAct();
+				if(debug){
+					n_org++;
+					avg_energy += o.getEnergy();
+				}
 		}
+
+		if(debug)
+			System.out.println("Average energy: " + (avg_energy / (double) n_org));
 
 		// second (before real physics update), check for collisions
 		// TODO faster than O(o^2) collision checks
@@ -134,6 +145,15 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 	public LinkedList<AbstractOrganism> getInDiskMut(double x, double y, double r) {
 		LinkedList<AbstractOrganism> orgs = new LinkedList<AbstractOrganism>();
 		for(Entity o : grid.getInDiskMut(x,y,r)) {
+			orgs.add((AbstractOrganism)o);
+		}
+		return orgs;
+	}
+	
+	public LinkedList<AbstractOrganism> getInBox(float ... bounds) {
+		if(bounds.length != 4) return null;
+		LinkedList<AbstractOrganism> orgs = new LinkedList<AbstractOrganism>();
+		for(Entity o : grid.getInBox(bounds[0], bounds[2], bounds[1], bounds[3])) {
 			orgs.add((AbstractOrganism)o);
 		}
 		return orgs;

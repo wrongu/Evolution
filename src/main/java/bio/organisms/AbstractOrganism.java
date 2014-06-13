@@ -133,5 +133,9 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	public boolean is_alive(){
 		return this.energy > 0.0;
 	}
+
+	public double getEnergy() {
+		return this.energy;
+	}
 	
 }

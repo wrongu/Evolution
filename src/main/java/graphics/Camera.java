@@ -2,45 +2,93 @@ package graphics;
 
 import static org.lwjgl.opengl.GL11.*;
 
+import java.nio.FloatBuffer;
+
+import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector4f;
+
 public class Camera {
 	
-	public static final double ZOOM_MIN = 0.01;
-	public static final double ZOOM_MAX = 100.0;
-	
-	public static final double EASE = 4.0;
+	public static final float ZOOM_MIN = 0.01f; // zoomed out
+	public static final float ZOOM_MAX = 10.0f; // zoomed in
+	public static final double EASE = 4.0; // lower=>jerkier; higher=>laggy
 
-	public double x, y;
-	public double zoom;
-	private double ease_x, ease_y, ease_zoom;
+	/** x-coordinate in world-space of the center (focus) of the camera */
+	private float x;
+	/** y-coordinate in world-space of the center (focus) of the camera */
+	private float y;
+	/** pixels per world-space distance */
+	private float zoom;
+	public float x_target, y_target;
+	public float zoom_target;
 	
 	public Camera(){
-		x = y = 0.0;
-		zoom = 1.0;
-		ease_x = ease_y = 0.0;
-		ease_zoom = 1.0;
+		x_target = y_target = 0.0f;
+		zoom_target = 1.0f;
+		x = y = 0.0f;
+		zoom = 1.0f;
 	}
 	
 	public void shift(double dx, double dy){
-		x += dx;
-		y += dy;
+		x_target += dx;
+		y_target += dy;
 	}
 	
 	public void zoom(double dz){
-		double new_zoom = zoom * Math.exp(dz);
+		// zoom and check bounds
+		double new_zoom = zoom_target * (1.0 - dz);
 		if(new_zoom < ZOOM_MIN) new_zoom = ZOOM_MIN;
 		if(new_zoom > ZOOM_MAX) new_zoom = ZOOM_MAX;
-		double ratio = new_zoom / zoom;
-		x *= ratio;
-		y *= ratio;
-		zoom = new_zoom;
+		// because scale is applied after translation,
+		// we need to compensate with extra translation
+		double ratio = new_zoom / zoom_target;
+		x_target /= ratio;
+		y_target /= ratio;
+		zoom_target = (float) new_zoom;
 	}
 	
-	public void glSetView(){
-		ease_x += (x - ease_x) / EASE;
-		ease_y += (y - ease_y) / EASE;
-		ease_zoom += (zoom - ease_zoom) / EASE;
-		glTranslated(ease_x, ease_y, 0.0);
-		glScaled(ease_zoom, ease_zoom, 1.0);
+	/**
+	 * smoothly animate towards target position and zoom
+	 */
+	public void ease(){
+		x += (x_target - x) / EASE;
+		y += (y_target - y) / EASE;
+		zoom += (zoom_target - zoom) / EASE;
+	}
+	
+	/**
+	 * @return [xmin ymin xmax ymax] of visible space
+	 */
+	public float[] getWorldBounds(float viewport_width, float viewport_height){
+		Vector4f v00 = new Vector4f(-1f, -1f, 0f, 1f);
+		Vector4f v11 = new Vector4f( 1f,  1f, 0f, 1f);
+		Matrix4f invProj = this.inverse_projection(viewport_width, viewport_height);
+		v00 = Matrix4f.transform(invProj, v00, null);
+		v11 = Matrix4f.transform(invProj, v11, null);
+		return new float[]{
+			v00.x,
+			v00.y,
+			v11.x,
+			v11.y
+		};
 	}
 
+	public Matrix4f projection(float viewport_width, float viewport_height){
+		// construct orthogonal matrix
+		float x_orth = 2f / viewport_width;
+		float y_orth = 2f / viewport_height;
+		
+		Matrix4f matrix = new Matrix4f();
+		Matrix4f.setIdentity(matrix);
+		matrix.m00 = x_orth / zoom;
+		matrix.m11 = y_orth / zoom;
+		matrix.m30 = -x;
+		matrix.m31 = -y;
+		return matrix;
+	}
+	
+	public Matrix4f inverse_projection(float viewport_width, float viewport_height){
+		Matrix4f proj = this.projection(viewport_width, viewport_height);
+		return (Matrix4f) proj.invert();
+	}
 }
