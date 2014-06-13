@@ -101,7 +101,7 @@ public class RenderGL {
 			camera.projection(width, height).store(mat4x4);
 			mat4x4.flip();
 			pOrganisms.setUniformMat4("projection", mat4x4);
-			for(AbstractOrganism o : theEnvironment.getInBox(camera.getWorldBounds(width, height))){
+			for(AbstractOrganism o : theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)))){
 				modelMatrix((float) o.getX(), (float) o.getY(), 0f, mat4x4);
 				pOrganisms.setUniformMat4("model", mat4x4);
 				pOrganisms.setUniformf("energy",(float) o.getEnergy());
