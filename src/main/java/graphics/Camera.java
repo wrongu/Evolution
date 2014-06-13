@@ -5,6 +5,7 @@ import static org.lwjgl.opengl.GL11.*;
 import java.nio.FloatBuffer;
 
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector4f;
 
 public class Camera {
 	
@@ -59,16 +60,16 @@ public class Camera {
 	 * @return [xmin ymin xmax ymax] of visible space
 	 */
 	public float[] getWorldBounds(float viewport_width, float viewport_height){
-		float half_width = viewport_width / 2f;
-		float half_height = viewport_height / 2f;
+		Vector4f v00 = new Vector4f(-1f, -1f, 0f, 1f);
+		Vector4f v11 = new Vector4f( 1f,  1f, 0f, 1f);
+		Matrix4f invProj = this.inverse_projection(viewport_width, viewport_height);
+		v00 = Matrix4f.transform(invProj, v00, null);
+		v11 = Matrix4f.transform(invProj, v11, null);
 		return new float[]{
-				// x, y are in world-space
-				// zoom is pix/world-space
-				// width/height are in pix
-				x - half_width  / zoom,
-				y - half_height / zoom,
-				x + half_width  / zoom,
-				y + half_height / zoom
+			v00.x,
+			v00.y,
+			v11.x,
+			v11.y
 		};
 	}
 

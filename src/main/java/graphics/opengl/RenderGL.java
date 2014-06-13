@@ -13,6 +13,7 @@ import org.lwjgl.util.glu.GLU;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.BufferUtils;
 
+import bio.organisms.AbstractOrganism;
 import bio.organisms.SimpleCircleOrganism;
 
 import applet.Config;
@@ -97,19 +98,13 @@ public class RenderGL {
 		pOrganisms.use();
 		{
 			glBindVertexArray(organisms_vao);
-			float[] coordinates = new float[]{
-				0f, 0f, 0f,
-				20f, 10f, 1f,
-				10f, -10f, 2f
-			};
 			camera.projection(width, height).store(mat4x4);
 			mat4x4.flip();
 			pOrganisms.setUniformMat4("projection", mat4x4);
-			for(int o=0; o<coordinates.length / 3; ++o){
-				int i = 3*o;
-				modelMatrix(coordinates[i], coordinates[i+1], 0f, mat4x4);
+			for(AbstractOrganism o : theEnvironment.getInBox(camera.getWorldBounds(width, height))){
+				modelMatrix((float) o.getX(), (float) o.getY(), 0f, mat4x4);
 				pOrganisms.setUniformMat4("model", mat4x4);
-				pOrganisms.setUniformf("energy", coordinates[i+2]);
+				pOrganisms.setUniformf("energy",(float) o.getEnergy());
 				glDrawArrays(GL_LINE_LOOP, 0, Config.instance.getInt("CIRCLE_SUBDIVISIONS"));
 			}
 		}

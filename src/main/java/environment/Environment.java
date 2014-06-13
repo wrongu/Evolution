@@ -139,6 +139,15 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 		return orgs;
 	}
 	
+	public LinkedList<AbstractOrganism> getInBox(float ... bounds) {
+		if(bounds.length != 4) return null;
+		LinkedList<AbstractOrganism> orgs = new LinkedList<AbstractOrganism>();
+		for(Entity o : grid.getInBox(bounds[0], bounds[2], bounds[1], bounds[3])) {
+			orgs.add((AbstractOrganism)o);
+		}
+		return orgs;
+	}
+	
 	public int getOrganismCount(){
 		return grid.getCount();
 	}
