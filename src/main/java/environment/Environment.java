@@ -57,7 +57,9 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 	}
 
 	public void update(){
-		System.out.println("Tick #: " + tickNumber + " Organism count: " + grid.getCount());
+		boolean debug = tickNumber % 100 == 0;
+		if(debug)
+			System.out.println("Tick #: " + tickNumber + " Organism count: " + grid.getCount());
 
 		double dt = TIME_STEP;
 		
@@ -78,11 +80,20 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 				o.print_energy_stats();
 			}
 		}
-		
+		// debugging
+		double avg_energy = 0.0;
+		int n_org = 0;
 		// first, process inputs and prepare outputs
 		for(AbstractOrganism o : grid) {
 				o.thinkAndAct();
+				if(debug){
+					n_org++;
+					avg_energy += o.getEnergy();
+				}
 		}
+
+		if(debug)
+			System.out.println("Average energy: " + (avg_energy / (double) n_org));
 
 		// second (before real physics update), check for collisions
 		// TODO faster than O(o^2) collision checks
