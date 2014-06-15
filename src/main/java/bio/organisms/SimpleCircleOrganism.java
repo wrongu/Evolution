@@ -89,36 +89,6 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 
 	@Override
-	public void glDraw(){
-		
-		float g = (float)energy;
-		float r = 1-g;
-		glColor4f(r, g, 0f, 1.0f);
-		double[] pos = body.getPos();
-		double[] d = body.getDir();
-		double tail = TAIL_LENGTH_PER_SPEED*Math.max(body.getSpeed(),0);
-		glBegin(GL_QUADS);
-		{
-			glVertex2d(pos[0] + 2*d[0], pos[1] + 2*d[1]);
-			glVertex2d(pos[0] + 2*d[1], pos[1] - 2*d[0]);
-			glVertex2d(pos[0] - 2*(tail + 1)*d[0], pos[1] - 2*(tail + 1)*d[1]);
-			glVertex2d(pos[0] - 2*d[1], pos[1] + 2*d[0]);
-		}
-		glEnd();
-		int n = (int)(range*DRAW_SMOOTHNESS);
-		double t = 2*Math.PI/(double)n;
-		glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-		glBegin(GL_LINES);
-		{
-			for(int i = 0; i < n; i++) {
-				glVertex2d(pos[0] + range*Math.cos(i*t), pos[1] + range*Math.sin(i*t) );
-				glVertex2d(pos[0] + range*Math.cos((i+1)*t), pos[1] + range*Math.sin((i+1)*t));
-			}
-		}
-		glEnd();
-	}
-
-	@Override
 	public void preUpdatePhysics() {
 		// nothing to be done since VeryTinyCar handles it all
 	}

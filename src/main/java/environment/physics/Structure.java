@@ -2,9 +2,8 @@ package environment.physics;
 
 import environment.Environment;
 import graphics.IDrawable;
-import graphics.opengl.IDrawableGL;
 
-public abstract class Structure implements IDrawable, IDrawableGL {
+public abstract class Structure implements IDrawable {
 	
 	/**
 	 * Subclasses should override this constant if they require energy to move

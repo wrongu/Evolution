@@ -91,11 +91,6 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	 */
 	public void draw(Graphics2D g, float sx, float sy, float scx, float scy){}
 	
-	/**
-	 * Draw this organism using OpenGL calls. note that scaling and offsets are managed elsewhere
-	 */
-	public void glDraw(){}
-	
 	// TESTING
 	public void print_energy_stats(){
 		double tot = 0.0;

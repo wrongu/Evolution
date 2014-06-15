@@ -1,7 +1,6 @@
 package environment;
 
 import graphics.IDrawable;
-import graphics.opengl.IDrawableGL;
 
 import java.awt.Graphics2D;
 import java.util.Iterator;
@@ -14,7 +13,7 @@ import applet.Config;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.Entity;
 
-public abstract class Environment implements IDrawable, IDrawableGL {
+public abstract class Environment implements IDrawable {
 
 	public static enum Topology {INFINITE, TORUS, SPHERE};
 	private static final double TIME_STEP = Config.instance.getDouble("DT_TIMESTEP"); // must be held constant for deterministic simulation
@@ -116,13 +115,6 @@ public abstract class Environment implements IDrawable, IDrawableGL {
 	public void draw(Graphics2D g, float sx, float sy, float scx, float scy) {
 		for(AbstractOrganism o : grid)
 				o.draw(g, sx, sy, scx, scy);
-	}
-
-	public void glDraw() {
-		// TODO - draw some sort of background?
-		// TODO - ONLY RENDER THOSE ORGANISMS IN THE VIEWING BOX USING grid.getInBox(...)!
-		for(AbstractOrganism o : grid)
-			o.glDraw();
 	}
 
 	/**

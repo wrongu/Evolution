@@ -133,9 +133,4 @@ public class Joint extends Structure {
 	
 	@Override
 	public double getEPMS() {return ENERGY_PER_MUSCLE_STRENGTH;}
-
-	public void glDraw() {
-		// opengl drawing
-		// currently, joints are not rendered as anything
-	}
 }

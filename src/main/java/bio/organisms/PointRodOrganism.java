@@ -84,12 +84,6 @@ public class PointRodOrganism extends AbstractOrganism {
 		for(Rod r : rods)
 			r.draw(g, sx, sy, scx, scy);
 	}
-
-	@Override
-	public void glDraw() {
-		for(Rod r : rods) r.glDraw();
-		for(PointMass p : pointmasses) p.glDraw();
-	}
 	
 	public void addAllPointMasses(List<PointMass> add){
 		for(PointMass pm : add) pointmasses.add(pm);

@@ -229,18 +229,4 @@ public class PointMass extends PhysicalObject {
 		
 		return true;
 	}
-	
-	public void glDraw() {
-		int n = (int)radius;
-		
-		glColor4f(0.5f, 0.8f, 1.0f, 1.0f);
-		glBegin(GL_LINES);
-		{
-			for(int i = 0; i < n; i++) {
-				glVertex2d(pos.x + radius*Math.cos(2*Math.PI*i/(double)n), pos.y + radius*Math.sin(2*Math.PI*i/(double)n));
-				glVertex2d(pos.x + radius*Math.cos(2*Math.PI*(i+1)/(double)n), pos.y + radius*Math.sin(2*Math.PI*(i+1)/(double)n));
-			}
-		}
-		glEnd();
-	}
 }

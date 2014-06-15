@@ -51,17 +51,6 @@ public class Rod extends Structure {
 			//System.out.println("Draw rod ("+x1+", "+y1+"), ("+x2+", "+y2+")");
 		}
 	}
-
-	public void glDraw() {
-		// opengl render
-		glColor4f(0f, 0.4f, 1.0f, 1.0f);
-		glBegin(GL_LINES);
-		{
-			glVertex2d(points[0].getPosX(), points[0].getPosY());
-			glVertex2d(points[1].getPosX(), points[1].getPosY());
-		}
-		glEnd();
-	}
 	
 	/**
 	 * apply viscosity to pointmasses connected to this rod.
