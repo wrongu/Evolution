@@ -30,9 +30,6 @@ public class RandomFoodEnvironment extends Environment {
 		// this means that the environment will always be the same for a given seed,
 		// independent of how many nextRandom() calls preceed it
 		this.generator = new PerlinGenerator(perlin_octaves, perlin_scale, Config.instance.getLong("SEED"));
-		for(int i = 0; i < 100; i++) {
-			grid.add(new SimpleCircleOrganism(this, 1.0, (getRandom().nextDouble() - 0.5)*500, (getRandom().nextDouble() - 0.5)*500));
-		}
 	}
 	
 	public IGenerator getGenerator(){
@@ -61,7 +58,7 @@ public class RandomFoodEnvironment extends Environment {
 		}
 	}
 	
-	private void spawnRandomOrganism() {
+	public void spawnRandomOrganism() {
 		if(grid.getCount() == 0) {
 			next_organisms.add(new SimpleCircleOrganism(this, 1.0, (getRandom().nextDouble() - 0.5)*SPAWN_RADIUS, (getRandom().nextDouble() - 0.5)*SPAWN_RADIUS));
 		} else {

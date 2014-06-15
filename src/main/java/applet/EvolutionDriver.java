@@ -57,15 +57,8 @@ public class EvolutionDriver implements Runnable {
 			env = new RandomFoodEnvironment(Config.instance.getDouble("ENV_FOOD"), Config.instance.getLong("SEED"));
 			// INITIAL POPULATION
 			int population = Config.instance.getInt("POPULATION");
-			String organism_type = Config.instance.getString("ORGANISM_TYPE");
-			for(int i=0; i<population; i++){
-				double x = 60. * Math.cos(2*Math.PI*i/population);
-				double y = 60. * Math.sin(2*Math.PI*i/population);
-				if(organism_type.equals("SimpleCircleOrganism"))
-					env.addOrganism(new SimpleCircleOrganism(env, 100.0, x, y));
-				else
-					System.err.println("invalid organism type: " + organism_type);
-			}		
+			for(int i=0; i<population; i++)
+				((RandomFoodEnvironment) env).spawnRandomOrganism();
 		} else if(type.equals("TestEnvironment")){
 			env = new TestEnvironment(Config.instance.getLong("SEED"), false);
 			((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);
