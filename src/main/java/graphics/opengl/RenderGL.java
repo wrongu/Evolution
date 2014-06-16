@@ -195,19 +195,21 @@ public class RenderGL {
 		
 		glBindVertexArray(organisms_vao);
 		// static circle attribute
-		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
+		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(attrLocVertex, 2, GL_FLOAT, false, 8, 0);
 		// instanced organisms attributes
-		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, organism_instances_vbo);
 		int stride = 4 * n_instance_attributes; // 4 is the number of bytes in a float
 		// set up instanced position attribute
+		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(attrLocPosition, 2, GL_FLOAT, false, stride, 0);
 		glVertexAttribDivisorARB(attrLocPosition, 1);
 		// set up instanced energy attribute (note offset of 8 since x and y take up 4 bytes each)
+		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(attrLocEnergy, 1, GL_FLOAT, false, stride, 8);
 		glVertexAttribDivisorARB(attrLocEnergy, 1);
+		
 		exitOnGLError("Shader compilation");
 	}
 
