@@ -42,9 +42,10 @@ public class RenderGL {
 	// allocate once
 	FloatBuffer mat4x4;
 	
-	// specific buffers
-	int screenquad_vbo, screenquad_vao;
-	int organism_shell_vbo, organisms_vao;
+	// static buffers
+	int screenquad_vbo, circle_vbo, kite_vbo;
+	// Vertex Array Objects (VAOs)
+	int screenquad_vao, circle_vao, kite_vao;
 	
 	// Shaders and programs
 	Program pPerlin, pOrganisms;
@@ -97,7 +98,7 @@ public class RenderGL {
 		pPerlin.unuse();
 		pOrganisms.use();
 		{
-			glBindVertexArray(organisms_vao);
+			glBindVertexArray(circle_vao);
 			camera.projection(width, height).store(mat4x4);
 			mat4x4.flip();
 			pOrganisms.setUniformMat4("projection", mat4x4);
@@ -205,7 +206,7 @@ public class RenderGL {
 		///////////////
 		// ORGANISMS //
 		///////////////
-		organism_shell_vbo = glGenBuffers();
+		circle_vbo = glGenBuffers();
 		int subdivisions = Config.instance.getInt("CIRCLE_SUBDIVISIONS");
 		FloatBuffer orgo_shell = BufferUtils.createFloatBuffer(2*subdivisions);
 		float w = (float) SimpleCircleOrganism.DEFAULT_RANGE / 2f;
@@ -215,13 +216,13 @@ public class RenderGL {
 			orgo_shell.put(w * (float) Math.sin(angle)); // y
 		}
 		orgo_shell.flip();
-		glBindBuffer(GL_ARRAY_BUFFER, organism_shell_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
 		glBufferData(GL_ARRAY_BUFFER, orgo_shell, GL_STATIC_DRAW);
 		
-		organisms_vao = glGenVertexArrays();
-		glBindVertexArray(organisms_vao);
+		circle_vao = glGenVertexArrays();
+		glBindVertexArray(circle_vao);
 		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, organism_shell_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
 	}
 
