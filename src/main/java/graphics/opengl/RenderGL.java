@@ -42,10 +42,12 @@ public class RenderGL {
 	// allocate once
 	FloatBuffer mat4x4;
 	
-	// static buffers
+	// static vertex buffers (VBOs/meshes)
 	int screenquad_vbo, circle_vbo, kite_vbo;
 	// Vertex Array Objects (VAOs)
 	int screenquad_vao, circle_vao, kite_vao;
+	// uniform buffers (UBOs)
+	int organism_instances_ubo;
 	
 	// Shaders and programs
 	Program pPerlin, pOrganisms;
@@ -150,7 +152,7 @@ public class RenderGL {
 	}
 
 	private void initGLShaders(){
-		pPerlin = Program.createProgram("shaders/screenToWorld.vert", "shaders/perlin.frag");
+		pPerlin = Program.createProgram("shaders/vert_screenToWorld.glsl", "shaders/frag_perlin.glsl");
 		// set uniforms
 		pPerlin.use();
 		{
@@ -175,7 +177,7 @@ public class RenderGL {
 		}
 		pPerlin.unuse();
 		
-		pOrganisms = Program.createProgram("shaders/worldToScreen.vert", "shaders/energyColor.frag");
+		pOrganisms = Program.createProgram("shaders/vert_worldToScreen.glsl", "shaders/frag_energyColor.glsl");
 		exitOnGLError("Shader compilation");
 	}
 
