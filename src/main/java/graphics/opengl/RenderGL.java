@@ -187,10 +187,13 @@ public class RenderGL {
 	}
 
 	private void initVBOs() {
-		// make some buffers
+		// make some vertex arrays and vertex buffers
+		screenquad_vao = glGenVertexArrays();
 		screenquad_vbo = glGenBuffers();
-		circle_vbo = glGenBuffers();
+		organisms_vao = glGenVertexArrays();
 		organism_instances_vbo = glGenBuffers();
+		circle_vbo = glGenBuffers();
+		kite_vao = glGenVertexArrays();
 		kite_vbo = glGenBuffers();
 		
 		/////////////////
@@ -278,10 +281,6 @@ public class RenderGL {
 	}
 
 	private void initVAOs() {
-		// make some vertex arrays
-		screenquad_vao = glGenVertexArrays();
-		organisms_vao = glGenVertexArrays();
-		kite_vao = glGenVertexArrays();
 		
 		////////////////
 		// SCREENQUAD //
