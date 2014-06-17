@@ -184,7 +184,7 @@ public class RenderGL {
 		}
 		pPerlin.unuse();
 		
-		pOrganisms = Program.createProgram("shaders/vert_worldToScreen.glsl", "shaders/frag_energyColor.glsl");
+		pOrganisms = Program.createProgram("shaders/vert_organism.glsl", "shaders/frag_energyCircle.glsl");
 		exitOnGLError("Shader compilation");
 	}
 
@@ -233,6 +233,12 @@ public class RenderGL {
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
+		
+		////////////////////
+		// UNIFORM BUFFER //
+		////////////////////
+		
+		organism_instances_ubo = glGenBuffers();
 	}
 
 	public void destroy(){
