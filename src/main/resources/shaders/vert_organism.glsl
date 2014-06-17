@@ -1,13 +1,17 @@
 #version 150
 
-uniform mat4 projection;
-uniform mat4 model;
+uniform mat4 projection; // camera projection from world to screen
+in vec2 vertex; // mesh vertex
 
-in vec2 vp;
+uniform instanceBlock { // block of uniforms to be buffered for multiple organisms (instead of instancing)
+	vec2 center;  // center x,y of organism
+	float energy; // energy of organism
+};
 
-out vec2 world_coordinate;
+// energy mapped from [0,inf) to [0,1)
+out float norm_energy;
 
 void main(){
-	world_coordinate = vp.xy;
-	gl_Position = projection * model * vec4(vp, 0.0, 1.0);
+	norm_energy = 1 - exp(-energy);
+	gl_Position = projection * vec4(vertex + center, 0.0, 1.0);
 }

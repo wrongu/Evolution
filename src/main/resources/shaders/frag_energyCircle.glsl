@@ -1,10 +1,11 @@
 #version 150
 
-uniform float energy;
-in vec2 world_coordinate;
+in float norm_energy;
+
 out vec4 frag_color;
 
 void main(){
-	float energy_0_1 = 1 - exp(-energy);
-	frag_color = vec4(1-energy_0_1, energy_0_1, 0.0, 1.0);
+	// norm_energy = 0 --> red
+	// norm_energy = 1 --> green
+	frag_color = vec4(1-norm_energy, norm_energy, 0.0, 1.0);
 }

@@ -1,8 +1,11 @@
 package graphics.opengl;
 
 import java.awt.Canvas;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.LinkedList;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.ContextAttribs;
@@ -24,7 +27,6 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL31.*;
-import static org.lwjgl.opengl.GL32.*;
 
 import environment.Environment;
 import environment.RandomFoodEnvironment;
@@ -39,21 +41,24 @@ public class RenderGL {
 	private boolean[] keyboard;
 	private int[] mouse_buttons;
 	private double camera_sensitivity;
-	boolean fbo_enabled;
 	
 	// allocate once
-	FloatBuffer mat4x4;
+	private FloatBuffer mat4x4;
 	
 	// static vertex buffers (VBOs/meshes)
-	int screenquad_vbo, circle_vbo, kite_vbo;
+	private int screenquad_vbo, circle_vbo, kite_vbo;
 	// Vertex Array Objects (VAOs)
-	int screenquad_vao, circle_vao, kite_vao;
+	private int screenquad_vao, circle_vao, kite_vao;
 	// uniform buffers (UBOs)
-	int organism_instances_ubo;
+	private int organism_instance_ubo;
+	private int ubo_stride = 12, ubo_binding = 0;
 	
 	// Shaders and programs
-	Program pPerlin, pOrganisms;
-	int perlin_lookup_tex;
+	private Program pPerlin, pOrganisms;
+	private int perlin_lookup_tex;
+	
+	// other constants
+	private final int CIRCLE_DIVISIONS = Config.instance.getInt("CIRCLE_SUBDIVISIONS");
 
 	public RenderGL(Canvas canvas, Environment env, int w, int h){
 		// set up panel with respect to the evolution app
@@ -107,15 +112,23 @@ public class RenderGL {
 		camera.projection(width, height).store(mat4x4);
 		mat4x4.flip();
 		
+		// get all organisms to render (all that are within the camera's bounding box)
+		LinkedList<AbstractOrganism> onscreen_organisms = theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)));
+		
 		pOrganisms.use();
 		{
 			glBindVertexArray(circle_vao);
 			pOrganisms.setUniformMat4("projection", mat4x4);
-			for(AbstractOrganism o : theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)))){
-				modelMatrix((float) o.getX(), (float) o.getY(), 0f, mat4x4);
-				pOrganisms.setUniformMat4("model", mat4x4);
-				pOrganisms.setUniformf("energy",(float) o.getEnergy());
-				glDrawArrays(GL_LINE_LOOP, 0, Config.instance.getInt("CIRCLE_SUBDIVISIONS"));
+			// populate ubo with organism instance values
+			glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
+			FloatBuffer instance_data = ByteBuffer.allocateDirect(ubo_stride).order(ByteOrder.nativeOrder()).asFloatBuffer();
+			for(AbstractOrganism o : onscreen_organisms){
+				instance_data.put((float) o.getX());
+				instance_data.put((float) o.getY());
+				instance_data.put((float) o.getEnergy());
+				instance_data.flip();
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, instance_data);
+				glDrawArrays(GL_LINE_LOOP, 0, CIRCLE_DIVISIONS);
 			}
 		}
 		pOrganisms.unuse();
@@ -150,49 +163,28 @@ public class RenderGL {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		// background clear color is black
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		// initialize GL buffers
-		initGLBuffers();
+		// initialize buffers
+		initBuffers();
 		// load and compile shaders
-		initGLShaders();
+		initShaders();
+		// create and populate textures
+		initTextures();
+		// initialize VAOs (must have shaders and buffers ready first)
+		initVAOs();
 		// necessary if using FBOs/textures
 		glEnable(GL_TEXTURE_2D);
 	}
 
-	private void initGLShaders(){
-		pPerlin = Program.createProgram("shaders/vert_screenToWorld.glsl", "shaders/frag_perlin.glsl");
-		// set uniforms
-		pPerlin.use();
-		{
-			RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
-			PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
-			pPerlin.setUniformi("octaves", pg.getOctaves());
-			pPerlin.setUniformf("t_size",  (float) PerlinGenerator.TABLE_SIZE);
-			pPerlin.setUniformf("scale", (float) pg.getScale());
-			pPerlin.setUniformi("table", 0); // using GL_TEXTURE0
-			FloatBuffer table = BufferUtils.createFloatBuffer(PerlinGenerator.TABLE_SIZE);
-			table.put(pg.getTableNormalized()); table.flip();
-			// create perlin lookup texture
-			perlin_lookup_tex = glGenTextures();
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
-			// the use of GL_RED here is basically saying that there is only 1 channel of data (as opposed to RGB which has 3)
-			glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_FLOAT, table);
-			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		}
-		pPerlin.unuse();
+	private void initBuffers() {
+		// reserve space for buffers
+		screenquad_vbo = glGenBuffers();
+		circle_vbo = glGenBuffers();
+		kite_vbo = glGenBuffers();
+		organism_instance_ubo = glGenBuffers();
 		
-		pOrganisms = Program.createProgram("shaders/vert_organism.glsl", "shaders/frag_energyCircle.glsl");
-		exitOnGLError("Shader compilation");
-	}
-
-	private void initGLBuffers() {
 		/////////////////
 		// SCREEN-QUAD //
 		/////////////////
-		screenquad_vbo = glGenBuffers();
 		FloatBuffer screen_corners = BufferUtils.createFloatBuffer(12);
 		screen_corners.put(new float[]{
 				-1.0f, -1.0f,
@@ -206,39 +198,105 @@ public class RenderGL {
 		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
 		glBufferData(GL_ARRAY_BUFFER, screen_corners, GL_STATIC_DRAW);
 		
-		screenquad_vao = glGenVertexArrays();
-		glBindVertexArray(screenquad_vao);
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
-		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
+		////////////
+		// CIRCLE //
+		////////////
 		
-		///////////////
-		// ORGANISMS //
-		///////////////
-		circle_vbo = glGenBuffers();
-		int subdivisions = Config.instance.getInt("CIRCLE_SUBDIVISIONS");
-		FloatBuffer orgo_shell = BufferUtils.createFloatBuffer(2*subdivisions);
+		FloatBuffer orgo_shell = BufferUtils.createFloatBuffer(2*CIRCLE_DIVISIONS);
 		float w = (float) SimpleCircleOrganism.DEFAULT_RANGE / 2f;
-		for(int i=0; i<subdivisions; i++){
-			double angle = i * 2d * Math.PI / subdivisions;
+		for(int i=0; i<CIRCLE_DIVISIONS; i++){
+			double angle = i * 2d * Math.PI / CIRCLE_DIVISIONS;
 			orgo_shell.put(w * (float) Math.cos(angle)); // x
 			orgo_shell.put(w * (float) Math.sin(angle)); // y
 		}
 		orgo_shell.flip();
 		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
 		glBufferData(GL_ARRAY_BUFFER, orgo_shell, GL_STATIC_DRAW);
+	
+		//////////
+		// KITE //
+		//////////
 		
+		// TODO
+		
+		///////////////////
+		// ORGO INSTANCE //
+		///////////////////
+		
+		glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
+		// glBufferData allocates space, so that later we can repopulate with glBufferSubData
+		glBufferData(GL_UNIFORM_BUFFER, ubo_stride, GL_STREAM_DRAW);
+	}
+
+	private void initShaders(){
+		pPerlin = Program.createProgram("shaders/vert_screenToWorld.glsl", "shaders/frag_perlin.glsl");
+		// set uniforms (setting here rather than in redraw() since they won't change)
+		pPerlin.use();
+		{
+			RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
+			PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
+			pPerlin.setUniformi("octaves", pg.getOctaves());
+			pPerlin.setUniformf("t_size",  (float) PerlinGenerator.TABLE_SIZE);
+			pPerlin.setUniformf("scale", (float) pg.getScale());
+			pPerlin.setUniformi("table", 0); // using GL_TEXTURE0
+		}
+		pPerlin.unuse();
+		
+		pOrganisms = Program.createProgram("shaders/vert_organism.glsl", "shaders/frag_energyCircle.glsl");
+		exitOnGLError("Shader compilation");
+	}
+	
+	private void initTextures(){
+		RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
+		PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
+		FloatBuffer table = BufferUtils.createFloatBuffer(PerlinGenerator.TABLE_SIZE);
+		table.put(pg.getTableNormalized()); table.flip();
+		// create perlin lookup texture
+		perlin_lookup_tex = glGenTextures();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
+		// the use of GL_RED here is basically saying that there is only 1 channel of data (as opposed to RGB which has 3)
+		glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_FLOAT, table);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+
+	private void initVAOs() {
+		// reserve space for VAOs
+		screenquad_vao = glGenVertexArrays();
 		circle_vao = glGenVertexArrays();
+		kite_vao = glGenVertexArrays();
+		
+		/////////////////////////
+		// SCREENQUAD BINDINGS //
+		/////////////////////////
+		
+		glBindVertexArray(screenquad_vao);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
+		
+		/////////////////////
+		// CIRCLE BINDINGS //
+		/////////////////////
+		
 		glBindVertexArray(circle_vao);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
-		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
 		
-		////////////////////
-		// UNIFORM BUFFER //
-		////////////////////
+		int attrLocVertex = pOrganisms.getAttribute("vertex");
+		glVertexAttribPointer(attrLocVertex, 2, GL_FLOAT, false, 8, 0);
 		
-		organism_instances_ubo = glGenBuffers();
+		pOrganisms.bindUniformBlock("instanceBlock", organism_instance_ubo, ubo_binding);
+		glBindBufferBase(GL_UNIFORM_BUFFER, ubo_binding, organism_instance_ubo);
+		
+		///////////////////
+		// KITE BINDINGS //
+		///////////////////
+		
+		// TODO
 	}
 
 	public void destroy(){
@@ -249,7 +307,7 @@ public class RenderGL {
 		if(circle_vbo != 0) glDeleteBuffers(circle_vbo);
 		if(kite_vao != 0) glDeleteVertexArrays(kite_vao);
 		if(kite_vbo != 0) glDeleteBuffers(kite_vbo);
-		if(organism_instances_ubo != 0) glDeleteBuffers(organism_instances_ubo);
+		if(organism_instance_ubo != 0) glDeleteBuffers(organism_instance_ubo);
 		if(perlin_lookup_tex != 0) glDeleteTextures(perlin_lookup_tex);
 		if(pPerlin != null) pPerlin.destroy();
 		if(pOrganisms != null) pOrganisms.destroy();
