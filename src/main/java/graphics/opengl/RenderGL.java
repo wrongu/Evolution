@@ -23,6 +23,8 @@ import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL31.*;
+import static org.lwjgl.opengl.GL32.*;
 
 import environment.Environment;
 import environment.RandomFoodEnvironment;
@@ -82,11 +84,13 @@ public class RenderGL {
 	public synchronized void redraw(){
 		clearAll();
 		camera.ease();
+		
 		// in case screen size changed
 		width = Display.getWidth();
 		height = Display.getHeight();
 		glViewport(0, 0, width, height);
-		// start drawing new frame
+		
+		// draw environment background
 		pPerlin.use();
 		{
 			glBindVertexArray(screenquad_vao);
@@ -98,11 +102,14 @@ public class RenderGL {
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		pPerlin.unuse();
+		
+		// calculate camera updates
+		camera.projection(width, height).store(mat4x4);
+		mat4x4.flip();
+		
 		pOrganisms.use();
 		{
 			glBindVertexArray(circle_vao);
-			camera.projection(width, height).store(mat4x4);
-			mat4x4.flip();
 			pOrganisms.setUniformMat4("projection", mat4x4);
 			for(AbstractOrganism o : theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)))){
 				modelMatrix((float) o.getX(), (float) o.getY(), 0f, mat4x4);
@@ -232,8 +239,14 @@ public class RenderGL {
 		// clean up opengl state
 		if(screenquad_vao != 0) glDeleteVertexArrays(screenquad_vao);
 		if(screenquad_vbo != 0) glDeleteBuffers(screenquad_vbo);
+		if(circle_vao != 0) glDeleteVertexArrays(circle_vao);
+		if(circle_vbo != 0) glDeleteBuffers(circle_vbo);
+		if(kite_vao != 0) glDeleteVertexArrays(kite_vao);
+		if(kite_vbo != 0) glDeleteBuffers(kite_vbo);
+		if(organism_instances_ubo != 0) glDeleteBuffers(organism_instances_ubo);
 		if(perlin_lookup_tex != 0) glDeleteTextures(perlin_lookup_tex);
 		if(pPerlin != null) pPerlin.destroy();
+		if(pOrganisms != null) pOrganisms.destroy();
 		// destroy lwjgl display
 		Display.destroy();
 	}
