@@ -16,6 +16,8 @@ import environment.Environment;
 
 public abstract class AbstractOrganism extends Entity implements IGeneCarrier<AbstractOrganism, Object>{
 	
+	private static final double FEEDING_CONSTANT = 1/Config.instance.getDouble("FEEDING_CURVATURE");
+	
 	protected Gene<? extends AbstractOrganism> gene;
 	protected IBrain brain;
 	protected List<ISense> senses;
@@ -45,10 +47,11 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	
 	public void feed(double food_energy){
 		assert(food_energy >= 0.0);
-		this.energy += food_energy;
-		if(Double.isNaN(food_energy) || Double.isInfinite(food_energy)){
-			System.out.println(Double.isNaN(food_energy) ? "FOOD NAN" : "FOOD INF");
-		}
+		double curveDeriv = FEEDING_CONSTANT/(this.energy/2 + FEEDING_CONSTANT);
+		this.energy += curveDeriv*food_energy;
+//		if(Double.isNaN(food_energy) || Double.isInfinite(food_energy)){
+//			System.out.println(Double.isNaN(food_energy) ? "FOOD NAN" : "FOOD INF");
+//		}
 	}
 	
 	public final void thinkAndAct(){

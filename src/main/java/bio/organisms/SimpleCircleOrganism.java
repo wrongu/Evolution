@@ -188,7 +188,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 		@Override
 		protected void sub_act(double energy) {
-			if(energy > MITOSIS_THRESHOLD){
+			if(energy > MITOSIS_THRESHOLD && energy > ENERGY_ON_DEATH){
 				System.out.println("mitosis: "+energy);
 				env.addOrganism(beget(env, null));
 			}
