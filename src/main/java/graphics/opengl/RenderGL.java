@@ -7,6 +7,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.LinkedList;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
@@ -51,10 +53,10 @@ public class RenderGL {
 	private int screenquad_vao, circle_vao, kite_vao;
 	// uniform buffers (UBOs)
 	private int organism_instance_ubo;
-	private int ubo_stride = 12, ubo_binding = 0;
+	private int ubo_circle_stride = 12, ubo_kite_stride = 16, ubo_binding = 0;
 	
 	// Shaders and programs
-	private Program pPerlin, pOrganisms;
+	private Program pPerlin, pOrgoCircle, pOrgoKite;
 	private int perlin_lookup_tex;
 	
 	// other constants
@@ -114,14 +116,34 @@ public class RenderGL {
 		
 		// get all organisms to render (all that are within the camera's bounding box)
 		LinkedList<AbstractOrganism> onscreen_organisms = theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)));
-		
-		pOrganisms.use();
+	
+		pOrgoKite.use();
 		{
-			glBindVertexArray(circle_vao);
-			pOrganisms.setUniformMat4("projection", mat4x4);
+			glBindVertexArray(kite_vao);
+			pOrgoKite.setUniformMat4("projection", mat4x4);
 			// populate ubo with organism instance values
 			glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
-			FloatBuffer instance_data = ByteBuffer.allocateDirect(ubo_stride).order(ByteOrder.nativeOrder()).asFloatBuffer();
+			FloatBuffer instance_data = ByteBuffer.allocateDirect(ubo_kite_stride).order(ByteOrder.nativeOrder()).asFloatBuffer();
+			for(AbstractOrganism o : onscreen_organisms){
+				SimpleCircleOrganism sco = (SimpleCircleOrganism) o;
+				instance_data.put((float) o.getX());
+				instance_data.put((float) o.getY());
+				instance_data.put((float) sco.getVX());
+				instance_data.put((float) sco.getVY());
+				instance_data.flip();
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, instance_data);
+				glDrawArrays(GL_TRIANGLES, 0, CIRCLE_DIVISIONS);
+			}
+		}
+		pOrgoKite.unuse();
+		
+		pOrgoCircle.use();
+		{
+			glBindVertexArray(circle_vao);
+			pOrgoCircle.setUniformMat4("projection", mat4x4);
+			// populate ubo with organism instance values
+			glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
+			FloatBuffer instance_data = ByteBuffer.allocateDirect(ubo_circle_stride).order(ByteOrder.nativeOrder()).asFloatBuffer();
 			for(AbstractOrganism o : onscreen_organisms){
 				instance_data.put((float) o.getX());
 				instance_data.put((float) o.getY());
@@ -131,7 +153,7 @@ public class RenderGL {
 				glDrawArrays(GL_LINE_LOOP, 0, CIRCLE_DIVISIONS);
 			}
 		}
-		pOrganisms.unuse();
+		pOrgoCircle.unuse();
 		// update the display (i.e. swap buffers, etc)
 		Display.update();
 	}
@@ -202,22 +224,35 @@ public class RenderGL {
 		// CIRCLE //
 		////////////
 		
-		FloatBuffer orgo_shell = BufferUtils.createFloatBuffer(2*CIRCLE_DIVISIONS);
+		FloatBuffer circle_mesh = BufferUtils.createFloatBuffer(2*CIRCLE_DIVISIONS);
 		float w = (float) SimpleCircleOrganism.DEFAULT_RANGE / 2f;
 		for(int i=0; i<CIRCLE_DIVISIONS; i++){
 			double angle = i * 2d * Math.PI / CIRCLE_DIVISIONS;
-			orgo_shell.put(w * (float) Math.cos(angle)); // x
-			orgo_shell.put(w * (float) Math.sin(angle)); // y
+			circle_mesh.put(w * (float) Math.cos(angle)); // x
+			circle_mesh.put(w * (float) Math.sin(angle)); // y
 		}
-		orgo_shell.flip();
+		circle_mesh.flip();
 		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
-		glBufferData(GL_ARRAY_BUFFER, orgo_shell, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, circle_mesh, GL_STATIC_DRAW);
 	
 		//////////
 		// KITE //
 		//////////
 		
-		// TODO
+		float k = Config.instance.getFloat("KITE_SIZE");
+		float t = Config.instance.getFloat("KITE_TAIL");
+		FloatBuffer kite_mesh = BufferUtils.createFloatBuffer(18);
+		kite_mesh.put(new float[]{
+			 k,  0f, 0f,
+			 0f, k,  0f,
+			-k,  0f, t,
+			-k,  0f, t,
+			 0f,-k,  0f,
+			 k,  0f, 0f
+		});
+		kite_mesh.flip();
+		glBindBuffer(GL_ARRAY_BUFFER, kite_vbo);
+		glBufferData(GL_ARRAY_BUFFER, kite_mesh, GL_STATIC_DRAW);
 		
 		///////////////////
 		// ORGO INSTANCE //
@@ -225,7 +260,7 @@ public class RenderGL {
 		
 		glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
 		// glBufferData allocates space, so that later we can repopulate with glBufferSubData
-		glBufferData(GL_UNIFORM_BUFFER, ubo_stride, GL_STREAM_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, Math.max(ubo_circle_stride, ubo_kite_stride), GL_STREAM_DRAW);
 	}
 
 	private void initShaders(){
@@ -242,7 +277,8 @@ public class RenderGL {
 		}
 		pPerlin.unuse();
 		
-		pOrganisms = Program.createProgram("shaders/vert_organism.glsl", "shaders/frag_energyCircle.glsl");
+		pOrgoCircle = Program.createProgram("shaders/vert_organism.glsl", "shaders/frag_energyCircle.glsl");
+		pOrgoKite   = Program.createProgram("shaders/vert_kite.glsl", "shaders/frag_kite.glsl");
 		exitOnGLError("Shader compilation");
 	}
 	
@@ -286,17 +322,24 @@ public class RenderGL {
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
 		
-		int attrLocVertex = pOrganisms.getAttribute("vertex");
+		int attrLocVertex = pOrgoCircle.getAttribute("vertex");
 		glVertexAttribPointer(attrLocVertex, 2, GL_FLOAT, false, 8, 0);
 		
-		pOrganisms.bindUniformBlock("instanceBlock", organism_instance_ubo, ubo_binding);
+		pOrgoCircle.bindUniformBlock("instanceBlock", organism_instance_ubo, ubo_binding);
 		glBindBufferBase(GL_UNIFORM_BUFFER, ubo_binding, organism_instance_ubo);
 		
 		///////////////////
 		// KITE BINDINGS //
 		///////////////////
 		
-		// TODO
+		glBindVertexArray(kite_vao);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, kite_vbo);
+		int attrLocVertex2 = pOrgoKite.getAttribute("vertex");
+		glVertexAttribPointer(attrLocVertex2, 3, GL_FLOAT, false, 12, 0);
+		
+		pOrgoKite.bindUniformBlock("instanceBlock", organism_instance_ubo, ubo_binding);
+		glBindBufferBase(GL_UNIFORM_BUFFER, ubo_binding, organism_instance_ubo);
 	}
 
 	public void destroy(){
@@ -310,7 +353,8 @@ public class RenderGL {
 		if(organism_instance_ubo != 0) glDeleteBuffers(organism_instance_ubo);
 		if(perlin_lookup_tex != 0) glDeleteTextures(perlin_lookup_tex);
 		if(pPerlin != null) pPerlin.destroy();
-		if(pOrganisms != null) pOrganisms.destroy();
+		if(pOrgoCircle != null) pOrgoCircle.destroy();
+		if(pOrgoKite != null) pOrgoKite.destroy();
 		// destroy lwjgl display
 		Display.destroy();
 	}

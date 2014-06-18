@@ -116,6 +116,14 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public double getY() {
 		return body.getPosY();
 	}
+	
+	public double getVX(){
+		return body.getVelX();
+	}
+	
+	public double getVY(){
+		return body.getVelY();
+	}
 
 	// SENSES
 	private class Listen implements ISense{
