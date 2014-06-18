@@ -1,9 +1,9 @@
 package graphics.opengl;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL31.*;
 
 import java.nio.FloatBuffer;
 
@@ -100,6 +100,25 @@ public class Program {
 				break;
 			}
 		}
+	}
+	
+	public void bindUniformBlock(String blockName, int buffer, int bindTo){
+		// get the block id
+		int block_id = glGetUniformBlockIndex(glId, blockName);
+		if(block_id == GL_INVALID_INDEX){
+			System.err.println("No Uniform Block '"+blockName+"'");
+			return;
+		}
+		// bind uniform block to the 'bindTo' port
+		glUniformBlockBinding(glId, block_id, bindTo);
+		// bind the buffer to the same port
+		glBindBufferBase(GL_UNIFORM_BUFFER, bindTo, buffer);
+		// congratulations. your buffer and uniform block are now connected
+	}
+	
+	public int getUniformBlockStride(String blockName){
+		int block_id = glGetUniformBlockIndex(glId, blockName);
+		return glGetActiveUniforms(glId, block_id, GL_UNIFORM_ARRAY_STRIDE);
 	}
 	
 	public void setUniformMat4(String name, FloatBuffer values){

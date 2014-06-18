@@ -26,6 +26,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public static final double CHATTER_RANGE = Config.instance.getDouble("SCO_CHATTER_RANGE");
 	public static final double ENERGY_PER_ATTACK = Config.instance.getDouble("SCO_ENERGY_PER_ATTACK");
 	public static final double MITOSIS_THRESHOLD = Config.instance.getDouble("SCO_MITOSIS_THRESHOLD");
+	public static final double ENERGY_ON_DEATH = Config.instance.getDouble("SCO_ENERGY_ON_DEATH");
 
 	// Action strengths.
 	public static final double OOMPH_STRENGTH = Config.instance.getDouble("SCO_OOMPH_STRENGTH");
@@ -61,18 +62,19 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 
 	public AbstractOrganism beget(Environment e, Object o) {
-		this.useEnergy(this.energy / 2.0, "Child Split");
-		AbstractOrganism child = new SimpleCircleOrganism(env, energy, body.getPosX(), body.getPosY());
+		this.useEnergy((this.energy + ENERGY_ON_DEATH)/2, "Child Split");
+		AbstractOrganism child = new SimpleCircleOrganism(env, (this.energy - ENERGY_ON_DEATH)/2, x, y);
 		child.brain = brain.beget(e, child);
+		this.age = 0;
 		return child;
 	}
 
 	protected List<ISense> createSenses(){
-		return Arrays.asList(new Listen(), new SpeedSense(), new TurnSense(), new EnergySense());
+		return Arrays.asList(/*new Listen(),*/ new SpeedSense(), new TurnSense(), new EnergySense());
 	}
 
 	protected List<IOutput> createOutputs(){
-		return Arrays.asList(new Accelerate(), new Twist(DIRECTION.CW), new Twist(DIRECTION.CCW)/*,new Mitosis(), new Chatter()*/);
+		return Arrays.asList(new Accelerate(), new Twist(DIRECTION.CW), new Twist(DIRECTION.CCW), new Attack(), new Mitosis() /*,new Chatter()*/);
 	}
 
 	@Override
@@ -96,6 +98,8 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	@Override
 	public void updatePhysics(double dt) {
 		this.body.update(dt);
+		x = body.getPosX();
+		y = body.getPosY();
 	}
 
 	@Override
@@ -109,12 +113,12 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		this.body.addForce(new double[]{fx, fy});
 	}
 
-	public double getX() {
-		return body.getPosX();
+	public double getVX(){
+		return body.getVelX();
 	}
-
-	public double getY() {
-		return body.getPosY();
+	
+	public double getVY(){
+		return body.getVelY();
 	}
 
 	// SENSES
@@ -185,7 +189,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		}
 		@Override
 		protected void sub_act(double energy) {
-			if(energy > MITOSIS_THRESHOLD){
+			if(energy > MITOSIS_THRESHOLD && energy > ENERGY_ON_DEATH){
 				System.out.println("mitosis: "+energy);
 				env.addOrganism(beget(env, null));
 			}
@@ -204,9 +208,21 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		public Attack() {
 			super(SimpleCircleOrganism.this, ENERGY_PER_ATTACK, "Attack");
 		}
-		@Override
+		@Override // Naive implementation:
 		protected void sub_act(double energy) {
-			// TODO
+			// Iterate through all organisms in the disk.
+			for(AbstractOrganism o : env.getInDisk(x, y, DEFAULT_RANGE)) {
+				SimpleCircleOrganism sco = (SimpleCircleOrganism)o;
+				// Skip over itself and dead organisms.
+				if(sco == SimpleCircleOrganism.this || !sco.is_alive()) {
+					continue;
+				}
+				double damage = energy*ATTACK_STRENGTH/ENERGY_PER_ATTACK;
+				sco.useEnergy(damage,"ATTACK_DAMAGE");
+				if(!sco.is_alive()) {
+					SimpleCircleOrganism.this.feed(ENERGY_ON_DEATH);
+				}
+			}
 		}
 	}
 

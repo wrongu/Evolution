@@ -60,6 +60,7 @@ public class Camera {
 	 * @return [xmin ymin xmax ymax] of visible space
 	 */
 	public float[] getWorldBounds(float viewport_width, float viewport_height){
+		// TODO calculate directly what this would be, instead of doing matrix multiplication
 		Vector4f v00 = new Vector4f(-1f, -1f, 0f, 1f);
 		Vector4f v11 = new Vector4f( 1f,  1f, 0f, 1f);
 		Matrix4f invProj = this.inverse_projection(viewport_width, viewport_height);
