@@ -10,7 +10,7 @@ out float f_energy;
 
 void main(){
 	// map from [0, inf) to [0,1)
-	f_energy = 1 - exp(-energy);
+	f_energy = 1 - exp(energy);
 	vec2 offset = vertex + position;
 	gl_Position = projection * vec4(offset, 0.0, 1.0);
 }
