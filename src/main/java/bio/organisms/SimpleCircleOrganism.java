@@ -114,14 +114,6 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public double getY() {
 		return body.getPosY();
 	}
-	
-	public double getSpeed(){
-		return body.getSpeed();
-	}
-	
-	public double getDirection(){
-		return Math.atan2(body.getDirY(), body.getDirX());
-	}
 
 	// SENSES
 	private class Listen implements ISense{
