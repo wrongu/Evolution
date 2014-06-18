@@ -16,8 +16,8 @@ public class RandomFoodEnvironment extends Environment {
 
 	private IGenerator generator;
 	private double food_energy;
-	private static final double SPAWN_RATE = Config.instance.getDouble("SPAWN_RATE");
-	private static final double SPAWN_RADIUS = Config.instance.getDouble("SPAWN_RADIUS");
+	private static final double SPAWN_RATE = 0.01;
+	private static final double SPAWN_RADIUS = 50;
 
 	private double food_radius = 2*SimpleCircleOrganism.DEFAULT_RANGE;
 	

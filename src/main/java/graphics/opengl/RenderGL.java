@@ -3,7 +3,6 @@ package graphics.opengl;
 import java.awt.Canvas;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.LinkedList;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.ContextAttribs;
@@ -24,8 +23,6 @@ import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.ARBInstancedArrays.*;
-import static org.lwjgl.opengl.ARBDrawInstanced.*;
 
 import environment.Environment;
 import environment.RandomFoodEnvironment;
@@ -43,19 +40,15 @@ public class RenderGL {
 	boolean fbo_enabled;
 	
 	// allocate once
-	private FloatBuffer mat4x4;
+	FloatBuffer mat4x4;
 	
 	// specific buffers
-	private int screenquad_vbo, screenquad_vao;
-	private int circle_vbo, organism_instances_vbo, organisms_vao;
-	private int n_instance_attributes = 3; // x, y, energy
+	int screenquad_vbo, screenquad_vao;
+	int organism_shell_vbo, organisms_vao;
 	
 	// Shaders and programs
-	private Program pPerlin, pOrganisms;
-	private int perlin_lookup_tex;
-	
-	// drawin circles
-	private final int CIRCLE_DIVISIONS = Config.instance.getInt("CIRCLE_SUBDIVISIONS");
+	Program pPerlin, pOrganisms;
+	int perlin_lookup_tex;
 
 	public RenderGL(Canvas canvas, Environment env, int w, int h){
 		// set up panel with respect to the evolution app
@@ -108,19 +101,12 @@ public class RenderGL {
 			camera.projection(width, height).store(mat4x4);
 			mat4x4.flip();
 			pOrganisms.setUniformMat4("projection", mat4x4);
-			// create organisms' instance data
-			LinkedList<AbstractOrganism> onscreen_organisms = theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)));
-			int n_organisms = onscreen_organisms.size();
-			FloatBuffer attribute_buffer = BufferUtils.createFloatBuffer(n_instance_attributes * n_organisms);
-			for(AbstractOrganism o : onscreen_organisms){
-				attribute_buffer.put((float) o.getX());
-				attribute_buffer.put((float) o.getY());
-				attribute_buffer.put((float) o.getEnergy());
+			for(AbstractOrganism o : theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)))){
+				modelMatrix((float) o.getX(), (float) o.getY(), 0f, mat4x4);
+				pOrganisms.setUniformMat4("model", mat4x4);
+				pOrganisms.setUniformf("energy",(float) o.getEnergy());
+				glDrawArrays(GL_LINE_LOOP, 0, Config.instance.getInt("CIRCLE_SUBDIVISIONS"));
 			}
-			attribute_buffer.flip();
-			glBindBuffer(GL_ARRAY_BUFFER, organism_instances_vbo);
-			glBufferData(GL_ARRAY_BUFFER, attribute_buffer, GL_DYNAMIC_DRAW);
-			glDrawArraysInstancedARB(GL_LINE_LOOP, 0, CIRCLE_DIVISIONS, n_organisms);
 		}
 		pOrganisms.unuse();
 		// update the display (i.e. swap buffers, etc)
@@ -188,41 +174,15 @@ public class RenderGL {
 		}
 		pPerlin.unuse();
 		
-		pOrganisms = Program.createProgram("shaders/organism.vert", "shaders/organism.frag");
-		int attrLocVertex   = pOrganisms.getAttribute("vertex");
-		int attrLocEnergy   = pOrganisms.getAttribute("energy");
-		int attrLocPosition = pOrganisms.getAttribute("position");
-		
-		glBindVertexArray(organisms_vao);
-		// static circle attribute
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
-		glVertexAttribPointer(attrLocVertex, 2, GL_FLOAT, false, 8, 0);
-		// instanced organisms attributes
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, organism_instances_vbo);
-		int stride = 4 * n_instance_attributes; // 4 is the number of bytes in a float
-		// set up instanced position attribute
-		glVertexAttribPointer(attrLocPosition, 2, GL_FLOAT, false, stride, 0);
-		glVertexAttribDivisorARB(attrLocPosition, 1);
-		// set up instanced energy attribute (note offset of 8 since x and y take up 4 bytes each)
-		glVertexAttribPointer(attrLocEnergy, 1, GL_FLOAT, false, stride, 8);
-		glVertexAttribDivisorARB(attrLocEnergy, 1);
+		pOrganisms = Program.createProgram("shaders/worldToScreen.vert", "shaders/energyColor.frag");
 		exitOnGLError("Shader compilation");
 	}
 
 	private void initGLBuffers() {
-		// make some buffers
-		screenquad_vbo = glGenBuffers();
-		circle_vbo = glGenBuffers();
-		organism_instances_vbo = glGenBuffers();
-		// make some vertex arrays
-		screenquad_vao = glGenVertexArrays();
-		organisms_vao = glGenVertexArrays();
-		
 		/////////////////
 		// SCREEN-QUAD //
 		/////////////////
+		screenquad_vbo = glGenBuffers();
 		FloatBuffer screen_corners = BufferUtils.createFloatBuffer(12);
 		screen_corners.put(new float[]{
 				-1.0f, -1.0f,
@@ -236,6 +196,7 @@ public class RenderGL {
 		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
 		glBufferData(GL_ARRAY_BUFFER, screen_corners, GL_STATIC_DRAW);
 		
+		screenquad_vao = glGenVertexArrays();
 		glBindVertexArray(screenquad_vao);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
@@ -244,25 +205,30 @@ public class RenderGL {
 		///////////////
 		// ORGANISMS //
 		///////////////
-		FloatBuffer circle_points = BufferUtils.createFloatBuffer(2*CIRCLE_DIVISIONS);
+		organism_shell_vbo = glGenBuffers();
+		int subdivisions = Config.instance.getInt("CIRCLE_SUBDIVISIONS");
+		FloatBuffer orgo_shell = BufferUtils.createFloatBuffer(2*subdivisions);
 		float w = (float) SimpleCircleOrganism.DEFAULT_RANGE / 2f;
-		for(int i=0; i<CIRCLE_DIVISIONS; i++){
-			double angle = i * 2d * Math.PI / (double) CIRCLE_DIVISIONS;
-			circle_points.put(w * (float) Math.cos(angle)); // x
-			circle_points.put(w * (float) Math.sin(angle)); // y
+		for(int i=0; i<subdivisions; i++){
+			double angle = i * 2d * Math.PI / subdivisions;
+			orgo_shell.put(w * (float) Math.cos(angle)); // x
+			orgo_shell.put(w * (float) Math.sin(angle)); // y
 		}
-		circle_points.flip();
-		glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
-		glBufferData(GL_ARRAY_BUFFER, circle_points, GL_STATIC_DRAW);
+		orgo_shell.flip();
+		glBindBuffer(GL_ARRAY_BUFFER, organism_shell_vbo);
+		glBufferData(GL_ARRAY_BUFFER, orgo_shell, GL_STATIC_DRAW);
+		
+		organisms_vao = glGenVertexArrays();
+		glBindVertexArray(organisms_vao);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, organism_shell_vbo);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, 0);
 	}
 
 	public void destroy(){
 		// clean up opengl state
-		if(screenquad_vbo != 0) glDeleteBuffers(screenquad_vbo);
-		if(organism_instances_vbo != 0) glDeleteBuffers(organism_instances_vbo);
-		if(circle_vbo != 0) glDeleteBuffers(circle_vbo);
 		if(screenquad_vao != 0) glDeleteVertexArrays(screenquad_vao);
-		if(organisms_vao != 0) glDeleteVertexArrays(organisms_vao);
+		if(screenquad_vbo != 0) glDeleteBuffers(screenquad_vbo);
 		if(perlin_lookup_tex != 0) glDeleteTextures(perlin_lookup_tex);
 		if(pPerlin != null) pPerlin.destroy();
 		// destroy lwjgl display
