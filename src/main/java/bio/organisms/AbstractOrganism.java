@@ -17,6 +17,8 @@ import environment.Environment;
 public abstract class AbstractOrganism extends Entity implements IGeneCarrier<AbstractOrganism, Object>{
 	
 	private static final double FEEDING_CONSTANT = 1/Config.instance.getDouble("FEEDING_CURVATURE");
+	private static final double AGING_LATENCY = Config.instance.getDouble("AGING_LATENCY");
+	private static final double AGING_SPEED = Config.instance.getDouble("AGING_SPEED");
 	
 	protected Gene<? extends AbstractOrganism> gene;
 	protected IBrain brain;
@@ -24,6 +26,7 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	protected List<IOutput> outputs;
 	protected double energy;
 	protected Environment env;
+	protected int age;
 	
 	// debug/tune
 	private HashMap<String, Double> energy_drains;
@@ -40,6 +43,7 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 		energy_drains = new HashMap<String, Double>();
 		this.x = x;
 		this.y = y;
+		this.age = 0;
 	}
 	
 	protected abstract List<ISense> createSenses();
@@ -48,10 +52,8 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	public void feed(double food_energy){
 		assert(food_energy >= 0.0);
 		double curveDeriv = FEEDING_CONSTANT/(this.energy/2 + FEEDING_CONSTANT);
-		this.energy += curveDeriv*food_energy;
-//		if(Double.isNaN(food_energy) || Double.isInfinite(food_energy)){
-//			System.out.println(Double.isNaN(food_energy) ? "FOOD NAN" : "FOOD INF");
-//		}
+		double ageMult = age > AGING_LATENCY ? 1/(AGING_SPEED*(age - AGING_LATENCY) + 1) : 1;
+		this.energy += curveDeriv*ageMult*food_energy;
 	}
 	
 	public final void thinkAndAct(){
@@ -65,6 +67,7 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 			for(int o = 0; o < this.outputs.size(); o++)
 				this.outputs.get(o).act(this.brain.getOutput(o));
 		}
+		age++;
 	}
 	
 	/**
