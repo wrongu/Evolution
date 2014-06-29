@@ -16,7 +16,7 @@ import environment.Environment;
 
 public abstract class AbstractOrganism extends Entity implements IGeneCarrier<AbstractOrganism, Object>{
 	
-	private static final double FEEDING_CONSTANT = 1/Config.instance.getDouble("FEEDING_CURVATURE");
+	private static final double FEEDING_CONSTANT = 1.0/Config.instance.getDouble("FEEDING_CURVATURE");
 	private static final double AGING_LATENCY = Config.instance.getDouble("AGING_LATENCY");
 	private static final double AGING_SPEED = Config.instance.getDouble("AGING_SPEED");
 	
@@ -52,7 +52,7 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	public void feed(double food_energy){
 		assert(food_energy >= 0.0);
 		double curveDeriv = FEEDING_CONSTANT/(this.energy/2 + FEEDING_CONSTANT);
-		double ageMult = age > AGING_LATENCY ? 1/(AGING_SPEED*(age - AGING_LATENCY) + 1) : 1;
+		double ageMult = age > AGING_LATENCY ? 1.0/(AGING_SPEED*(age - AGING_LATENCY) + 1.0) : 1.0;
 		this.energy += curveDeriv*ageMult*food_energy;
 	}
 	

@@ -60,7 +60,7 @@ public class RandomFoodEnvironment extends Environment {
 	
 	public void spawnRandomOrganism() {
 		if(grid.getCount() == 0) {
-			next_organisms.add(new SimpleCircleOrganism(this, 1.0, (getRandom().nextDouble() - 0.5)*SPAWN_RADIUS, (getRandom().nextDouble() - 0.5)*SPAWN_RADIUS));
+			next_organisms.add(new SimpleCircleOrganism(this, Config.instance.getDouble("INIT_ENERGY"), (getRandom().nextDouble() - 0.5)*SPAWN_RADIUS, (getRandom().nextDouble() - 0.5)*SPAWN_RADIUS));
 		} else {
 			int n = this.getRandom().nextInt(grid.getCount());
 			for(AbstractOrganism o : grid) {
