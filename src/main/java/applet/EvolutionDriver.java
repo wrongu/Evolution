@@ -17,8 +17,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
-import bio.organisms.SimpleCircleOrganism;
-
 public class EvolutionDriver implements Runnable {
 
 	public static final int APPLET_WIDTH = 800, APPLET_HEIGHT = 600;

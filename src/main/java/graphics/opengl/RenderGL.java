@@ -7,8 +7,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.LinkedList;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
-
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
@@ -48,19 +46,20 @@ public class RenderGL {
 	private FloatBuffer mat4x4;
 	
 	// static vertex buffers (VBOs/meshes)
-	private int screenquad_vbo, circle_vbo, kite_vbo;
+	private int screenquad_vbo, circle_vbo, kite_vbo, spike_vbo;
 	// Vertex Array Objects (VAOs)
-	private int screenquad_vao, circle_vao, kite_vao;
+	private int screenquad_vao, circle_vao, kite_vao, spike_vao;
 	// uniform buffers (UBOs)
 	private int organism_instance_ubo;
-	private int ubo_circle_stride = 12, ubo_kite_stride = 16, ubo_binding = 0;
+	private int ubo_circle_stride = 12, ubo_scale_anim_stride = 16, ubo_binding = 0;
 	
 	// Shaders and programs
-	private Program pPerlin, pOrgoCircle, pOrgoKite;
+	private Program pPerlin, pOrgoCircle, pOrgoColorAnimate;
 	private int perlin_lookup_tex;
 	
 	// other constants
 	private final int CIRCLE_DIVISIONS = Config.instance.getInt("CIRCLE_SUBDIVISIONS");
+	private final int ATTACK_SPIKES = Config.instance.getInt("ATTACK_SPIKES");
 
 	public RenderGL(Canvas canvas, Environment env, int w, int h){
 		// set up panel with respect to the evolution app
@@ -117,26 +116,54 @@ public class RenderGL {
 		// get all organisms to render (all that are within the camera's bounding box)
 		LinkedList<AbstractOrganism> onscreen_organisms = theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)));
 	
-		pOrgoKite.use();
+		// draw kites
+		pOrgoColorAnimate.use();
 		{
+			pOrgoColorAnimate.setUniformf("rgb", 0.2f, 0.2f, 0.9f);
 			glBindVertexArray(kite_vao);
-			pOrgoKite.setUniformMat4("projection", mat4x4);
-			// populate ubo with organism instance values
+			pOrgoColorAnimate.setUniformMat4("projection", mat4x4);
+//			// populate ubo with organism instance values
 			glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
-			FloatBuffer instance_data = ByteBuffer.allocateDirect(ubo_kite_stride).order(ByteOrder.nativeOrder()).asFloatBuffer();
+			FloatBuffer instance_data = ByteBuffer.allocateDirect(ubo_scale_anim_stride).order(ByteOrder.nativeOrder()).asFloatBuffer();
 			for(AbstractOrganism o : onscreen_organisms){
 				SimpleCircleOrganism sco = (SimpleCircleOrganism) o;
+				float dir = (float) Math.atan2(sco.getVY(), sco.getVX());
 				instance_data.put((float) o.getX());
 				instance_data.put((float) o.getY());
-				instance_data.put((float) sco.getVX());
-				instance_data.put((float) sco.getVY());
+				instance_data.put(dir);
+				instance_data.put((float) sco.getSpeed());
 				instance_data.flip();
 				glBufferSubData(GL_UNIFORM_BUFFER, 0, instance_data);
 				glDrawArrays(GL_TRIANGLES, 0, CIRCLE_DIVISIONS);
 			}
 		}
-		pOrgoKite.unuse();
+		pOrgoColorAnimate.unuse();
 		
+		// draw spikes
+		pOrgoColorAnimate.use();
+		{
+			pOrgoColorAnimate.setUniformf("rgb", 1f, 1f, 0f);
+			glBindVertexArray(spike_vao);
+			pOrgoColorAnimate.setUniformMat4("projection", mat4x4);
+//			// populate ubo with organism instance values
+			glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
+			FloatBuffer instance_data = ByteBuffer.allocateDirect(ubo_scale_anim_stride).order(ByteOrder.nativeOrder()).asFloatBuffer();
+			for(AbstractOrganism o : onscreen_organisms){
+				SimpleCircleOrganism sco = (SimpleCircleOrganism) o;
+				float dir = (float) Math.atan2(sco.getVY(), sco.getVX());
+				instance_data.put((float) o.getX());
+				instance_data.put((float) o.getY());
+//				instance_data.put(0f);
+				instance_data.put(dir);
+				instance_data.put((float) o.getBrainOutput("Attack"));
+				instance_data.flip();
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, instance_data);
+				glDrawArrays(GL_LINES, 0, 2*ATTACK_SPIKES);
+			}
+		}
+		pOrgoColorAnimate.unuse();
+		
+		// draw circles
 		pOrgoCircle.use();
 		{
 			glBindVertexArray(circle_vao);
@@ -202,6 +229,7 @@ public class RenderGL {
 		screenquad_vbo = glGenBuffers();
 		circle_vbo = glGenBuffers();
 		kite_vbo = glGenBuffers();
+		spike_vbo = glGenBuffers();
 		organism_instance_ubo = glGenBuffers();
 		
 		/////////////////
@@ -254,13 +282,33 @@ public class RenderGL {
 		glBindBuffer(GL_ARRAY_BUFFER, kite_vbo);
 		glBufferData(GL_ARRAY_BUFFER, kite_mesh, GL_STATIC_DRAW);
 		
+		////////////
+		// SPIKES //
+		////////////
+		
+		FloatBuffer spike_mesh = BufferUtils.createFloatBuffer(6*ATTACK_SPIKES);
+		for(int i=0; i<ATTACK_SPIKES; ++i){
+			double angle = i * 2d * Math.PI / ATTACK_SPIKES;
+			// inner coordinates
+			spike_mesh.put(w * (float) Math.cos(angle)); // x
+			spike_mesh.put(w * (float) Math.sin(angle)); // y
+			spike_mesh.put(0f); // 0 scale effect
+			// outer coordinates
+			spike_mesh.put(w * (float) Math.cos(angle)); // x
+			spike_mesh.put(w * (float) Math.sin(angle)); // y
+			spike_mesh.put(0.5f); // 0.5x scale effect (0.5*w length at full attack strength)
+		}
+		spike_mesh.flip();
+		glBindBuffer(GL_ARRAY_BUFFER, spike_vbo);
+		glBufferData(GL_ARRAY_BUFFER, spike_mesh, GL_STATIC_DRAW);
+		
 		///////////////////
 		// ORGO INSTANCE //
 		///////////////////
 		
 		glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
 		// glBufferData allocates space, so that later we can repopulate with glBufferSubData
-		glBufferData(GL_UNIFORM_BUFFER, Math.max(ubo_circle_stride, ubo_kite_stride), GL_STREAM_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, Math.max(ubo_circle_stride, ubo_scale_anim_stride), GL_STREAM_DRAW);
 	}
 
 	private void initShaders(){
@@ -278,7 +326,8 @@ public class RenderGL {
 		pPerlin.unuse();
 		
 		pOrgoCircle = Program.createProgram("shaders/vert_organism.glsl", "shaders/frag_energyCircle.glsl");
-		pOrgoKite   = Program.createProgram("shaders/vert_kite.glsl", "shaders/frag_kite.glsl");
+		pOrgoColorAnimate   = Program.createProgram("shaders/vert_animate_scale.glsl", "shaders/frag_rgb.glsl");
+		
 		exitOnGLError("Shader compilation");
 	}
 	
@@ -304,6 +353,7 @@ public class RenderGL {
 		screenquad_vao = glGenVertexArrays();
 		circle_vao = glGenVertexArrays();
 		kite_vao = glGenVertexArrays();
+		spike_vao = glGenVertexArrays();
 		
 		/////////////////////////
 		// SCREENQUAD BINDINGS //
@@ -331,14 +381,26 @@ public class RenderGL {
 		///////////////////
 		// KITE BINDINGS //
 		///////////////////
+		int attrLocMesh = pOrgoColorAnimate.getAttribute("mesh");
 		
 		glBindVertexArray(kite_vao);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, kite_vbo);
-		int attrLocVertex2 = pOrgoKite.getAttribute("vertex");
-		glVertexAttribPointer(attrLocVertex2, 3, GL_FLOAT, false, 12, 0);
+		glVertexAttribPointer(attrLocMesh, 3, GL_FLOAT, false, 12, 0);
 		
-		pOrgoKite.bindUniformBlock("instanceBlock", organism_instance_ubo, ubo_binding);
+		pOrgoColorAnimate.bindUniformBlock("effectInstance", organism_instance_ubo, ubo_binding);
+		glBindBufferBase(GL_UNIFORM_BUFFER, ubo_binding, organism_instance_ubo);
+		
+		////////////////////
+		// SPIKE BINDINGS //
+		////////////////////
+		
+		glBindVertexArray(spike_vao);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, spike_vbo);
+		glVertexAttribPointer(attrLocMesh, 3, GL_FLOAT, false, 12, 0);
+		
+		pOrgoColorAnimate.bindUniformBlock("effectInstance", organism_instance_ubo, ubo_binding);
 		glBindBufferBase(GL_UNIFORM_BUFFER, ubo_binding, organism_instance_ubo);
 	}
 
@@ -350,11 +412,13 @@ public class RenderGL {
 		if(circle_vbo != 0) glDeleteBuffers(circle_vbo);
 		if(kite_vao != 0) glDeleteVertexArrays(kite_vao);
 		if(kite_vbo != 0) glDeleteBuffers(kite_vbo);
+		if(spike_vao != 0) glDeleteBuffers(spike_vao);
+		if(spike_vbo != 0) glDeleteBuffers(spike_vbo);
 		if(organism_instance_ubo != 0) glDeleteBuffers(organism_instance_ubo);
 		if(perlin_lookup_tex != 0) glDeleteTextures(perlin_lookup_tex);
 		if(pPerlin != null) pPerlin.destroy();
 		if(pOrgoCircle != null) pOrgoCircle.destroy();
-		if(pOrgoKite != null) pOrgoKite.destroy();
+		if(pOrgoColorAnimate != null) pOrgoColorAnimate.destroy();
 		// destroy lwjgl display
 		Display.destroy();
 	}

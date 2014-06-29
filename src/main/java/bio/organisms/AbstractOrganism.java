@@ -139,4 +139,18 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 		return this.energy;
 	}
 	
+	public int getBrainOutputId(String output_name){
+		int i=0;
+		for(IOutput out : this.outputs){
+			if(out.getClass().getSimpleName().equals(output_name))
+				return i;
+			i++;
+		}
+		return -1;
+	}
+	
+	public double getBrainOutput(String output_name){
+		return this.brain.getOutput(this.getBrainOutputId(output_name));
+	}
+	
 }

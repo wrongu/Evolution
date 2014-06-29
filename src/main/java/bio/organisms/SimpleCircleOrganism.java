@@ -11,8 +11,6 @@ import bio.organisms.brain.ISense;
 import bio.organisms.brain.IOutput;
 import environment.Environment;
 import environment.physics.VeryTinyCar;
-// DRAWING
-import static org.lwjgl.opengl.GL11.*;
 
 public class SimpleCircleOrganism extends AbstractOrganism {
 
@@ -43,8 +41,6 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 
 	// Graphics
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
-	private static final double DRAW_SMOOTHNESS = 10;
-	private static final double TAIL_LENGTH_PER_SPEED = 0.3;
 
 	// Turning directions
 	private static enum DIRECTION {CW, CCW};
@@ -224,6 +220,9 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 				}
 			}
 		}
+	}
+	public double getSpeed() {
+		return body.getSpeed();
 	}
 
 }
