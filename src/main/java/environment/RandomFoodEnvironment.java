@@ -1,8 +1,12 @@
 package environment;
 
+import java.util.Arrays;
+
 import applet.Config;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.SimpleCircleOrganism;
+import bio.organisms.brain.actions.Accelerate;
+import bio.organisms.brain.actions.Turn;
 import environment.generators.IGenerator;
 import environment.generators.PerlinGenerator;
 
@@ -71,5 +75,14 @@ public class RandomFoodEnvironment extends Environment {
 			}
 		}
 		
+	}
+
+	@Override
+	protected void initSensesAndActions() {
+		// make action and sense systems
+		sense_systems = Arrays.asList();
+		action_systems = Arrays.asList(
+				new Accelerate(this, 0),
+				new Turn(this, 1));
 	}
 }

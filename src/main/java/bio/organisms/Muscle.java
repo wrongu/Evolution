@@ -1,6 +1,7 @@
 package bio.organisms;
 
-import bio.organisms.brain.IOutput;
+import bio.organisms.brain.ActionSystem;
+import environment.Environment;
 import environment.physics.Structure;
 
 /**
@@ -8,7 +9,7 @@ import environment.physics.Structure;
  * @author wrongu
  *
  */
-public class Muscle extends IOutput{
+public class Muscle extends ActionSystem{
 	
 	/** each muscle acts to drive a structural element (A Rod or a Joint) */
 	private Structure struct;

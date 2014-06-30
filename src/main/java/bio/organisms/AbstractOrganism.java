@@ -2,7 +2,6 @@ package bio.organisms;
 
 import java.awt.Graphics2D;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map.Entry;
 
 import applet.Config;
@@ -10,8 +9,6 @@ import bio.genetics.Gene;
 import bio.genetics.IGeneCarrier;
 import bio.organisms.brain.BrainFactory;
 import bio.organisms.brain.IBrain;
-import bio.organisms.brain.IOutput;
-import bio.organisms.brain.ISense;
 import environment.Environment;
 
 public abstract class AbstractOrganism extends Entity implements IGeneCarrier<AbstractOrganism, Object>{
@@ -22,8 +19,6 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	
 	protected Gene<? extends AbstractOrganism> gene;
 	protected IBrain brain;
-	protected List<ISense> senses;
-	protected List<IOutput> outputs;
 	protected double energy;
 	protected Environment env;
 	protected int age;
@@ -37,17 +32,12 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 		this.energy = init_energy;
 		this.gene = gene;
 		this.env = e;
-		this.senses = this.createSenses();
-		this.outputs = this.createOutputs();
-		this.brain = BrainFactory.newBrain(Config.instance.getString("BRAIN_TYPE"), senses.size(), outputs.size(), this, e.getRandom());
+		this.brain = BrainFactory.newBrain(Config.instance.getString("BRAIN_TYPE"), e.sense_systems.size(), e.action_systems.size(), this, e.getRandom());
 		energy_drains = new HashMap<String, Double>();
 		this.x = x;
 		this.y = y;
 		this.age = 0;
 	}
-	
-	protected abstract List<ISense> createSenses();
-	protected abstract List<IOutput> createOutputs();
 	
 	public void feed(double food_energy){
 		assert(food_energy >= 0.0);
@@ -56,16 +46,14 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 		this.energy += curveDeriv*ageMult*food_energy;
 	}
 	
-	public final void thinkAndAct(){
+	public final void tick(){
 		if(this.brain != null){
-			// set inputs
-			for(int s = 0; s < this.senses.size(); s++)
-				this.brain.setInput(s, this.senses.get(s).doSense(env, this));
 			// compute next state
+			// this is potentially confusing because of the way senses and actions
+			// have been refactored to be more like ECS systems, but each organism
+			// still owns its own brain. senses and actions are handled globally
+			// outside this function.
 			this.brain.tick();
-			// set outputs
-			for(int o = 0; o < this.outputs.size(); o++)
-				this.outputs.get(o).act(this.brain.getOutput(o));
 		}
 		age++;
 	}
@@ -139,18 +127,11 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 		return this.energy;
 	}
 	
-	public int getBrainOutputId(String output_name){
-		int i=0;
-		for(IOutput out : this.outputs){
-			if(out.getClass().getSimpleName().equals(output_name))
-				return i;
-			i++;
-		}
-		return -1;
+	public double getBrainOutput(int output_id){
+		return this.brain.getOutput(output_id);
 	}
 	
-	public double getBrainOutput(String output_name){
-		return this.brain.getOutput(this.getBrainOutputId(output_name));
+	public void setBrainInput(int sense_id, double value){
+		this.brain.setInput(sense_id, value);
 	}
-	
 }

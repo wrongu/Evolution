@@ -12,6 +12,8 @@ import utils.grid.Grid;
 import applet.Config;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.Entity;
+import bio.organisms.brain.ActionSystem;
+import bio.organisms.brain.SenseSystem;
 
 public abstract class Environment implements IDrawable {
 
@@ -22,7 +24,6 @@ public abstract class Environment implements IDrawable {
 	private static final int TICKS_PER_EMPTY = Config.instance.getInt("CLEANUP_EVERY");
 
 //	protected List<AbstractOrganism> organisms;
-	// TODO make grid more abstract
 	protected Grid<AbstractOrganism> grid;
 	protected List<AbstractOrganism> next_organisms;
 
@@ -30,6 +31,9 @@ public abstract class Environment implements IDrawable {
 	protected double width, height;
 	protected Random seedRand;
 	private long tickNumber;
+	
+	public List<SenseSystem> sense_systems;
+	public List<? extends ActionSystem> action_systems;
 
 	public static double FRICTION = Config.instance.getDouble("FRICTION");
 	public static double VISCOSITY = Config.instance.getDouble("VISCOSITY");
@@ -45,7 +49,10 @@ public abstract class Environment implements IDrawable {
 		height = h;
 		seedRand = new Random(seed);	
 		tickNumber = 0;
+		initSensesAndActions();
 	}
+	
+	protected abstract void initSensesAndActions();
 	
 	public Random getRandom(){
 		return seedRand;
@@ -81,18 +88,27 @@ public abstract class Environment implements IDrawable {
 		}
 		// debugging
 		double avg_energy = 0.0;
-		int n_org = 0;
-		// first, process inputs and prepare outputs
+		int ogranism_count = 0;
+		
+		// ECS-style input processing
+		for(SenseSystem sense : sense_systems)
+			sense.senseAll();
+		
+		// tick organisms / brains
 		for(AbstractOrganism o : grid) {
-				o.thinkAndAct();
+				o.tick();
 				if(debug){
-					n_org++;
+					ogranism_count++;
 					avg_energy += o.getEnergy();
 				}
 		}
 
 		if(debug)
-			System.out.println("Average energy: " + (avg_energy / (double) n_org));
+			System.out.println("Average energy: " + (avg_energy / (double) ogranism_count));
+		
+		// ECS-style outputs
+		for(ActionSystem act : action_systems)
+			act.performAll(dt);
 
 		// second (before real physics update), check for collisions
 		// TODO faster than O(o^2) collision checks
@@ -117,6 +133,10 @@ public abstract class Environment implements IDrawable {
 				o.draw(g, sx, sy, scx, scy);
 	}
 
+	public Iterable<AbstractOrganism> getAll(){
+		return grid;
+	}
+	
 	/**
 	 * Returns a LinkedList of AbstractOrganisms which are
 	 * within a radius r of (x,y). 
@@ -128,16 +148,16 @@ public abstract class Environment implements IDrawable {
 	 */
 	public LinkedList<AbstractOrganism> getInDisk(double x, double y, double r) {
 		LinkedList<AbstractOrganism> orgs = new LinkedList<AbstractOrganism>();
-		for(Entity o : grid.getInDisk(x,y,r)) {
-			orgs.add((AbstractOrganism)o);
+		for(AbstractOrganism o : grid.getInDisk(x,y,r)) {
+			orgs.add(o);
 		}
 		return orgs;
 	}
 	
 	public LinkedList<AbstractOrganism> getInDiskMut(double x, double y, double r) {
 		LinkedList<AbstractOrganism> orgs = new LinkedList<AbstractOrganism>();
-		for(Entity o : grid.getInDiskMut(x,y,r)) {
-			orgs.add((AbstractOrganism)o);
+		for(AbstractOrganism o : grid.getInDiskMut(x,y,r)) {
+			orgs.add(o);
 		}
 		return orgs;
 	}

@@ -140,28 +140,28 @@ public class RenderGL {
 		pOrgoColorAnimate.unuse();
 		
 		// draw spikes
-		pOrgoColorAnimate.use();
-		{
-			pOrgoColorAnimate.setUniformf("rgb", 1f, 1f, 0f);
-			glBindVertexArray(spike_vao);
-			pOrgoColorAnimate.setUniformMat4("projection", mat4x4);
-//			// populate ubo with organism instance values
-			glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
-			FloatBuffer instance_data = ByteBuffer.allocateDirect(ubo_scale_anim_stride).order(ByteOrder.nativeOrder()).asFloatBuffer();
-			for(AbstractOrganism o : onscreen_organisms){
-				SimpleCircleOrganism sco = (SimpleCircleOrganism) o;
-				float dir = (float) Math.atan2(sco.getVY(), sco.getVX());
-				instance_data.put((float) o.getX());
-				instance_data.put((float) o.getY());
-//				instance_data.put(0f);
-				instance_data.put(dir);
-				instance_data.put((float) o.getBrainOutput("Attack"));
-				instance_data.flip();
-				glBufferSubData(GL_UNIFORM_BUFFER, 0, instance_data);
-				glDrawArrays(GL_LINES, 0, 2*ATTACK_SPIKES);
-			}
-		}
-		pOrgoColorAnimate.unuse();
+//		pOrgoColorAnimate.use();
+//		{
+//			pOrgoColorAnimate.setUniformf("rgb", 1f, 1f, 0f);
+//			glBindVertexArray(spike_vao);
+//			pOrgoColorAnimate.setUniformMat4("projection", mat4x4);
+////			// populate ubo with organism instance values
+//			glBindBuffer(GL_UNIFORM_BUFFER, organism_instance_ubo);
+//			FloatBuffer instance_data = ByteBuffer.allocateDirect(ubo_scale_anim_stride).order(ByteOrder.nativeOrder()).asFloatBuffer();
+//			for(AbstractOrganism o : onscreen_organisms){
+//				SimpleCircleOrganism sco = (SimpleCircleOrganism) o;
+//				float dir = (float) Math.atan2(sco.getVY(), sco.getVX());
+//				instance_data.put((float) o.getX());
+//				instance_data.put((float) o.getY());
+////				instance_data.put(0f);
+//				instance_data.put(dir);
+//				instance_data.put((float) o.getBrainOutput("Attack"));
+//				instance_data.flip();
+//				glBufferSubData(GL_UNIFORM_BUFFER, 0, instance_data);
+//				glDrawArrays(GL_LINES, 0, 2*ATTACK_SPIKES);
+//			}
+//		}
+//		pOrgoColorAnimate.unuse();
 		
 		// draw circles
 		pOrgoCircle.use();
