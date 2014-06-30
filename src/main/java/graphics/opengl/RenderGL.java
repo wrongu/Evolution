@@ -321,6 +321,7 @@ public class RenderGL {
 			pPerlin.setUniformi("octaves", pg.getOctaves());
 			pPerlin.setUniformf("t_size",  (float) PerlinGenerator.TABLE_SIZE);
 			pPerlin.setUniformf("scale", (float) pg.getScale());
+			pPerlin.setUniformf("tau", (float) rfe.getTau());
 			pPerlin.setUniformi("table", 0); // using GL_TEXTURE0
 		}
 		pPerlin.unuse();

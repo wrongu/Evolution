@@ -3,6 +3,7 @@
 uniform int octaves;
 uniform float t_size;
 uniform float scale;
+uniform float tau;
 uniform sampler1D table;
 
 //varying vec2 world_coordinate;
@@ -57,7 +58,9 @@ void main(){
 	}
 	// map from [-1,1] to [0,1]
 	val = (val + max_amp) / (2*max_amp);
-	val = clamp(val, 0.0, 1.0);	
-	val = floor(val * 16.0) / 16.0;
+	val = clamp(val, 0.0, 1.0);
+	float r2 = world_coordinate.x*world_coordinate.x + world_coordinate.y * world_coordinate.y;
+	val = val * exp(-r2/tau);
+	val = floor(val * 32.0) / 32.0;
 	glFragColor = vec4(val, val, val, 1.0);
 }
