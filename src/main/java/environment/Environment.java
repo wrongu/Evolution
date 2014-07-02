@@ -32,7 +32,7 @@ public abstract class Environment implements IDrawable {
 	protected Random seedRand;
 	private long tickNumber;
 	
-	public List<SenseSystem> sense_systems;
+	public List<? extends SenseSystem> sense_systems;
 	public List<? extends ActionSystem> action_systems;
 
 	public static double FRICTION = Config.instance.getDouble("FRICTION");
