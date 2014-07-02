@@ -2,6 +2,9 @@ package bio.organisms;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import applet.Config;
 import environment.Environment;
@@ -19,11 +22,14 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	private VeryTinyCar body;
 	/** the "reach" of the organism for attack, mate, touch, etc. */
 	private double range;
+	private double attack;
+	private HashMap<SimpleCircleOrganism,Double> attackers;
 
 	public SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
 		super(e, null, init_energy, x, y);
 		body = new VeryTinyCar(DEFAULT_MASS, 0.0, x, y, e.getRandom().nextDouble());
 		range = DEFAULT_RANGE;
+		attackers = new HashMap<SimpleCircleOrganism,Double>();
 	}
 
 	public AbstractOrganism beget(Environment e, Object o) {
@@ -93,4 +99,43 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public void addTurn(double dTurn) {
 		body.addTurn(dTurn);
 	}
+	
+	public void setAttackPower(double attackPower) {
+		attack = attackPower;
+	}
+	
+	public double getAttackPower() {
+		return attack;
+	}
+	
+	public void addAttacker(SimpleCircleOrganism attacker, double attackEffect) {
+		attackers.put(attacker,attackEffect);
+	}
+	
+	public SimpleCircleOrganism getGreatestAttacker() {
+		double maxAttack = 0;
+		SimpleCircleOrganism maxAttacker = null;
+		
+		for(Entry<SimpleCircleOrganism,Double> pair : attackers.entrySet()){
+			if(maxAttacker == null || maxAttack < pair.getValue()) {
+				maxAttack = pair.getValue();
+				maxAttacker = pair.getKey();
+			}
+		}
+		
+		return maxAttacker;
+	}
+	
+	public void resolveAttacks() {
+		double damage = 0;
+		for(Double attack : attackers.values()) {
+			damage += attack;
+		}
+		this.useEnergy(damage, "Damage");
+	}
+	
+	public void clearAttackers() {
+		attackers.clear();
+	}
+	
 }

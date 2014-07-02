@@ -6,6 +6,7 @@ import applet.Config;
 import bio.organisms.AbstractOrganism;
 import bio.organisms.SimpleCircleOrganism;
 import bio.organisms.brain.actions.Accelerate;
+import bio.organisms.brain.actions.Attack;
 import bio.organisms.brain.actions.Mitosis;
 import bio.organisms.brain.actions.Turn;
 import bio.organisms.brain.senses.EnergySense;
@@ -102,6 +103,7 @@ public class RandomFoodEnvironment extends Environment {
 				new Accelerate(this, 0),
 				new Turn(this, 1, Turn.Direction.LEFT),
 				new Turn(this, 2, Turn.Direction.RIGHT),
-				new Mitosis(this, 3));
+				new Mitosis(this, 3),
+				new Attack(this, 4));
 	}
 }
