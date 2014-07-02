@@ -20,23 +20,24 @@ import environment.generators.PerlinGenerator;
  */
 public class RandomFoodEnvironment extends Environment {
 
-	private IGenerator generator;
-	private double food_energy;
+	protected IGenerator generator;
+	protected double food_energy;
 	private static final double SPAWN_RATE = 0.01;
 	private static final double SPAWN_RADIUS = 50;
 	private static final double TAPER = Config.instance.getDouble("PERLIN_TAPER");
 
-	private double food_radius = 2*SimpleCircleOrganism.DEFAULT_RANGE;
+	protected double food_radius = 2*SimpleCircleOrganism.DEFAULT_RANGE;
 	
 	public RandomFoodEnvironment(double energy_per_unit_food, long seed){
 		super(seed);
 		this.food_energy = energy_per_unit_food;
+		this.generator = createGenerator(seed);
+	}
+	
+	protected IGenerator createGenerator(long seed){
 		int perlin_octaves = Config.instance.getInt("PERLIN_OCTAVES");
 		double perlin_scale = Config.instance.getDouble("PERLIN_SCALE");
-		// seed Perlin with the same value as the original seed.
-		// this means that the environment will always be the same for a given seed,
-		// independent of how many nextRandom() calls preceed it
-		this.generator = new PerlinGenerator(perlin_octaves, perlin_scale, Config.instance.getLong("SEED"), new PerlinGenerator.Filter() {
+		IGenerator gen = new PerlinGenerator(perlin_octaves, perlin_scale, seed, new PerlinGenerator.Filter() {
 			
 			private double TAU = getTau();
 			
@@ -46,6 +47,7 @@ public class RandomFoodEnvironment extends Environment {
 				return val * Math.exp(-r2/TAU);
 			}
 		});
+		return gen;
 	}
 	
 	public IGenerator getGenerator(){
@@ -57,25 +59,23 @@ public class RandomFoodEnvironment extends Environment {
 	}
 	
 	@Override
-
 	public void update(){
 		super.update();
 
 		for(AbstractOrganism o : grid) {
-			double food = this.generator.terrainValue(o.getX(), o.getY())*food_energy;
-			int numberNearby = grid.getInDisk(o.getX(), o.getY(), food_radius).size();
-//			if(numberNearby == 0) {
-//				System.out.println("WE HAVE PROBREMS:");
-//				o.print_energy_stats();
-//				System.out.println("Coords: x = " + o.getX() + "  y = " + o.getY());
-//			}
-			o.feed(food/numberNearby);
+			feed(o);
 		}
 		
 		// Spawn random organisms
 		if(getRandom().nextDouble() < SPAWN_RATE) {
 			spawnRandomOrganism();
 		}
+	}
+	
+	protected void feed(AbstractOrganism o){
+		double food = this.generator.terrainValue(o.getX(), o.getY())*food_energy;
+		int numberNearby = grid.getInDisk(o.getX(), o.getY(), food_radius).size();
+		o.feed(food/numberNearby);
 	}
 	
 	public void spawnRandomOrganism() {

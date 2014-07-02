@@ -8,6 +8,7 @@ import java.nio.FloatBuffer;
 import environment.Environment;
 import environment.RandomFoodEnvironment;
 import environment.TestEnvironment;
+import environment.TimeVaryingRFE;
 import graphics.opengl.RenderGL;
 
 import javax.swing.JFrame;
@@ -57,6 +58,13 @@ public class EvolutionDriver implements Runnable {
 			int population = Config.instance.getInt("POPULATION");
 			for(int i=0; i<population; i++)
 				((RandomFoodEnvironment) env).spawnRandomOrganism();
+		} else if (type.equals("TimeVaryingRFE")){
+			// initialize everything
+			env = new TimeVaryingRFE(Config.instance.getDouble("ENV_FOOD"), Config.instance.getLong("SEED"));
+			// INITIAL POPULATION
+			int population = Config.instance.getInt("POPULATION");
+			for(int i=0; i<population; i++)
+				((TimeVaryingRFE) env).spawnRandomOrganism();
 		} else if(type.equals("TestEnvironment")){
 			env = new TestEnvironment(Config.instance.getLong("SEED"), false);
 			((TestEnvironment) env).bindInput(mouse_buttons, mouse_move);

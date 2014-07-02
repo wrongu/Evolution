@@ -29,7 +29,7 @@ import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL31.*;
 
 import environment.Environment;
-import environment.RandomFoodEnvironment;
+import environment.TimeVaryingRFE;
 import environment.generators.PerlinGenerator;
 import graphics.Camera;
 
@@ -55,7 +55,7 @@ public class RenderGL {
 	
 	// Shaders and programs
 	private Program pPerlin, pOrgoCircle, pOrgoColorAnimate;
-	private int perlin_lookup_tex;
+	private int perlin_lookup_tex, perlin_next_lookup_tex;
 	
 	// other constants
 	private final int CIRCLE_DIVISIONS = Config.instance.getInt("CIRCLE_SUBDIVISIONS");
@@ -103,8 +103,12 @@ public class RenderGL {
 			camera.inverse_projection(width, height).store(mat4x4);
 			mat4x4.flip();
 			pPerlin.setUniformMat4("inverse_projection", mat4x4);
+			pPerlin.setUniformf("fade", (float) ((TimeVaryingRFE) theEnvironment).getFade());
+			updateTexImages();
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_1D, perlin_next_lookup_tex);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		pPerlin.unuse();
@@ -312,17 +316,18 @@ public class RenderGL {
 	}
 
 	private void initShaders(){
-		pPerlin = Program.createProgram("shaders/vert_screenToWorld.glsl", "shaders/frag_perlin.glsl");
+		pPerlin = Program.createProgram("shaders/vert_screenToWorld.glsl", "shaders/frag_perlin_fade.glsl");
 		// set uniforms (setting here rather than in redraw() since they won't change)
 		pPerlin.use();
 		{
-			RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
+			TimeVaryingRFE rfe = (TimeVaryingRFE) theEnvironment;
 			PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
 			pPerlin.setUniformi("octaves", pg.getOctaves());
 			pPerlin.setUniformf("t_size",  (float) PerlinGenerator.TABLE_SIZE);
 			pPerlin.setUniformf("scale", (float) pg.getScale());
 			pPerlin.setUniformf("tau", (float) rfe.getTau());
-			pPerlin.setUniformi("table", 0); // using GL_TEXTURE0
+			pPerlin.setUniformi("table1", 0); // using GL_TEXTURE0
+			pPerlin.setUniformi("table2", 1); // using GL_TEXTURE1
 		}
 		pPerlin.unuse();
 		
@@ -333,20 +338,37 @@ public class RenderGL {
 	}
 	
 	private void initTextures(){
-		RandomFoodEnvironment rfe = (RandomFoodEnvironment) theEnvironment;
-		PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
-		FloatBuffer table = BufferUtils.createFloatBuffer(PerlinGenerator.TABLE_SIZE);
-		table.put(pg.getTableNormalized()); table.flip();
 		// create perlin lookup texture
 		perlin_lookup_tex = glGenTextures();
+		perlin_next_lookup_tex = glGenTextures();
+		updateTexImages();
+	}
+	
+	// TODO this is just temporary
+	private void updateTexImages(){
+		TimeVaryingRFE rfe = (TimeVaryingRFE) theEnvironment;
+		PerlinGenerator pg = (PerlinGenerator) rfe.getGenerator();
+		PerlinGenerator pg2 = (PerlinGenerator) rfe.getNextGenerator();
+		FloatBuffer table = BufferUtils.createFloatBuffer(PerlinGenerator.TABLE_SIZE);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_1D, perlin_lookup_tex);
+		table.put(pg.getTableNormalized()); table.flip();
 		// the use of GL_RED here is basically saying that there is only 1 channel of data (as opposed to RGB which has 3)
 		glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_FLOAT, table);
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		// make second texture for fading
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_1D, perlin_next_lookup_tex);
+		table.put(pg2.getTableNormalized()); table.flip();
+		glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, PerlinGenerator.TABLE_SIZE, 0, GL11.GL_RED, GL_FLOAT, table);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		
 	}
 
 	private void initVAOs() {

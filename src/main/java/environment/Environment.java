@@ -30,7 +30,7 @@ public abstract class Environment implements IDrawable {
 	protected Topology topology;
 	protected double width, height;
 	protected Random seedRand;
-	private long tickNumber;
+	public long tickNumber;
 	
 	public List<? extends SenseSystem> sense_systems;
 	public List<? extends ActionSystem> action_systems;
