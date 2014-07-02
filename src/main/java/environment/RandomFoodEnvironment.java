@@ -97,6 +97,7 @@ public class RandomFoodEnvironment extends Environment {
 		sense_systems = Arrays.asList();
 		action_systems = Arrays.asList(
 				new Accelerate(this, 0),
-				new Turn(this, 1));
+				new Turn(this, 1, Turn.Direction.LEFT),
+				new Turn(this, 2, Turn.Direction.RIGHT));
 	}
 }

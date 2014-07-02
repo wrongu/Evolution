@@ -89,4 +89,8 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public double getDirY() {
 		return body.getDirY();
 	}
+	
+	public void addTurn(double dTurn) {
+		body.addTurn(dTurn);
+	}
 }
