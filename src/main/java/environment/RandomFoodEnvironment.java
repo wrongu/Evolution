@@ -10,6 +10,7 @@ import bio.organisms.brain.actions.Attack;
 import bio.organisms.brain.actions.Mitosis;
 import bio.organisms.brain.actions.Turn;
 import bio.organisms.brain.senses.EnergySense;
+import bio.organisms.brain.senses.Pain;
 import environment.generators.IGenerator;
 import environment.generators.PerlinGenerator;
 
@@ -98,7 +99,8 @@ public class RandomFoodEnvironment extends Environment {
 	protected void initSensesAndActions() {
 		// make action and sense systems
 		sense_systems = Arrays.asList(
-				new EnergySense(this,0));
+				new EnergySense(this,0),
+				new Pain(this,1));
 		action_systems = Arrays.asList(
 				new Accelerate(this, 0),
 				new Turn(this, 1, Turn.Direction.LEFT),

@@ -27,7 +27,7 @@ public class Turn extends ActionSystem {
 			if(orgo instanceof SimpleCircleOrganism){
 				SimpleCircleOrganism sco = (SimpleCircleOrganism) orgo;
 				double neuro = sco.getBrainOutput(output_id);
-				double energy = dt * POWER_PER_BRAIN_OUTPUT * neuro;
+				double energy = dt * POWER_PER_BRAIN_OUTPUT * neuro * sco.getAgingMultiplier();
 				sco.useEnergy(energy, "Turn");
 				double strength = dt * STRENGTH_PER_BRAIN_OUTPUT * neuro;
 //				double speed = sco.getSpeed();

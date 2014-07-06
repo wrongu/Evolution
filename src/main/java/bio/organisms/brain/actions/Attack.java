@@ -9,7 +9,6 @@ import bio.organisms.brain.ActionSystem;
 public class Attack extends ActionSystem{
 	
 	private double range = Config.instance.getDouble("SCO_EFFECT_RANGE");
-	private double foodOnKill = Config.instance.getDouble("SCO_ENERGY_ON_DEATH");
 
 	public Attack(Environment e, int id) {
 		super(e, id, Config.instance.getDouble("ACT_POWER_PER_ATTACK"), Config.instance.getDouble("SCO_ATTACK_STRENGTH"));
@@ -33,7 +32,7 @@ public class Attack extends ActionSystem{
 				double brainOutput = sco.getBrainOutput(output_id);
 				sco.setAttackOutput(brainOutput);
 				double attackPower = POWER_PER_BRAIN_OUTPUT*brainOutput;
-				org.useEnergy(attackPower*dt, "Attack");
+				org.useEnergy(attackPower*dt*sco.getAgingMultiplier(), "Attack");
 				double attackStrength = STRENGTH_PER_BRAIN_OUTPUT*brainOutput;
 				
 				// Adds attackers to prey.
