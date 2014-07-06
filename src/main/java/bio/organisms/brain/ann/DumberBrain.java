@@ -180,6 +180,14 @@ public class DumberBrain  implements IBrain {
 		private static final String ALTER_REST = "rest";
 		private static final String ALTER_DECAY = "dec";
 		private static final String ALTER_SIGMOID = "exp";
+		
+		private static final double MUT_ADD_NEURON = Config.instance.getDouble("DUMBER_MUT_ADD_NEURON");
+		private static final double MUT_DEL_NEURON = Config.instance.getDouble("DUMBER_MUT_DEL_NEURON");
+		private static final double MUT_ALTER_CONNECTION = Config.instance.getDouble("DUMBER_MUT_ALTER_CONNECTION");
+		private static final double MUT_ALTER_THRESHOLD = Config.instance.getDouble("DUMBER_MUT_ALTER_THRESHOLD");
+		private static final double MUT_ALTER_REST = Config.instance.getDouble("DUMBER_MUT_ALTER_REST");
+		private static final double MUT_ALTER_DECAY = Config.instance.getDouble("DUMBER_MUT_ALTER_DECAY");
+		private static final double MUT_ALTER_SIGMOID = Config.instance.getDouble("DUMBER_MUT_ALTER_SIGMOID");
 
 		// copy of relevant (mutable) values in the DumberBrain
 		private DoubleMatrix weightMatrix, thresholdVector, restVector;
@@ -200,6 +208,14 @@ public class DumberBrain  implements IBrain {
 			this.o = o;
 			this.exp = 3.0;
 			this.decay = 0.3;
+			
+			setMutationRate(ADD_NEURON, MUT_ADD_NEURON);
+			setMutationRate(DEL_NEURON, MUT_DEL_NEURON);
+			setMutationRate(ALTER_CONNECTION, MUT_ALTER_CONNECTION);
+			setMutationRate(ALTER_THRESHOLD, MUT_ALTER_THRESHOLD);
+			setMutationRate(ALTER_REST, MUT_ALTER_REST);
+			setMutationRate(ALTER_DECAY, MUT_ALTER_DECAY);
+			setMutationRate(ALTER_SIGMOID, MUT_ALTER_SIGMOID);
 		}
 		
 		public BrainGene(int s, int o, Random r){
@@ -226,26 +242,57 @@ public class DumberBrain  implements IBrain {
 		
 		private void delNeuron(int which){
 			assert(0 <= which && which < i);
-			i--;
 			// Make a new matrix to hold the data
-			DoubleMatrix shrink = new DoubleMatrix(i+o, i+s);
+			DoubleMatrix shrink = new DoubleMatrix(i+o-1, i+s-1);
+			DoubleMatrix shrinkVertically = new DoubleMatrix(i+o-1, i+s);
+			
+			// First shrink vertically...
+			if(which > 0) {
+				shrinkVertically.put(
+						RangeUtils.interval(0,which),
+						RangeUtils.all(),
+						weightMatrix.getRange(0,which,0,i+s));
+			}
+			shrinkVertically.put(
+					RangeUtils.interval(which,i+o-1),
+					RangeUtils.all(),
+					weightMatrix.getRange(which+1,i+o,0,i+s));
+			
+			// ...then shrink horizontally.
+			if(which > 0) {
+				shrink.put(
+						RangeUtils.all(),
+						RangeUtils.interval(0,which),
+						shrinkVertically.getRange(0,i+o-1,0,which));
+			}
+			shrink.put(
+					RangeUtils.all(),
+					RangeUtils.interval(which,i+s-1),
+					shrinkVertically.getRange(0,i+o-1,which+1,i+s));
+			
+			// Put the result into the weight matrix and decrement i.
+			weightMatrix = shrink;
+			i--;
+			
 			// Copy in 4 quadrants of data that are split by del_ind
-			shrink.put(
-					RangeUtils.interval(0, which-1),
-					RangeUtils.interval(0, which-1),
-					weightMatrix.getRange(0, which-1, 0, which-1));
-			shrink.put(
-					RangeUtils.interval(which+1, i+o),
-					RangeUtils.interval(0, which-1),
-					weightMatrix.getRange(which+1, i+o, 0, which-1));
-			shrink.put(
-					RangeUtils.interval(0, which-1),
-					RangeUtils.interval(which+1, i+s),
-					weightMatrix.getRange(0, which-1, which+1, i+s));
-			shrink.put(
-					RangeUtils.interval(which+1, i+o),
-					RangeUtils.interval(which+1, i+s),
-					weightMatrix.getRange(which+1, i+o, which+1, i+s));
+//			shrink.put(
+//					RangeUtils.interval(0, which-1),
+//					RangeUtils.interval(0, which-1),
+//					weightMatrix.getRange(0, which-1, 0, which-1));
+//			shrink.put(
+//					RangeUtils.interval(which, i+o-1),
+//					RangeUtils.interval(0, which-1),
+//					weightMatrix.getRange(which+1, i+o, 0, which-1));
+//			shrink.put(
+//					RangeUtils.interval(0, which-1),
+//					RangeUtils.interval(which, i+s-1),
+//					weightMatrix.getRange(0, which-1, which+1, i+s));
+//			shrink.put(
+//					RangeUtils.interval(which, i+o-1),
+//					RangeUtils.interval(which, i+s-1),
+//					weightMatrix.getRange(which+1, i+o, which+1, i+s));
+//			weightMatrix = shrink;
+//			i--;
 		}
 		
 		private void alterConnection(int fro, int to, double val){
@@ -319,6 +366,10 @@ public class DumberBrain  implements IBrain {
 				int del_ind = r.nextInt(i);
 				delNeuron(del_ind);
 			}
+			// Reinitialize threshold and rest vectors after resizing weight matrix.
+			thresholdVector = DoubleMatrix.zeros(o+i, 1);
+			restVector = DoubleMatrix.zeros(o+i, 1);
+			
 			// CHANGE CONNECTION
 			for(int fro = 0; fro < i+s; fro++){
 				for(int to = 0; to < i+o; to++){

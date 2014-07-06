@@ -159,7 +159,7 @@ public class RenderGL {
 				instance_data.put((float) o.getY());
 //				instance_data.put(0f);
 				instance_data.put(dir);
-				instance_data.put((float) ((SimpleCircleOrganism)o).getAttackPower());
+				instance_data.put((float) ((SimpleCircleOrganism)o).getAttackOutput());
 				instance_data.flip();
 				glBufferSubData(GL_UNIFORM_BUFFER, 0, instance_data);
 				glDrawArrays(GL_LINES, 0, 2*ATTACK_SPIKES);

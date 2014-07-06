@@ -22,7 +22,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	private VeryTinyCar body;
 	/** the "reach" of the organism for attack, mate, touch, etc. */
 	private double range;
-	private double attack;
+	private double attackOutput;
 	private HashMap<SimpleCircleOrganism,Double> attackers;
 
 	public SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
@@ -100,42 +100,57 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		body.addTurn(dTurn);
 	}
 	
-	public void setAttackPower(double attackPower) {
-		attack = attackPower;
+	public void setAttackOutput(double attackOutput) {
+		this.attackOutput = attackOutput;
 	}
 	
-	public double getAttackPower() {
-		return attack;
+	public double getAttackOutput() {
+		return attackOutput;
 	}
 	
-	public void addAttacker(SimpleCircleOrganism attacker, double attackEffect) {
-		attackers.put(attacker,attackEffect);
+	public void addAttacker(SimpleCircleOrganism attacker, double attackDamage) {
+		attackers.put(attacker,attackDamage);
+		this.useEnergy(attackDamage, "Damage");
 	}
 	
-	public SimpleCircleOrganism getGreatestAttacker() {
-		double maxAttack = 0;
-		SimpleCircleOrganism maxAttacker = null;
-		
-		for(Entry<SimpleCircleOrganism,Double> pair : attackers.entrySet()){
-			if(maxAttacker == null || maxAttack < pair.getValue()) {
-				maxAttack = pair.getValue();
-				maxAttacker = pair.getKey();
-			}
-		}
-		
-		return maxAttacker;
-	}
+//	public SimpleCircleOrganism getGreatestAttacker() {
+//		double maxAttack = 0;
+//		SimpleCircleOrganism maxAttacker = null;
+//		
+//		for(Entry<SimpleCircleOrganism,Double> pair : attackers.entrySet()){
+//			if(maxAttacker == null || maxAttack < pair.getValue()) {
+//				maxAttack = pair.getValue();
+//				maxAttacker = pair.getKey();
+//			}
+//		}
+//		
+//		return maxAttacker;
+//	}
 	
-	public void resolveAttacks() {
-		double damage = 0;
-		for(Double attack : attackers.values()) {
-			damage += attack;
-		}
-		this.useEnergy(damage, "Damage");
-	}
+//	public void resolveAttacks() {
+//		double damage = 0;
+//		for(Double attack : attackers.values()) {
+//			damage += attack;
+//		}
+//		this.useEnergy(damage, "Damage");
+//	}
 	
 	public void clearAttackers() {
 		attackers.clear();
 	}
 	
+	@Override
+	public void onDeath() {
+		// Distribute food to victorious predators.
+		double totalDamageThisTurn = 0;
+		for(Double damage : attackers.values()) {
+			totalDamageThisTurn += damage;
+		}
+		if(totalDamageThisTurn > 0) {
+			for(Entry<SimpleCircleOrganism,Double> entry : attackers.entrySet()) {
+				entry.getKey().feed(ENERGY_ON_DEATH*entry.getValue()/totalDamageThisTurn);
+			}
+		}
+		attackers.clear();
+	}
 }
