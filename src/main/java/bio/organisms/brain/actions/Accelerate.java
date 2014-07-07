@@ -22,7 +22,7 @@ public class Accelerate extends ActionSystem {
 				SimpleCircleOrganism sco = (SimpleCircleOrganism) orgo;
 				double neuro = sco.getBrainOutput(output_id);
 				double energy = dt * POWER_PER_BRAIN_OUTPUT * neuro;
-				sco.useEnergy(energy, "Accelerate");
+				sco.useEnergy(energy*sco.getAgingMultiplier(), "Accelerate");
 				double strength = dt * STRENGTH_PER_BRAIN_OUTPUT * neuro;
 				double ux = sco.getDirX();
 				double uy = sco.getDirY();

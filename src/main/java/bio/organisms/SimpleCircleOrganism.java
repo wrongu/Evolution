@@ -2,6 +2,9 @@ package bio.organisms;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import applet.Config;
 import environment.Environment;
@@ -12,6 +15,8 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	public static final double DEFAULT_MASS = Config.instance.getDouble("SCO_MASS");
 	public static final double DEFAULT_RANGE = Config.instance.getDouble("SCO_EFFECT_RANGE");
 	public static final double ENERGY_ON_DEATH = Config.instance.getDouble("SCO_ENERGY_ON_DEATH");
+	public static final double AGING_LATENCY = Config.instance.getDouble("AGING_LATENCY");
+	public static final double AGING_SPEED = Config.instance.getDouble("AGING_SPEED");
 
 	// Graphics
 	private static final Color DRAW_COLOR = new Color(.8f, .3f, .2f);
@@ -19,11 +24,15 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	private VeryTinyCar body;
 	/** the "reach" of the organism for attack, mate, touch, etc. */
 	private double range;
+	private double totalDamageThisTurn;
+	private double attackOutput;
+	private HashMap<SimpleCircleOrganism,Double> attackers;
 
 	public SimpleCircleOrganism(Environment e, double init_energy, double x, double y) {
 		super(e, null, init_energy, x, y);
 		body = new VeryTinyCar(DEFAULT_MASS, 0.0, x, y, e.getRandom().nextDouble());
 		range = DEFAULT_RANGE;
+		attackers = new HashMap<SimpleCircleOrganism,Double>();
 	}
 
 	public AbstractOrganism beget(Environment e, Object o) {
@@ -92,5 +101,69 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	
 	public void addTurn(double dTurn) {
 		body.addTurn(dTurn);
+	}
+	
+	public void setAttackOutput(double attackOutput) {
+		this.attackOutput = attackOutput;
+	}
+	
+	public double getAttackOutput() {
+		return attackOutput;
+	}
+	
+	public void addAttacker(SimpleCircleOrganism attacker, double attackDamage) {
+		attackers.put(attacker,attackDamage);
+		this.useEnergy(attackDamage, "Damage");
+	}
+	
+//	public SimpleCircleOrganism getGreatestAttacker() {
+//		double maxAttack = 0;
+//		SimpleCircleOrganism maxAttacker = null;
+//		
+//		for(Entry<SimpleCircleOrganism,Double> pair : attackers.entrySet()){
+//			if(maxAttacker == null || maxAttack < pair.getValue()) {
+//				maxAttack = pair.getValue();
+//				maxAttacker = pair.getKey();
+//			}
+//		}
+//		
+//		return maxAttacker;
+//	}
+	
+//	public void resolveAttacks() {
+//		double damage = 0;
+//		for(Double attack : attackers.values()) {
+//			damage += attack;
+//		}
+//		this.useEnergy(damage, "Damage");
+//	}
+	
+	public void clearAttackers() {
+		attackers.clear();
+	}
+	
+	@Override
+	public void onDeath() {
+		// Distribute food to victorious predators.
+		totalDamageThisTurn = getDamageThisTurn();
+		//totalDamageLastTurn = totalDamageThisTurn;
+		if(totalDamageThisTurn > 0) {
+			for(Entry<SimpleCircleOrganism,Double> entry : attackers.entrySet()) {
+				entry.getKey().feed(ENERGY_ON_DEATH*entry.getValue()/totalDamageThisTurn);
+			}
+		}
+		attackers.clear();
+	}
+	
+	public double getAgingMultiplier() {
+		return age > AGING_LATENCY ? (AGING_SPEED*(age - AGING_LATENCY) + 1.0) : 1.0;
+	}
+	
+	public double getDamageThisTurn() {
+		double totalDamageThisTurn = 0;
+		for(Double damage : attackers.values()) {
+			totalDamageThisTurn += damage;
+		}
+		return totalDamageThisTurn;
 	}
 }

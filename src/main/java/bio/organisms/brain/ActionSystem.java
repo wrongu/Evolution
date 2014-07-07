@@ -18,4 +18,6 @@ public abstract class ActionSystem {
 	}
 	
 	public abstract void performAll(double dt);
+	
+	public int getID() { return output_id; }
 }

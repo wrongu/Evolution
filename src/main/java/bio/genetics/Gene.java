@@ -9,7 +9,6 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 import applet.Config;
-
 import environment.Environment;
 
 public abstract class Gene<T> {
@@ -26,6 +25,10 @@ public abstract class Gene<T> {
 		for(String k: keys){
 			this.mutation_rates.put(k, 0.0);
 		}
+	}
+	
+	protected final void setMutationRate(String key, double value) {
+		this.mutation_rates.put(key, value);
 	}
 	
 	public final Gene<T> clone(){
@@ -55,7 +58,7 @@ public abstract class Gene<T> {
 	}
 	
 	/**
-	 * Mutates and returns a *copy* of this gene
+	 * Returns a mutated *copy* of this gene
 	 */
 	public Gene<T> mutate(Random r){
 		Gene<T> child = this.clone();

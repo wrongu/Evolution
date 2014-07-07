@@ -82,6 +82,7 @@ public abstract class Environment implements IDrawable {
 		for(Iterator<AbstractOrganism> i = grid.iterator(); i.hasNext();) {
 			AbstractOrganism o = i.next();
 			if(! o.is_alive()){
+				o.onDeath(); // Do dead stuff, like feeding predators.
 				i.remove();
 				o.print_energy_stats();
 			}
