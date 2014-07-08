@@ -44,7 +44,7 @@ public class TimeVaryingRFE extends RandomFoodEnvironment {
 		double food2 = this.next_generator.terrainValue(o.getX(), o.getY())*food_energy;
 		double fade = getFade();
 		double food = food1 * (1.0-fade) + food2 * fade;
-		int numberNearby = grid.getInDisk(o.getX(), o.getY(), food_radius).size();
+		int numberNearby = grid.getInDisk(o.getX(), o.getY(), FOOD_RADIUS).size();
 		o.feed(food/numberNearby);
 	}
 

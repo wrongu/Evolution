@@ -20,7 +20,7 @@ public class Mitosis extends ActionSystem{
 			if(org instanceof SimpleCircleOrganism) {
 				SimpleCircleOrganism sco = (SimpleCircleOrganism)org;
 				
-				if(sco.getBrainOutput(output_id) > MITOSIS_THRESHOLD ) {
+				if(env.getRandom().nextDouble() < sco.getBrainOutput(output_id) && sco.getEnergy() > SimpleCircleOrganism.ENERGY_ON_DEATH) {
 					/*
 					 * Okay here is where we have options.
 					 * 1. Have the parent give birth to offsping - age is not reset.
@@ -32,8 +32,8 @@ public class Mitosis extends ActionSystem{
 					 */
 					SimpleCircleOrganism offspring = (SimpleCircleOrganism) sco.beget(env, null);
 					
-					if(offspring.is_alive())
-						env.addOrganism(offspring);
+					// if(offspring.is_alive())
+					env.addOrganism(offspring);
 				}
 			}
 		}

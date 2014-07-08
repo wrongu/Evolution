@@ -36,8 +36,8 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 	}
 
 	public AbstractOrganism beget(Environment e, Object o) {
-		this.useEnergy((this.energy + ENERGY_ON_DEATH)/2, "Child Split");
 		SimpleCircleOrganism child = new SimpleCircleOrganism(env, (this.energy - ENERGY_ON_DEATH)/2, x, y);
+		this.useEnergy((this.energy + ENERGY_ON_DEATH)/2, "Child Split");
 		child.brain = brain.beget(e, child);
 //		this.age = 0;
 		return child;

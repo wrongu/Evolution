@@ -177,7 +177,7 @@ public class Grid<T extends Entity> implements Iterable<T> {
 						for(T e : c) {
 							double dx = e.getX()/CHUNK_SIZE - x;
 							double dy = e.getY()/CHUNK_SIZE - y;
-							if(dx*dx + dy*dy < r*r) {
+							if(dx*dx + dy*dy <= r*r) {
 								ents.add(e);
 							}
 						}

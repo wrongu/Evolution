@@ -29,7 +29,7 @@ public class RandomFoodEnvironment extends Environment {
 	private static final double SPAWN_RADIUS = 50;
 	private static final double TAPER = Config.instance.getDouble("PERLIN_TAPER");
 
-	protected double food_radius = 2*SimpleCircleOrganism.DEFAULT_RANGE;
+	protected static final double FOOD_RADIUS = Config.instance.getDouble("SCO_FOOD_SHARE_RANGE");
 	
 	public RandomFoodEnvironment(double energy_per_unit_food, long seed){
 		super(seed);
@@ -77,7 +77,7 @@ public class RandomFoodEnvironment extends Environment {
 	
 	protected void feed(AbstractOrganism o){
 		double food = this.generator.terrainValue(o.getX(), o.getY())*food_energy;
-		int numberNearby = grid.getInDisk(o.getX(), o.getY(), food_radius).size();
+		int numberNearby = grid.getInDisk(o.getX(), o.getY(), FOOD_RADIUS).size();
 		o.feed(food/numberNearby);
 	}
 	

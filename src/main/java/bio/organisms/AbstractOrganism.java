@@ -13,7 +13,8 @@ import environment.Environment;
 
 public abstract class AbstractOrganism extends Entity implements IGeneCarrier<AbstractOrganism, Object>{
 	
-	private static final double FEEDING_CONSTANT = 1.0/Config.instance.getDouble("FEEDING_CURVATURE");
+	private static final double FEEDING_CONSTANT = Config.instance.getDouble("FEEDING_CURVATURE");
+	private static final double ENERGY_CAP = Config.instance.getDouble("ENERGY_CAP");
 	
 	protected Gene<? extends AbstractOrganism> gene;
 	protected IBrain brain;
@@ -39,8 +40,11 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	
 	public void feed(double food_energy){
 		assert(food_energy >= 0.0);
-		double curveDeriv = FEEDING_CONSTANT/(this.energy/2 + FEEDING_CONSTANT);
+		double curveDeriv = 1/(FEEDING_CONSTANT*this.energy/2 + 1);
 		this.energy += curveDeriv*food_energy;
+		if(ENERGY_CAP > 0 && this.energy > ENERGY_CAP) {
+			this.energy = ENERGY_CAP;
+		}
 	}
 	
 	public final void tick(){
