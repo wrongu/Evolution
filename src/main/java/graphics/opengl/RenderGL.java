@@ -31,7 +31,6 @@ import static org.lwjgl.opengl.GL31.*;
 import environment.Environment;
 import environment.TimeVaryingRFE;
 import environment.generators.PerlinGenerator;
-import graphics.Camera;
 
 public class RenderGL {
 
@@ -40,7 +39,7 @@ public class RenderGL {
 	private int width, height;
 	private boolean[] keyboard;
 	private int[] mouse_buttons;
-	private double camera_sensitivity;
+	private float camera_sensitivity_pan, camera_sensitivity_zoom;
 	
 	// allocate once
 	private FloatBuffer mat4x4;
@@ -66,7 +65,8 @@ public class RenderGL {
 		theEnvironment = env;
 		width = w;
 		height = h;
-		camera_sensitivity = Config.instance.getDouble("CAMERA_SENSETIVITY");
+		camera_sensitivity_pan = Config.instance.getFloat("CAMERA_SENSETIVITY_PAN");
+		camera_sensitivity_zoom = Config.instance.getFloat("CAMERA_SENSETIVITY_ZOOM");
 		// initialize lwjgl display
 		try {
 			Display.setParent(canvas);
@@ -118,7 +118,7 @@ public class RenderGL {
 		mat4x4.flip();
 		
 		// get all organisms to render (all that are within the camera's bounding box)
-		LinkedList<AbstractOrganism> onscreen_organisms = theEnvironment.getInBox(camera.getWorldBounds((float)(width+2*SimpleCircleOrganism.DEFAULT_RANGE), (float)(height+2*SimpleCircleOrganism.DEFAULT_RANGE)));
+		LinkedList<AbstractOrganism> onscreen_organisms = theEnvironment.getInBox(camera.getWorldBoundsBuffer(width, height, (float) SimpleCircleOrganism.DEFAULT_RANGE)); 
 	
 		// draw kites
 		pOrgoColorAnimate.use();
@@ -195,13 +195,13 @@ public class RenderGL {
 	}
 
 	public void moveCamera() {
-		double dx = 0.0, dy = 0.0;
-		if(keyboard[0]) dy += camera_sensitivity;
-		if(keyboard[1]) dy -= camera_sensitivity;
-		if(keyboard[2]) dx -= camera_sensitivity;
-		if(keyboard[3]) dx += camera_sensitivity;
-		camera.shift(dx, dy);
-		camera.zoom((double) mouse_buttons[1] * 0.005 * camera_sensitivity);
+		float dx = 0f, dy = 0f;
+		if(keyboard[0]) dy += camera_sensitivity_pan;
+		if(keyboard[1]) dy -= camera_sensitivity_pan;
+		if(keyboard[2]) dx -= camera_sensitivity_pan;
+		if(keyboard[3]) dx += camera_sensitivity_pan;
+		camera.shiftClipSpace(dx, dy);
+		camera.zoom((double) mouse_buttons[1] * 0.001 * camera_sensitivity_zoom);
 	}
 
 	private void initGL(){
