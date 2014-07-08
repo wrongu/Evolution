@@ -137,4 +137,8 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 	public void setBrainInput(int sense_id, double value){
 		this.brain.setInput(sense_id, value);
 	}
+	
+	public int getAgeTicks() {
+		return age;
+	}
 }
