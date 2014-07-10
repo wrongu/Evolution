@@ -30,9 +30,7 @@ public class Mitosis extends ActionSystem{
 					 * 1. Have the parent give birth to offsping - age is not reset.
 					 * 2. Have parent birth offspring and reset parent's age.
 					 * 3. Delete parent and produce two new offspring.
-					 * Right now, we are set at 1, because it's easiest. We will
-					 * re-address this when we have a better implementation for
-					 * age.
+					 * Right now, we are set at 2.
 					 */
 					SimpleCircleOrganism offspring = (SimpleCircleOrganism) sco.beget(env, null);
 					

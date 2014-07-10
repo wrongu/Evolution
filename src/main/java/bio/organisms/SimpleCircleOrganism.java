@@ -39,7 +39,7 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		SimpleCircleOrganism child = new SimpleCircleOrganism(env, (this.energy - ENERGY_ON_DEATH)/2, x, y);
 		this.useEnergy((this.energy + ENERGY_ON_DEATH)/2, "Child Split");
 		child.brain = brain.beget(e, child);
-//		this.age = 0;
+		this.age = 0;
 		return child;
 	}
 
@@ -115,28 +115,6 @@ public class SimpleCircleOrganism extends AbstractOrganism {
 		attackers.put(attacker,attackDamage);
 		this.useEnergy(attackDamage, "Damage");
 	}
-	
-//	public SimpleCircleOrganism getGreatestAttacker() {
-//		double maxAttack = 0;
-//		SimpleCircleOrganism maxAttacker = null;
-//		
-//		for(Entry<SimpleCircleOrganism,Double> pair : attackers.entrySet()){
-//			if(maxAttacker == null || maxAttack < pair.getValue()) {
-//				maxAttack = pair.getValue();
-//				maxAttacker = pair.getKey();
-//			}
-//		}
-//		
-//		return maxAttacker;
-//	}
-	
-//	public void resolveAttacks() {
-//		double damage = 0;
-//		for(Double attack : attackers.values()) {
-//			damage += attack;
-//		}
-//		this.useEnergy(damage, "Damage");
-//	}
 	
 	public void clearAttackers() {
 		attackers.clear();

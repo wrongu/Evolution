@@ -78,7 +78,8 @@ public class RandomFoodEnvironment extends Environment {
 	protected void feed(AbstractOrganism o){
 		double food = this.generator.terrainValue(o.getX(), o.getY())*food_energy;
 		int numberNearby = grid.getInDisk(o.getX(), o.getY(), FOOD_RADIUS).size();
-		o.feed(food/numberNearby);
+		double attackMult = 1 - ((SimpleCircleOrganism)o).getAttackOutput();
+		o.feed(attackMult*food/numberNearby);
 	}
 	
 	public void spawnRandomOrganism() {

@@ -6,7 +6,7 @@ import bio.organisms.AbstractOrganism;
 
 public interface IBrain extends IGeneCarrier<IBrain, AbstractOrganism>{
 
-	public void tick();
+	public double tick();
 	
 	public void setInput(int id, double val);
 	

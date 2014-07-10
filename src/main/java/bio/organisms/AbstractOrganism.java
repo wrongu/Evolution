@@ -54,7 +54,8 @@ public abstract class AbstractOrganism extends Entity implements IGeneCarrier<Ab
 			// have been refactored to be more like ECS systems, but each organism
 			// still owns its own brain. senses and actions are handled globally
 			// outside this function.
-			this.brain.tick();
+			double brainEnergy = this.brain.tick();
+			useEnergy(brainEnergy, "Thinking");
 		}
 		age++;
 	}

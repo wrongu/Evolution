@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import utils.Util;
 import applet.Config;
 import environment.Environment;
 
@@ -47,10 +48,10 @@ public abstract class Gene<T> {
 		else return 0.0;
 	}
 	
-	private final void metaMutate(Random r){
+	private final void metaMutate(){
 		for(Entry<String, Double> pair : mutation_rates.entrySet()){
 			double val = pair.getValue();
-			double unit_random = r.nextDouble() - r.nextDouble();
+			double unit_random = Util.random.nextGaussian();
 			val *= Math.exp(unit_random * META_MUTATION_RATE);
 			val = Math.min(Math.max(0.0, val), 1.0); // clamp between 0 and 1
 			pair.setValue(val);
@@ -60,17 +61,17 @@ public abstract class Gene<T> {
 	/**
 	 * Returns a mutated *copy* of this gene
 	 */
-	public Gene<T> mutate(Random r){
+	public Gene<T> mutate(){
 		Gene<T> child = this.clone();
-		child.metaMutate(r);
-		child._mutate(r);
+		child.metaMutate();
+		child._mutate();
 		return child;
 	}
 	
 	/** make a copy and alter its parameters randomly
 	 * subclasses should call super.metaMutate() */
 	// TODO the abstract/final trick so that subclasses aren't responsible for super.metaMutate()
-	protected abstract void _mutate(Random r);
+	protected abstract void _mutate();
 	
 	public abstract T create(double posx, double posy, Environment e);
 	
